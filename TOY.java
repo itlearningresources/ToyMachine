@@ -66,9 +66,13 @@ import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
 public class TOY { 
-    private int pc;                     // program counter
-    private int[] reg = new int[16];    // 16 registers
-    private int[] mem = new int[256];   // 256 main memory locations
+    private StringBuffer sb = new StringBuffer(120);
+    private final int STACKSIZE = 32;          // stack size in memory locations
+    private int pc;                            // program counter
+    private int stkptr;                        // stack pointer
+    private int[] reg = new int[16];           // 16 registers
+    private int[] mem = new int[0xFFFF];       // main memory locations
+    private int[] stk = new int[STACKSIZE];    // stack memory locations
 
     // create a new TOY VM and load with program from specified file
     public TOY(String filename) {
@@ -76,27 +80,71 @@ public class TOY {
     }
 
     public TOY(String filename, int pc) {
+        final int PROGRAMMEMORY=16;
+        int loadptr=PROGRAMMEMORY;
+
+        for (int i=0;i<256;i++) mem[i]=i;
         this.pc = pc;
+        this.stkptr = 0;
         In in = new In(filename);
 
+
        /****************************************************************
+        *  Read Program File
         *  Read in memory location and instruction.         
         *  A valid input line consists of 2 hex digits followed by a 
         *  colon, followed by any number of spaces, followed by 4
         *  hex digits. The rest of the line is ignored.
         ****************************************************************/
-        String regexp = "^([0-9A-Fa-f]{2}):[ \t]*([0-9A-Fa-f]{4})";
+        String regexpm = "^([0-9A-Fa-f]{2}):[ \t]*([0-9A-Fa-f]{4})";
+        String regexp = "^[ \t]*([0-9A-Fa-f]{4})[ \t]*([0-9A-Fa-f]{4})";
         String asmregexp = "^([0-9A-Fa-f]{2}):[ \t]*([A-Fa-f]{3})";
+        String memregexp = "^(MEM)[ \t]*([0-9A-Fa-f]{4})";
+        String wordregexp = "^([0-9A-Fa-f]{4}$)";
+        String dwordregexp = "^([0-9A-Fa-f]{4})[ \t]*([0-9A-Fa-f]{4})$";
         Pattern pattern = Pattern.compile(regexp);
         Pattern asmpattern = Pattern.compile(asmregexp);
+        Pattern mempattern = Pattern.compile(memregexp);
+        Pattern wordpattern = Pattern.compile(wordregexp);
+        Pattern dwordpattern = Pattern.compile(dwordregexp);
+
         while (in.hasNextLine()) {
             String line = in.readLine();
             Matcher matcher = pattern.matcher(line);
             Matcher asmmatcher = asmpattern.matcher(line);
+            Matcher memmatcher = mempattern.matcher(line);
+            Matcher wordmatcher = wordpattern.matcher(line);
+            Matcher dwordmatcher = dwordpattern.matcher(line);
+
+            if (memmatcher.find()) {
+                StdOut.println(memmatcher.group(1));
+                StdOut.println(memmatcher.group(2));
+                loadptr = fromHex(memmatcher.group(2));
+                continue;
+            }
+            if (wordmatcher.find()) {
+                mem[loadptr] = fromHex(wordmatcher.group(1));
+                loadptr++;
+                continue;
+            }
+            if (dwordmatcher.find()) {
+                mem[loadptr] = fromHex(dwordmatcher.group(1));
+                loadptr++;
+                mem[loadptr] = fromHex(dwordmatcher.group(2));
+                loadptr++;
+                continue;
+            }
+
             if (matcher.find()) {
-                int addr = fromHex(matcher.group(1));
-                int inst = fromHex(matcher.group(2));
+                //int addr = fromHex(matcher.group(1));
+                int addr = loadptr;
+                //int inst = fromHex(matcher.group(2));
+                int inst = fromHex(matcher.group(1));
                 mem[addr] = inst;
+                inst = fromHex(matcher.group(1));
+                mem[addr++] = inst;
+                loadptr++;
+                loadptr++;
             }
             else {
                 if (asmmatcher.find()) {
@@ -107,6 +155,8 @@ public class TOY {
                             case  "HLT": inst = 0;         break;    // halt
                             case  "ADD": inst = 1;         break;    // add
                             case  "SUB": inst = 2;         break;    // sub
+                            case  "PSH": inst = 16;        break;    // push
+                            case  "POP": inst = 17;        break;    // pop 
                         }
                     mem[addr] = inst;
                 }
@@ -178,103 +228,106 @@ public class TOY {
 
     // print core dump of TOY to standard output
     public void dump() {
+        StdOut.println("");
+        StdOut.println("Listing:");
+        StdOut.println(sb.toString());
         StdOut.println("PC:");
-        StdOut.printf("%s  %s %s %d %s\n", toHex(pc), toBinary(mem[pc]),toHex(mem[pc]), opInt(mem[pc]), opString(mem[pc]));
+        StdOut.printf("%s\n", toHex(pc) );
         StdOut.println();
         StdOut.println("Registers:");
         showreg(reg);
-        StdOut.println();
-        StdOut.println("Main memory in Binary (16 bit words):");
-        showbinary(mem);
+//      StdOut.println();
+//      StdOut.println("Main memory in Binary (16 bit words):");
+//      showbinary(mem);
         StdOut.println();
         StdOut.println("Main memory in Hex (16 bit words):");
         showhex(mem);
+        StdOut.println();
+        StdOut.println("Stack memory in Hex (16 bit words):");
+        StdOut.printf("Stack Pointer: %s\n", toHex(stkptr));
+        showhex(stk);
         StdOut.println();
     }
     static public void trace(String sz, int i) {
         System.out.println(sz + " " + toHex(i));
     }
 
-    static public int opInt(int inst) {
-            int op   = (inst >> 12) &  15;   // get opcode (bits 12-15)
-            return op;
-    }
-    static public String opString(int inst) {
-            String sz = "";
-            int op   = (inst >> 12) &  15;   // get opcode (bits 12-15)
-            switch (op) {
-                case  0: sz = "halt";               break;    // halt
-                case  1: sz = "add";                break;    // add
-                case  2: sz = "subtract";           break;    // subtract
-                case  3: sz = "bitwise and";        break;    // bitwise and
-                case  4: sz = "bitwise xor";        break;    // bitwise xor
-                case  5: sz = "shift left";         break;    // shift left
-                case  6: sz = "shft right";         break;    // shift right
-                case  7: sz = "load address";       break;    // load address
-                case  8: sz = "load";               break;    // load
-                case  9: sz = "store";              break;    // store
-                case 10: sz = "load indirect";      break;    // load indirect
-                case 11: sz = "store indirect";     break;    // store indirect
-                case 12: sz = "branch if zero";     break;    // branch if zero
-                case 13: sz = "branch if positive"; break;    // branch if positive
-                case 14: sz = "jump indirect";      break;    // jump indirect
-                case 15: sz = "jump and link";      break;    // jump and link
-            }
-            int d    = (inst >>  8) &  15;   // get dest   (bits  8-11)
-            int s    = (inst >>  4) &  15;   // get s      (bits  4- 7)
-            int t    = inst         &  15;   // get t      (bits  0- 3)
-            int addr = inst         & 255;   // get addr   (bits  0- 7)
-            return String.format("%18s",sz) + "  " + toHexShort(d) + " " + toHexShort(s) + " " + toHexShort(t) + " " + toHex(addr);
-    }
-
     public void run() {
+        int idx = 0;
 
-       StdOut.printf("%s\n", String.format("%18s %2s %2s %2s  %4s","Instruction", "D", "S", "T", "ADDR"));
+        sb.append(String.format("%26s %6s %2s %2s  %4s\n","Instruction", "D", "S", "T", "ADDR"));
         while (true) {
 
             // Fetch and parse
-            int inst = mem[pc++];            // fetch next instruction
-            //trace("INST", inst);
-            int op   = (inst >> 12) &  15;   // get opcode (bits 12-15)
-            int d    = (inst >>  8) &  15;   // get dest   (bits  8-11)
-            int s    = (inst >>  4) &  15;   // get s      (bits  4- 7)
-            int t    = inst         &  15;   // get t      (bits  0- 3)
-            int addr = inst         & 255;   // get addr   (bits  0- 7)
+            Instruction I = new Instruction(mem,pc); 
+            pc = pc + 2;
 
-            StdOut.printf("%s\n", opString(inst));
+            int inst = I.getInst();
+            int op   = I.getOp();
+            int d    = I.getD();
+            int s    = I.getS();
+            int t    = I.getT();
+            int addr = I.getAddr();
+
+            //StdOut.printf("%s  %s x%s d%d\n", I.opString(), toHex(I.getLowword()), toHexShort(I.getOp()), I.getOp());
+            sb.append(I.toString() + "\n");
+
+
             // halt
             if (op == 0) break;
 
             // stdin 
-            if ((addr == 255 && op == 8) || (reg[t] == 255 && op == 10))
-                mem[255] = fromHex(StdIn.readString());
+       //     if ((addr == 255 && op == 8) || (reg[t] == 255 && op == 10))
+       //         mem[255] = fromHex(StdIn.readString());
 
             // Execute
             switch (op) {
-                case  1: reg[d] = reg[s] +  reg[t];           break;    // add
-                case  2: reg[d] = reg[s] -  reg[t];           break;    // subtract
-                case  3: reg[d] = reg[s] &  reg[t];           break;    // bitwise and
-                case  4: reg[d] = reg[s] ^  reg[t];           break;    // bitwise xor
-                case  5: reg[d] = reg[s] << reg[t];           break;    // shift left
-                case  6: reg[d] = (short) reg[s] >> reg[t];   break;    // shift right
-                case  7: reg[d] = addr;                       break;    // load address
-                case  8: reg[d] = mem[addr];                  break;    // load
-                case  9: mem[addr] = reg[d];                  break;    // store
-                case 10: reg[d] = mem[reg[t] & 255];          break;    // load indirect
-                case 11: mem[reg[t] & 255] = reg[d];          break;    // store indirect
-                case 12: if ((short) reg[d] == 0) pc = addr;  break;    // branch if zero
-                case 13: if ((short) reg[d] >  0) pc = addr;  break;    // branch if positive
-                case 14: pc = reg[d];                         break;    // jump indirect
-                case 15: reg[d] = pc; pc = addr;              break;    // jump and link
+                case 0x01: reg[d] = reg[s] +  reg[t];           break;    // add
+                case 0x02: reg[d] = reg[s] -  reg[t];           break;    // subtract
+                case 0x03: reg[d] = reg[s] &  reg[t];           break;    // bitwise and
+                case 0x04: reg[d] = reg[s] ^  reg[t];           break;    // bitwise xor
+                case 0x05: reg[d] = reg[s] << reg[t];           break;    // shift left
+                case 0x06: reg[d] = (short) reg[s] >> reg[t];   break;    // shift right
+                case 0x07: reg[d] = addr;                       break;    // load address
+                case 0x08: reg[d] = mem[addr];                  break;    // load
+                case 0x09: mem[addr] = reg[d];                  break;    // store
+                case 0x0A: reg[d] = mem[reg[t] & 255];          break;    // load indirect
+                case 0x0B: mem[reg[t] & 255] = reg[d];          break;    // store indirect
+                case 0x0C: if ((short) reg[d] == 0) pc = addr;  break;    // branch if zero
+                case 0x0D: if ((short) reg[d] >  0) pc = addr;  break;    // branch if positive
+                case 0x0E: pc = reg[d];                         break;    // jump indirect
+                case 0x0F: reg[d] = pc; pc = addr;              break;    // jump and link
+
+                // My Instructions
+                case 0x10: stkptr++;stk[stkptr] = mem[addr];    break;    // push address
+                case 0x11: stkptr++;stk[stkptr] = reg[d];       break;    // push register
+                case 0x12: reg[d] = stk[stkptr];
+                           stkptr--; 
+                           if (stkptr<0) stkptr=0;              break;    // pop to register
+
+                case 0x13: reg[d] = reg[d] + 1;                 break;    // increment register
+                case 0x14: reg[d] = reg[d] - 1;                 break;    // decrement register
+                case 0x15: reg[d] = reg[d] << 1;                break;    // shift reg left
+                case 0x16: reg[d] = reg[d] >> 1;                break;    // shift reg right
+                case 0x17: stk[++stkptr] = pc; pc = addr;       break;    // push pc and link
+
+                case 0x50: StdOut.print(reg[d]);                break;    // reg char out
+                case 0x51: StdOut.print(mem[addr]);             break;    // mem char out
+                case 0x52: idx=addr; 
+                           while (mem[idx]!=0) {
+                               StdOut.print( String.valueOf((char) mem[idx]) );
+                               idx++;
+                           }
+                           break;                                         // string out
             }
 
             // stdout
-            if ((addr == 255 && op == 9) || (reg[t] == 255 && op == 11))
-                StdOut.println(toHex(mem[255]));
+       //  if ((addr == 255 && op == 9) || (reg[t] == 255 && op == 11))
+       //         StdOut.println(toHex(mem[255]));
 
             reg[0] = 0;                // ensure reg[0] is always 0
             reg[d] = reg[d] & 0xFFFF;  // don't let reg[d] overflow a 16-bit integer
-            pc = pc & 0xFF;            // don't let pc overflow an 8-bit integer
+            pc = pc & 0xFFFF;          // don't let pc overflow an 16-bit integer
 
         }
     }
@@ -307,7 +360,6 @@ public class TOY {
         }
 
         TOY toy = new TOY(filename, pc);
-
         if (isVerbose) {
             StdOut.println("Core Dump of TOY Before Executing");
             StdOut.println("---------------------------------------");
@@ -329,3 +381,131 @@ public class TOY {
 
     }
 }
+
+class Instruction {
+    
+    private int pc;
+    private int highword;
+    private int lowword;
+    private int inst;
+    private int op;
+    private int s;
+    private int t;
+    private int d;
+    private int addr;
+        
+    public void setPc(int n) {
+        this.pc = n;
+    }
+    public int getPc() {
+        return this.pc;
+    }
+    public void setHighword(int n) {
+        this.highword = n;
+    }
+    public int getHighword() {
+        return this.highword;
+    }
+    public void setLowword(int n) {
+        this.lowword = n;
+    }
+    public int getLowword() {
+        return this.lowword;
+    }
+    public void setInst(int n) {
+        this.inst = n;
+    }
+    public int getInst() {
+        return this.inst;
+    }
+    public void setOp(int n) {
+        this.op = n;
+    }
+    public int getOp() {
+        return this.op;
+    }
+    public void setS(int n) {
+       this.s = n;
+    }
+    public int getS() {
+        return this.s;
+    }
+    public void setD(int n) {
+        this.d = n;
+    }
+    public int getD() {
+        return this.d;
+    }
+    public void setT(int n) {
+        this.t = n;
+    }
+    public int getT() {
+        return this.t;
+    }
+    public void setAddr(int n) {
+        this.addr = n;
+    }
+    public int getAddr() {
+        return this.addr;
+    }
+    public Instruction(int[] mem, int pc) {
+            // Fetch and parse
+            setPc(pc);
+            setHighword(mem[pc++]);                   // fetch next word
+            setInst(highword); 
+            setOp( (highword >> 8)  & 0x00FF);        // get opcode (bits 12-15)
+            setD(  (highword >>  0) & 0x00FF);        // get dest  
+
+            setLowword(mem[pc++]);                    // fetch next word
+            this.s    = (lowword  >>  8) & 0x00FF;    // get s    
+            this.t    = lowword          & 0x00FF;    // get t   
+
+            this.addr = lowword          & 0xFFFF;    // get addr
+            //System.out.println(toHex(addr));System.exit(1);
+    }
+
+    public static String toHex(int n) {
+        return String.format("%04X", n & 0xFFFF);
+    }
+    // return a 2-digit hex string corresponding to 8-bit integer n
+    public static String toHexShort(int n) {
+        return String.format("%02X", n & 0xFFFF);
+    }
+    public String toString() {
+        return opString();
+    }
+    private String opString() {
+            String sz = "";
+            switch (op) {
+                case  0x00: sz = "halt";               break;    // halt
+                case  0x01: sz = "add";                break;    // add
+                case  0x02: sz = "subtract";           break;    // subtract
+                case  0x03: sz = "bitwise and";        break;    // bitwise and
+                case  0x04: sz = "bitwise xor";        break;    // bitwise xor
+                case  0x05: sz = "shift left";         break;    // shift left
+                case  0x06: sz = "shft right";         break;    // shift right
+                case  0x07: sz = "load address";       break;    // load address
+                case  0x08: sz = "load";               break;    // load
+                case  0x09: sz = "store";              break;    // store
+                case  0x0A: sz = "load indirect";      break;    // load indirect
+                case  0x0B: sz = "store indirect";     break;    // store indirect
+                case  0x0C: sz = "branch if zero";     break;    // branch if zero
+                case  0x0D: sz = "branch if pos";      break;    // branch if positive
+                case  0x0E: sz = "jump indirect";      break;    // jump indirect
+                case  0x0F: sz = "jump and link";      break;    // jump and link
+                case  0x10: sz = "push address";       break;    // stack push address
+                case  0x11: sz = "push reg";           break;    // stack push register
+                case  0x12: sz = "pop to reg";         break;    // stack pop to register
+                case  0x13: sz = "increment reg";      break;    // increment register
+                case  0x14: sz = "decrement reg";      break;    // decrement register
+                case  0x15: sz = "shift reg left";     break;    // shift reg left
+                case  0x16: sz = "shift reg right";    break;    // shift reg right
+                case  0x17: sz = "push pc and link";   break;    // push pc and link
+                case  0x50: sz = "reg char out";       break;    // reg char out
+                case  0x51: sz = "mem char out";       break;    // mem char out
+            }
+            return String.format("%s %s %s %-16s %s %s %s %s",toHex(pc),toHex(highword), toHex(lowword), sz, toHexShort(this.d),toHexShort(this.s),toHexShort(this.t), toHex(this.addr));
+    }
+
+}
+
