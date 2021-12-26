@@ -254,6 +254,7 @@ public class TOY {
 
     public void run() {
         int idx = 0;
+        int n = 0;
 
         sb.append(String.format("%26s %6s %2s %2s  %4s\n","Instruction", "D", "S", "T", "ADDR"));
         while (true) {
@@ -318,7 +319,17 @@ public class TOY {
                                StdOut.print( String.valueOf((char) mem[idx]) );
                                idx++;
                            }
-                           break;                                         // string out
+                           break;                                         // string out 16 bit
+                case 0x53: idx=addr; 
+                           boolean flip = true;
+                           n = (mem[idx] >> 8) & 0x00FF; 
+                           while (n != 0) {
+                               StdOut.print( String.valueOf((char) n) );
+                               flip = !flip; 
+                               n = (flip) ? (mem[idx] >> 8) & 0x00FF  : (mem[idx] >> 0) & 0x00FF; 
+                               if (!flip) idx++;
+                           }
+                           break;                                         // string out 8 bit
             }
 
             // stdout
@@ -361,20 +372,20 @@ public class TOY {
 
         TOY toy = new TOY(filename, pc);
         if (isVerbose) {
-            StdOut.println("Core Dump of TOY Before Executing");
-            StdOut.println("---------------------------------------");
+            StdOut.println("\nBefore Executing");
+            StdOut.println("----------------");
             toy.dump();
 
-            StdOut.println("Terminal");
-            StdOut.println("---------------------------------------");
+            StdOut.println("\nTerminal");
+            StdOut.println("--------");
         }
 
         toy.run();
 
         if (isVerbose) {
             StdOut.println();
-            StdOut.println("Core Dump of TOY After Executing");
-            StdOut.println("---------------------------------------");
+            StdOut.println("\nAfter Executing");
+            StdOut.println("---------------");
             toy.dump();
 
         }
@@ -503,6 +514,8 @@ class Instruction {
                 case  0x17: sz = "push pc and link";   break;    // push pc and link
                 case  0x50: sz = "reg char out";       break;    // reg char out
                 case  0x51: sz = "mem char out";       break;    // mem char out
+                case  0x52: sz = "string out";         break;    // string out
+                case  0x53: sz = "string out 8bit";    break;    // string out 8bit
             }
             return String.format("%s %s %s %-16s %s %s %s %s",toHex(pc),toHex(highword), toHex(lowword), sz, toHexShort(this.d),toHexShort(this.s),toHexShort(this.t), toHex(this.addr));
     }
