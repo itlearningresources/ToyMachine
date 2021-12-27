@@ -1,0 +1,5 @@
+rm -rf ../stdlib.jar
+javac -nowarn -d . *.java
+jar cf ../stdlib.jar *.class
+rm -rf *.class
+ls -l ../stdlib.jar
