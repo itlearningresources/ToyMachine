@@ -348,7 +348,7 @@ public class TOY {
        //  if ((addr == 255 && op == 9) || (reg[t] == 255 && op == 11))
        //         StdOut.println(toHex(mem[255]));
             sb.append(I.toString() + "\n");
-            StdOut.printf("%s --- %s\n", I.toString(), R.toStringVars());
+            StdOut.printf("%s -- %s -- %s\n", I.toString(), TOY.toHex(pc),R.toStringVars());
             // halt
             if (haltflag) break;
 

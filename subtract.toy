@@ -3,7 +3,7 @@ MEM 0000
 6B65
 0000
 MEM 0010
-070A 0056
+070A 0006
 070B 0001
 0C0A 0044   if (RA == 0) pc goto 44      while (a != 0) {
 020A 0A0B   RA <- RA - RB                   a = a - b;
