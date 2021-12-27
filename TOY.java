@@ -66,7 +66,9 @@ import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
 public class TOY { 
-    private StringBuffer sb = new StringBuffer(120);
+    static  StringBuffer sb = new StringBuffer(120);
+    static  StringBuffer programAsRead = new StringBuffer(1024);
+    static  Instruction lastInstruction = null;
     private final int STACKSIZE = 32;          // stack size in memory locations
     private int pc;                            // program counter
     private int stkptr;                        // stack pointer
@@ -99,9 +101,12 @@ public class TOY {
         String regexpm = "^([0-9A-Fa-f]{2}):[ \t]*([0-9A-Fa-f]{4})";
         String regexp = "^[ \t]*([0-9A-Fa-f]{4})[ \t]*([0-9A-Fa-f]{4})";
         String asmregexp = "^([0-9A-Fa-f]{2}):[ \t]*([A-Fa-f]{3})";
+
         String memregexp = "^(MEM)[ \t]*([0-9A-Fa-f]{4})";
         String wordregexp = "^([0-9A-Fa-f]{4}$)";
-        String dwordregexp = "^([0-9A-Fa-f]{4})[ \t]*([0-9A-Fa-f]{4})$";
+        String dwordregexp = "^([0-9A-Fa-f]{4})[ \t]*([0-9A-Fa-f]{4})";
+        
+        
         Pattern pattern = Pattern.compile(regexp);
         Pattern asmpattern = Pattern.compile(asmregexp);
         Pattern mempattern = Pattern.compile(memregexp);
@@ -110,23 +115,15 @@ public class TOY {
 
         while (in.hasNextLine()) {
             String line = in.readLine();
-            Matcher matcher = pattern.matcher(line);
-            Matcher asmmatcher = asmpattern.matcher(line);
+            programAsRead.append(line + "\n");
             Matcher memmatcher = mempattern.matcher(line);
-            Matcher wordmatcher = wordpattern.matcher(line);
-            Matcher dwordmatcher = dwordpattern.matcher(line);
-
             if (memmatcher.find()) {
                 StdOut.println(memmatcher.group(1));
                 StdOut.println(memmatcher.group(2));
                 loadptr = fromHex(memmatcher.group(2));
                 continue;
             }
-            if (wordmatcher.find()) {
-                mem[loadptr] = fromHex(wordmatcher.group(1));
-                loadptr++;
-                continue;
-            }
+            Matcher dwordmatcher = dwordpattern.matcher(line);
             if (dwordmatcher.find()) {
                 mem[loadptr] = fromHex(dwordmatcher.group(1));
                 loadptr++;
@@ -134,7 +131,15 @@ public class TOY {
                 loadptr++;
                 continue;
             }
+            Matcher wordmatcher = wordpattern.matcher(line);
+            if (wordmatcher.find()) {
+                mem[loadptr] = fromHex(wordmatcher.group(1));
+                loadptr++;
+                continue;
+            }
 
+            Matcher matcher = pattern.matcher(line);
+            Matcher asmmatcher = asmpattern.matcher(line);
             if (matcher.find()) {
                 //int addr = fromHex(matcher.group(1));
                 int addr = loadptr;
@@ -162,6 +167,13 @@ public class TOY {
                 }
             }
         }
+    }
+    // return a 4-digit hex string corresponding to 16-bit integer n
+    public static String toDec(int n) {
+        return String.format("%05d", n & 0xFFFF);
+    }
+    public static String toDecShort(int n) {
+        return String.format("%03d", n & 0xFFFF);
     }
     // return a 16-digit binary string corresponding to 16-bit integer n
     public static String toBinary(int n) {
@@ -252,15 +264,25 @@ public class TOY {
         System.out.println(sz + " " + toHex(i));
     }
 
-    public void run() {
+    public void run() throws Exception {
         int idx = 0;
         int n = 0;
+        Instruction I = null;
 
         sb.append(String.format("%26s %6s %2s %2s  %4s\n","Instruction", "D", "S", "T", "ADDR"));
         while (true) {
 
             // Fetch and parse
-            Instruction I = new Instruction(mem,pc); 
+               try {
+                   I = new Instruction(mem,pc); 
+               } catch (Exception e) {
+                    System.out.println("Caught Exception: "+ e.getMessage());
+                    System.out.println(TOY.programAsRead.toString());
+                    e.printStackTrace();
+                    System.exit(1);
+               } 
+
+            lastInstruction = I;
             pc = pc + 2;
 
             int inst = I.getInst();
@@ -272,6 +294,7 @@ public class TOY {
 
             //StdOut.printf("%s  %s x%s d%d\n", I.opString(), toHex(I.getLowword()), toHexShort(I.getOp()), I.getOp());
             sb.append(I.toString() + "\n");
+            StdOut.printf("%s\n", sb.toString());
 
 
             // halt
@@ -311,6 +334,7 @@ public class TOY {
                 case 0x15: reg[d] = reg[d] << 1;                break;    // shift reg left
                 case 0x16: reg[d] = reg[d] >> 1;                break;    // shift reg right
                 case 0x17: stk[++stkptr] = pc; pc = addr;       break;    // push pc and link
+                case 0x20: pc = pc;                             break;    // NOP
 
                 case 0x50: StdOut.print(reg[d]);                break;    // reg char out
                 case 0x51: StdOut.print(mem[addr]);             break;    // mem char out
@@ -346,7 +370,6 @@ public class TOY {
 
     // run the TOY simulator with specified file
     public static void main(String[] args) { 
-
         // -v or --verbose is an optional first command-line argument
         boolean isVerbose = false;
         if (args.length > 0 && (args[0].equals("-v") || args[0].equals("--verbose"))) {
@@ -380,7 +403,16 @@ public class TOY {
             StdOut.println("--------");
         }
 
-        toy.run();
+        try {
+            toy.run();
+        } catch (Exception e) {
+             StdOut.printf("%s\n", sb.toString());
+             StdOut.println(lastInstruction.toString() + "\n");
+
+             System.out.println("Caught Exception: "+ e.getMessage());
+             e.printStackTrace();
+             System.exit(1);
+        }
 
         if (isVerbose) {
             StdOut.println();
@@ -459,7 +491,8 @@ class Instruction {
     public int getAddr() {
         return this.addr;
     }
-    public Instruction(int[] mem, int pc) {
+    public Instruction(int[] mem, int pc) throws InstructionValueException {
+
             // Fetch and parse
             setPc(pc);
             setHighword(mem[pc++]);                   // fetch next word
@@ -472,9 +505,18 @@ class Instruction {
             this.t    = lowword          & 0x00FF;    // get t   
 
             this.addr = lowword          & 0xFFFF;    // get addr
+//          if (this.d > 15) throw new InstructionValueException(this, "d too big");
+//          if (this.s > 15) throw new InstructionValueException(this, "s too big");
+//          if (this.t > 15) throw new InstructionValueException(this, "t too big");
             //System.out.println(toHex(addr));System.exit(1);
     }
 
+    public static String toDec(int n) {
+        return String.format("%05d", n & 0xFFFF);
+    }
+    public static String toDecShort(int n) {
+        return String.format("%03d", n & 0xFFFF);
+    }
     public static String toHex(int n) {
         return String.format("%04X", n & 0xFFFF);
     }
@@ -504,6 +546,7 @@ class Instruction {
                 case  0x0D: sz = "branch if pos";      break;    // branch if positive
                 case  0x0E: sz = "jump indirect";      break;    // jump indirect
                 case  0x0F: sz = "jump and link";      break;    // jump and link
+
                 case  0x10: sz = "push address";       break;    // stack push address
                 case  0x11: sz = "push reg";           break;    // stack push register
                 case  0x12: sz = "pop to reg";         break;    // stack pop to register
@@ -512,13 +555,21 @@ class Instruction {
                 case  0x15: sz = "shift reg left";     break;    // shift reg left
                 case  0x16: sz = "shift reg right";    break;    // shift reg right
                 case  0x17: sz = "push pc and link";   break;    // push pc and link
+                case  0x20: sz = "NOP";                break;    // NOP
                 case  0x50: sz = "reg char out";       break;    // reg char out
                 case  0x51: sz = "mem char out";       break;    // mem char out
                 case  0x52: sz = "string out";         break;    // string out
                 case  0x53: sz = "string out 8bit";    break;    // string out 8bit
             }
-            return String.format("%s %s %s %-16s %s %s %s %s",toHex(pc),toHex(highword), toHex(lowword), sz, toHexShort(this.d),toHexShort(this.s),toHexShort(this.t), toHex(this.addr));
+            return String.format("%s %s %s %-16s %s %s %s %s - %s %s %s %s",
+            toHex(pc),toHex(highword), toHex(lowword), sz, 
+            toHexShort(this.d),toHexShort(this.s),toHexShort(this.t), toHex(this.addr),
+            toDecShort(this.d),toDecShort(this.s),toDecShort(this.t), toDec(this.addr));
     }
 
 }
-
+class InstructionValueException extends Exception {
+    public InstructionValueException(Instruction I, String msg) {
+        super(msg + "  " + I.toString());
+    }
+}
