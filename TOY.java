@@ -321,7 +321,7 @@ public class TOY {
                 case 0x15: reg[d] = reg[d] << 1;                break;    // shift reg left
                 case 0x16: reg[d] = reg[d] >> 1;                break;    // shift reg right
                 case 0x17: stk[++stkptr] = pc; pc = addr;       break;    // push pc and link
-                case 0x18: pc = addr;                           break;    // link
+                case 0x18: pc = addr;                           break;    // jump
                 case 0x20: pc = pc;                             break;    // NOP
 
                 case 0x50: StdOut.print(reg[d]);                break;    // reg char out
@@ -514,6 +514,7 @@ class Instruction {
     }
     private String opString() {
             String sz = "";
+            String szsz = "";
             switch (op) {
                 case  0x00: sz = "halt";               break;    // halt
                 case  0x01: sz = "add";                break;    // add
@@ -540,15 +541,39 @@ class Instruction {
                 case  0x15: sz = "shift reg left";     break;    // shift reg left
                 case  0x16: sz = "shift reg right";    break;    // shift reg right
                 case  0x17: sz = "push pc and link";   break;    // push pc and link
-                case  0x18: sz = "link";               break;    // link
+                case  0x18: sz = "jump";               break;    // jump
                 case  0x20: sz = "NOP";                break;    // NOP
                 case  0x50: sz = "reg char out";       break;    // reg char out
                 case  0x51: sz = "mem char out";       break;    // mem char out
                 case  0x52: sz = "string out";         break;    // string out
                 case  0x53: sz = "string out 8bit";    break;    // string out 8bit
             }
-            return String.format("%s %s %s %-16s %s %s %s %s - %s %s %s %s",
-            toHex(pc),toHex(highword), toHex(lowword), sz, 
+            switch (op) {
+                case 0x01: szsz = "r[d] = r[s] + r[t]";           break;
+                case 0x02: szsz = "r[d] = r[s] - r[t]";           break;
+                case 0x03: szsz = "r[d] = r[s] & r[t]";           break;
+                case 0x04: szsz = "r[d] = r[s] ^ r[t]";           break;
+                case 0x05: szsz = "r[d] = r[s] << r[t]";          break;
+                case 0x06: szsz = "r[d] = r[s] >> r[t]";          break;
+                case 0x07: szsz = "r[d] = addr";                  break;
+                case 0x08: szsz = "r[d] = m[addr]";               break;
+                case 0x09: szsz = "mem[addr] = r[d]";             break;
+                case 0x0A: szsz = "r[d] = m[r[t] & 255]";         break;
+                case 0x0B: szsz = "mem[r[t] & 255] = r[d]";       break;
+                case 0x0C: szsz = "if (r[d] == 0) pc = addr";     break;
+                case 0x0D: szsz = "if (r[d] >  0) pc = addr";     break;
+                case 0x0E: szsz = "pc = r[d]";                    break;
+                case 0x0F: szsz = "r[d] = pc"; pc = addr;         break;
+                case 0x13: szsz = "r[d] = r[d] + 1";              break;
+                case 0x14: szsz = "r[d] = r[d] - 1";              break;
+                case 0x15: szsz = "r[d] = r[d] << 1";             break;
+                case 0x16: szsz = "r[d] = r[d] >> 1";             break;
+                case 0x18: szsz = "pc = addr";                    break;
+                case 0x20: szsz = "pc = pc";                      break;
+
+            }
+            return String.format("%s %s %s %-16s %-25s %s %s %s %s - %s %s %s %s",
+            toHex(pc),toHex(highword), toHex(lowword), sz, szsz, 
             toHexShort(this.d),toHexShort(this.s),toHexShort(this.t), toHex(this.addr),
             toDecShort(this.d),toDecShort(this.s),toDecShort(this.t), toDec(this.addr));
     }
