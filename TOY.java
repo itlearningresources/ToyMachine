@@ -293,8 +293,6 @@ public class TOY {
             int addr = I.getAddr();
 
             //StdOut.printf("%s  %s x%s d%d\n", I.opString(), toHex(I.getLowword()), toHexShort(I.getOp()), I.getOp());
-            sb.append(I.toString() + "\n");
-            StdOut.printf("%s\n", sb.toString());
 
 
             // halt
@@ -359,6 +357,8 @@ public class TOY {
             // stdout
        //  if ((addr == 255 && op == 9) || (reg[t] == 255 && op == 11))
        //         StdOut.println(toHex(mem[255]));
+            sb.append(I.toString() + "\n");
+            StdOut.printf("%s --- %s\n", I.toString(), toHex(reg[10]));
 
             reg[0] = 0;                // ensure reg[0] is always 0
             reg[d] = reg[d] & 0xFFFF;  // don't let reg[d] overflow a 16-bit integer
