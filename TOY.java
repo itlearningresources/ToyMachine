@@ -72,7 +72,9 @@ public class TOY {
     private final int STACKSIZE = 32;          // stack size in memory locations
     private int pc;                            // program counter
     private int stkptr;                        // stack pointer
+
     private int[] reg = new int[16];           // 16 registers
+    private Registers R = new Registers(reg);
     private int[] mem = new int[0xFFFF];       // main memory locations
     private int[] stk = new int[STACKSIZE];    // stack memory locations
 
@@ -118,8 +120,6 @@ public class TOY {
             programAsRead.append(line + "\n");
             Matcher memmatcher = mempattern.matcher(line);
             if (memmatcher.find()) {
-                StdOut.println(memmatcher.group(1));
-                StdOut.println(memmatcher.group(2));
                 loadptr = fromHex(memmatcher.group(2));
                 continue;
             }
@@ -239,26 +239,15 @@ public class TOY {
 
 
     // print core dump of TOY to standard output
-    public void dump() {
-        StdOut.println("");
-        StdOut.println("Listing:");
-        StdOut.println(sb.toString());
-        StdOut.println("PC:");
-        StdOut.printf("%s\n", toHex(pc) );
-        StdOut.println();
+    public void dump(String sz) {
+        StdOut.printf("%s  PC: %s\n", sz, toHex(pc) );
         StdOut.println("Registers:");
         showreg(reg);
-//      StdOut.println();
-//      StdOut.println("Main memory in Binary (16 bit words):");
-//      showbinary(mem);
-        StdOut.println();
         StdOut.println("Main memory in Hex (16 bit words):");
         showhex(mem);
-        StdOut.println();
-        StdOut.println("Stack memory in Hex (16 bit words):");
-        StdOut.printf("Stack Pointer: %s\n", toHex(stkptr));
+        StdOut.print("Stack memory in Hex (16 bit words):");
+        StdOut.printf("  SP: %s\n", toHex(stkptr));
         showhex(stk);
-        StdOut.println();
     }
     static public void trace(String sz, int i) {
         System.out.println(sz + " " + toHex(i));
@@ -268,6 +257,7 @@ public class TOY {
         int idx = 0;
         int n = 0;
         Instruction I = null;
+        boolean haltflag = false;
 
         sb.append(String.format("%26s %6s %2s %2s  %4s\n","Instruction", "D", "S", "T", "ADDR"));
         while (true) {
@@ -295,8 +285,6 @@ public class TOY {
             //StdOut.printf("%s  %s x%s d%d\n", I.opString(), toHex(I.getLowword()), toHexShort(I.getOp()), I.getOp());
 
 
-            // halt
-            if (op == 0) break;
 
             // stdin 
        //     if ((addr == 255 && op == 8) || (reg[t] == 255 && op == 10))
@@ -304,6 +292,7 @@ public class TOY {
 
             // Execute
             switch (op) {
+                case 0x00: haltflag=true;                       break;    // halt
                 case 0x01: reg[d] = reg[s] +  reg[t];           break;    // add
                 case 0x02: reg[d] = reg[s] -  reg[t];           break;    // subtract
                 case 0x03: reg[d] = reg[s] &  reg[t];           break;    // bitwise and
@@ -332,6 +321,7 @@ public class TOY {
                 case 0x15: reg[d] = reg[d] << 1;                break;    // shift reg left
                 case 0x16: reg[d] = reg[d] >> 1;                break;    // shift reg right
                 case 0x17: stk[++stkptr] = pc; pc = addr;       break;    // push pc and link
+                case 0x18: pc = addr;                           break;    // link
                 case 0x20: pc = pc;                             break;    // NOP
 
                 case 0x50: StdOut.print(reg[d]);                break;    // reg char out
@@ -358,7 +348,9 @@ public class TOY {
        //  if ((addr == 255 && op == 9) || (reg[t] == 255 && op == 11))
        //         StdOut.println(toHex(mem[255]));
             sb.append(I.toString() + "\n");
-            StdOut.printf("%s --- %s\n", I.toString(), toHex(reg[10]));
+            StdOut.printf("%s --- %s\n", I.toString(), R.toStringVars());
+            // halt
+            if (haltflag) break;
 
             reg[0] = 0;                // ensure reg[0] is always 0
             reg[d] = reg[d] & 0xFFFF;  // don't let reg[d] overflow a 16-bit integer
@@ -395,12 +387,8 @@ public class TOY {
 
         TOY toy = new TOY(filename, pc);
         if (isVerbose) {
-            StdOut.println("\nBefore Executing");
-            StdOut.println("----------------");
-            toy.dump();
-
-            StdOut.println("\nTerminal");
-            StdOut.println("--------");
+            toy.dump("Before Executing");
+            StdOut.println("Terminal");
         }
 
         try {
@@ -415,10 +403,7 @@ public class TOY {
         }
 
         if (isVerbose) {
-            StdOut.println();
-            StdOut.println("\nAfter Executing");
-            StdOut.println("---------------");
-            toy.dump();
+            toy.dump("After Executing");
 
         }
 
@@ -555,6 +540,7 @@ class Instruction {
                 case  0x15: sz = "shift reg left";     break;    // shift reg left
                 case  0x16: sz = "shift reg right";    break;    // shift reg right
                 case  0x17: sz = "push pc and link";   break;    // push pc and link
+                case  0x18: sz = "link";               break;    // link
                 case  0x20: sz = "NOP";                break;    // NOP
                 case  0x50: sz = "reg char out";       break;    // reg char out
                 case  0x51: sz = "mem char out";       break;    // mem char out
@@ -571,5 +557,24 @@ class Instruction {
 class InstructionValueException extends Exception {
     public InstructionValueException(Instruction I, String msg) {
         super(msg + "  " + I.toString());
+    }
+}
+class Registers {
+    private int[] reg;
+    public Registers(int[] r) {
+        this.reg = r;
+    }
+    public int[] getRegisters() {
+        return this.reg;
+    }
+    public String toStringVars() {
+        StringBuffer sb = new StringBuffer();
+        for (int i = 10; i < this.reg.length; i++) sb.append(TOY.toHex(this.reg[i])).append(" ");
+        return sb.toString();
+    }
+    public String toString() {
+        StringBuffer sb = new StringBuffer();
+        for (int i = 0; i < this.reg.length; i++) sb.append(TOY.toHex(this.reg[i])).append(" ");
+        return sb.toString();
     }
 }
