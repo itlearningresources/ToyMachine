@@ -66,13 +66,14 @@ import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 import java.util.Map;
 import java.util.HashMap;
-
 public class TOY { 
     static HashMap<String, Integer> label = new HashMap<String, Integer>();
+
 
     static  StringBuffer sb = new StringBuffer(120);
     static  StringBuffer programAsRead = new StringBuffer(1024);
     static  Instruction lastInstruction = null;
+    ISET II = new ISET();
     private final int STACKSIZE = 32;          // stack size in memory locations
     private int pc;                            // program counter
     private int stkptr;                        // stack pointer
@@ -107,7 +108,7 @@ public class TOY {
         String regexpm = "^([0-9A-Fa-f]{2}):[ \t]*([0-9A-Fa-f]{4})";
         String regexp = "^[ \t]*([0-9A-Fa-f]{4})[ \t]*([0-9A-Fa-f]{4})";
         String asmregexp = "^([0-9A-Fa-f]{2}):[ \t]*([A-Fa-f]{3})";
-        String memregexp = "^(MEM)[ \t]*([0-9A-Fa-f]{4})[ \t]*([0-9A-Za-z]*)";
+        String memregexp = "^(MEM)[ \t]*([0-9A-Fa-f]{4})[ \t]*([#$][0-9A-Za-z]*)";
         String labregexp = "^(LAB)[ \t]*([0-9A-Za-z]{4})";
         String wordregexp = "^([0-9A-Fa-f]{4}$)";
         String dwordregexp = "^([0-9A-Fa-f]{4})[ \t]*([0-9A-Fa-f]{4})";
@@ -301,7 +302,6 @@ public class TOY {
             int s    = I.getS();
             int t    = I.getT();
             int addr = I.getAddr();
-
             //StdOut.printf("%s  %s x%s d%d\n", I.opString(), toHex(I.getLowword()), toHexShort(I.getOp()), I.getOp());
 
 
@@ -312,52 +312,101 @@ public class TOY {
 
             // Execute
             switch (op) {
-                case 0x00: haltflag=true;                       break;    // halt
-                case 0x01: reg[d] = reg[s] +  reg[t];           break;    // add
-                case 0x02: reg[d] = reg[s] -  reg[t];           break;    // subtract
-                case 0x03: reg[d] = reg[s] &  reg[t];           break;    // bitwise and
-                case 0x04: reg[d] = reg[s] ^  reg[t];           break;    // bitwise xor
-                case 0x05: reg[d] = reg[s] << reg[t];           break;    // shift left
-                case 0x06: reg[d] = (short) reg[s] >> reg[t];   break;    // shift right
-                case 0x07: reg[d] = addr;                       break;    // load address
-                case 0x08: reg[d] = mem[addr];                  break;    // load
-                case 0x09: mem[addr] = reg[d];                  break;    // store
-                case 0x0A: reg[d] = mem[reg[t] & 255];          break;    // load indirect
-                case 0x0B: mem[reg[t] & 255] = reg[d];          break;    // store indirect
-                case 0x0C: if ((short) reg[d] == 0) pc = addr;  break;    // branch if zero
-                case 0x0D: if ((short) reg[d] >  0) pc = addr;  break;    // branch if positive
-                case 0x0E: pc = reg[d];                         break;    // jump indirect
-                case 0x0F: reg[d] = pc; pc = addr;              break;    // jump and link
+                case 0x00: haltflag=true;    
+                           II.add(op, "halt", "haltflag = true");              break;   // halt
+
+                case 0x01: reg[d] = reg[s] +  reg[t];         
+                           II.add(op, "add", "reg[d] = reg[s] +  reg[t]");     break;   // add
+
+                case 0x02: reg[d] = reg[s] -  reg[t];
+                           II.add(op, "subtract", "reg[d] = reg[s] -  reg[t]");        break;   // subtract
+
+                case 0x03: reg[d] = reg[s] &  reg[t];
+                           II.add(op, "bitwise and", "reg[d] = reg[s] & reg[t]");  break;    // bitwise and
+                case 0x04: reg[d] = reg[s] ^  reg[t];
+                           II.add(op, "bitwise or",  "reg[d] = reg[s] ^  reg[t]"); break;    // bitwise xor
+                case 0x05: reg[d] = reg[s] << reg[t];
+                           II.add(op, "shift left", "reg[d] = reg[s] << reg[t]");  break;    // shift left
+                case 0x06: reg[d] = reg[s] >> reg[t];
+                           II.add(op, "shift right", "reg[d] = reg[s] >> reg[t]"); break;    // shift right
+
+                case 0x07: reg[d] = addr;
+                           II.add(op, "load address", "reg[d] = addr");            break;    // load address
+                case 0x08: reg[d] = mem[addr];
+                           II.add(op, "load", "reg[d] = mem[addr]");               break;    // load
+
+                case 0x09: mem[addr] = reg[d];
+                           II.add(op, "store", "mem[addr] = reg[d]");              break;    // store
+
+                case 0x0A: reg[d] = mem[reg[t] & 255];
+                           II.add(op, "load indirect", "reg[d] = mem[reg[t] & 255]");  break;    // load indirect
+
+                case 0x0B: mem[reg[t] & 255] = reg[d];
+                           II.add(op, "store indirect", "mem[reg[t] & 255] = reg[d]"); break;    // store indirect
+
+                case 0x0C: if ((short) reg[d] == 0) pc = addr;
+                           II.add(op, "branch if zero", "if ((short) reg[d] == 0) pc = addr");     break; // branch if zero
+
+                case 0x0D: if ((short) reg[d] >  0) pc = addr;
+                           II.add(op, "branch if positive", "if ((short) reg[d] >  0) pc = addr"); break; // branch if positive
+                           // II.add(op, "", "
+                           // II.add(op, "", "
+                case 0x0E: pc = reg[d];
+                           II.add(op, "jump indirect", "pc = reg[d]");                            break;    // jump indirect
+
+                case 0x0F: reg[d] = pc; pc = addr;
+                           II.add(op, "jump and link", "reg[d] = pc; pc = addr");                 break;    // jump and link
 
                 // My Instructions
-                case 0x10: stkptr++;stk[stkptr] = mem[addr];    break;    // push address
-                case 0x11: stkptr++;stk[stkptr] = reg[d];       break;    // push register
+                case 0x10: stkptr++;stk[stkptr] = mem[addr];
+                           II.add(op, "push address", "push addr");        break;    // push address
+                case 0x11: stkptr++;stk[stkptr] = reg[d];
+                           II.add(op, "push register", "push reg[d]");     break;    // push register
+
                 case 0x12: reg[d] = stk[stkptr];
                            stk[stkptr] = 0xFFFF;
                            stkptr--; 
-                           if (stkptr<0) stkptr=0;              break;    // pop to register
+                           if (stkptr<0) stkptr=0;
+                           II.add(op, "pop to register", "pop to reg[d]"); break;    // pop to register
 
-                case 0x13: reg[d] = reg[d] + 1;                 break;    // increment register
-                case 0x14: reg[d] = reg[d] - 1;                 break;    // decrement register
-                case 0x15: reg[d] = reg[d] << 1;                break;    // shift reg left
-                case 0x16: reg[d] = reg[d] >> 1;                break;    // shift reg right
-                case 0x17: stk[++stkptr] = pc; pc = addr;       break;    // push pc and link
-                case 0x18: pc = addr;                           break;    // jump
-                case 0x19: pc = stk[stkptr];
+                case 0x13: II.add(op, "increment register", "reg[d]++"); 
+                           reg[d] = reg[d] + 1;                 break;    // increment register
+                case 0x14: II.add(op, "decrement register", "reg[d]--"); 
+                           reg[d] = reg[d] - 1;                 break;    // decrement register
+
+                case 0x15: II.add(op, "shift reg left", "reg[d] = reg[d] << 1");
+                           reg[d] = reg[d] << 1;                break;    // shift reg left
+                case 0x16: II.add(op, "shift reg right", "reg[d] = reg[d] >> 1");
+                           reg[d] = reg[d] >> 1;                break;    // shift reg right
+
+                case 0x17: II.add(op, "push pc and link", "push pc and pc = addr");
+                           stk[++stkptr] = pc; pc = addr;       break;    // push pc and link
+                case 0x18: II.add(op, "jump", "pc = addr");
+                           pc = addr;                           break;    // jump
+
+                case 0x19: II.add(op, "pop and link", "pop and link");
+                           pc = stk[stkptr];
                            stk[stkptr] = 0xFFFF;
                            stkptr--; 
                            if (stkptr<0) stkptr=0;              break;    // pop and link
-                case 0x20: pc = pc;                             break;    // NOP
+                case 0x20: 
+                           II.add(op, "NOP", "pc = pc");
+                           pc = pc;                             break;    // NOP
 
-                case 0x50: StdOut.print(reg[d]);                break;    // reg char out
-                case 0x51: StdOut.print(mem[addr]);             break;    // mem char out
-                case 0x52: idx=addr; 
+                case 0x50: II.add(op, "reg char out", "reg[d] char out");
+                           StdOut.print(reg[d]);                break;    // reg char out
+                case 0x51: II.add(op, "mem char out", "mem[addr] char out");
+                           StdOut.print(mem[addr]);             break;    // mem char out
+
+                case 0x52: II.add(op, "string 10 16b", "string out 16b");
+                           idx=addr; 
                            while (mem[idx]!=0) {
                                StdOut.print( String.valueOf((char) mem[idx]) );
                                idx++;
                            }
                            break;                                         // string out 16 bit
-                case 0x53: idx=addr; 
+                case 0x53: II.add(op, "string out 8b", "string out 8b");
+                           idx=addr; 
                            boolean flip = true;
                            n = (mem[idx] >> 8) & 0x00FF; 
                            while (n != 0) {
@@ -372,8 +421,22 @@ public class TOY {
             // stdout
        //  if ((addr == 255 && op == 9) || (reg[t] == 255 && op == 11))
        //         StdOut.println(toHex(mem[255]));
-            sb.append(I.toString() + "\n");
-            StdOut.printf("%s -- %s -- %s\n", I.toString(), TOY.toHex(pc),R.toStringVars());
+            //sb.append(I.toString() + "\n");
+
+            StdOut.printf("%s %s %s %-18s %-2s %-2s %-2s %-2s -- %-38s -- %s\n",
+                                                     toHex(I.getPc()),
+                                                     toHex(I.getHighword()),
+                                                     toHex(I.getLowword()),
+                                                     II.get(op).getName(),
+                                                     toHexShort(I.getOp()),
+                                                     toHexShort(I.getD()),
+                                                     toHexShort(I.getS()),
+                                                     toHexShort(I.getT()),
+                                                     II.get(op).getDescription(),
+                                                     toHex(pc)
+                                                     );
+
+
             // halt
             if (haltflag) break;
 
@@ -534,76 +597,6 @@ class Instruction {
     public static String toHexShort(int n) {
         return String.format("%02X", n & 0xFFFF);
     }
-    public String toString() {
-        return opString();
-    }
-    private String opString() {
-            String sz = "";
-            String szsz = "";
-            switch (op) {
-                case  0x00: sz = "halt";               break;    // halt
-                case  0x01: sz = "add";                break;    // add
-                case  0x02: sz = "subtract";           break;    // subtract
-                case  0x03: sz = "bitwise and";        break;    // bitwise and
-                case  0x04: sz = "bitwise xor";        break;    // bitwise xor
-                case  0x05: sz = "shift left";         break;    // shift left
-                case  0x06: sz = "shft right";         break;    // shift right
-                case  0x07: sz = "load address";       break;    // load address
-                case  0x08: sz = "load";               break;    // load
-                case  0x09: sz = "store";              break;    // store
-                case  0x0A: sz = "load indirect";      break;    // load indirect
-                case  0x0B: sz = "store indirect";     break;    // store indirect
-                case  0x0C: sz = "branch if zero";     break;    // branch if zero
-                case  0x0D: sz = "branch if pos";      break;    // branch if positive
-                case  0x0E: sz = "jump indirect";      break;    // jump indirect
-                case  0x0F: sz = "jump and link";      break;    // jump and link
-
-                case  0x10: sz = "push address";       break;    // stack push address
-                case  0x11: sz = "push reg";           break;    // stack push register
-                case  0x12: sz = "pop to reg";         break;    // stack pop to register
-                case  0x13: sz = "increment reg";      break;    // increment register
-                case  0x14: sz = "decrement reg";      break;    // decrement register
-                case  0x15: sz = "shift reg left";     break;    // shift reg left
-                case  0x16: sz = "shift reg right";    break;    // shift reg right
-                case  0x17: sz = "push pc and link";   break;    // push pc and link
-                case  0x18: sz = "jump";               break;    // jump
-                case  0x19: sz = "pop and link";       break;    // pop and link
-                case  0x20: sz = "NOP";                break;    // NOP
-                case  0x50: sz = "reg char out";       break;    // reg char out
-                case  0x51: sz = "mem char out";       break;    // mem char out
-                case  0x52: sz = "string out";         break;    // string out
-                case  0x53: sz = "string out 8bit";    break;    // string out 8bit
-            }
-            switch (op) {
-                case 0x01: szsz = "r[d] = r[s] + r[t]";           break;
-                case 0x02: szsz = "r[d] = r[s] - r[t]";           break;
-                case 0x03: szsz = "r[d] = r[s] & r[t]";           break;
-                case 0x04: szsz = "r[d] = r[s] ^ r[t]";           break;
-                case 0x05: szsz = "r[d] = r[s] << r[t]";          break;
-                case 0x06: szsz = "r[d] = r[s] >> r[t]";          break;
-                case 0x07: szsz = "r[d] = addr";                  break;
-                case 0x08: szsz = "r[d] = m[addr]";               break;
-                case 0x09: szsz = "mem[addr] = r[d]";             break;
-                case 0x0A: szsz = "r[d] = m[r[t] & 255]";         break;
-                case 0x0B: szsz = "mem[r[t] & 255] = r[d]";       break;
-                case 0x0C: szsz = "if (r[d] == 0) pc = addr";     break;
-                case 0x0D: szsz = "if (r[d] >  0) pc = addr";     break;
-                case 0x0E: szsz = "pc = r[d]";                    break;
-                case 0x0F: szsz = "r[d] = pc"; pc = addr;         break;
-                case 0x13: szsz = "r[d] = r[d] + 1";              break;
-                case 0x14: szsz = "r[d] = r[d] - 1";              break;
-                case 0x15: szsz = "r[d] = r[d] << 1";             break;
-                case 0x16: szsz = "r[d] = r[d] >> 1";             break;
-                case 0x18: szsz = "pc = addr";                    break;
-                case 0x19: szsz = "pc = PopStack";                break;
-                case 0x20: szsz = "pc = pc";                      break;
-
-            }
-            return String.format("%s %s %s %-16s %-25s %s %s %s %s - %s %s %s %s",
-            toHex(pc),toHex(highword), toHex(lowword), sz, szsz, 
-            toHexShort(this.d),toHexShort(this.s),toHexShort(this.t), toHex(this.addr),
-            toDecShort(this.d),toDecShort(this.s),toDecShort(this.t), toDec(this.addr));
-    }
 
 }
 class InstructionValueException extends Exception {
@@ -664,6 +657,38 @@ class Finder {
     }
 }
 
+class Instruct {
+    static boolean[] bI = new boolean[256];
+    private int opcode;
+    private String name;
+    private String description;
+    public Instruct(int o, String n, String d) {
+        this.opcode = 0;
+        this.name = n;
+        this.description = d;
+    }
+    public String getName() { return name;}
+    public String getDescription() { return description; }
+
+}
+
+class ISET {
+    private boolean[] bI = new boolean[256];
+    private HashMap<Integer, Instruct> iset = new HashMap<Integer, Instruct>();
+    public ISET() {
+        for (int i =0;i<256;i++) bI[i]=false;
+    }
+    public void add(int o, String n, String d) {
+        if (!bI[o]) {
+            bI[o]=true; 
+            iset.put(o, new Instruct(o,n,d));
+        }
+    }
+    public Instruct get(int o) {
+        return iset.get(o);
+    }
+
+}
 
 
 
