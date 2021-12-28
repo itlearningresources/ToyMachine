@@ -1,17 +1,24 @@
-MEM 0000
+MEM 0000 ZEROPOS
 4D69
 6B65
 0000
-MEM 0010
-070A 0006
+MEM 0010 CODESTART
+070A 0003
 070B 0001
 0C0A 0044   if (RA == 0) pc goto 44      while (a != 0) {
 020A 0A0B   RA <- RA - RB                   a = a - b;
 010C 0C0B   RC <- RC + RB                   c = c + b;
 1800 0014   pc <- 0014                     }
 2000 0000
-MEM 0044
-090C 000C   mem[0C] <- RC
+MEM 0044 ROUTINE1
+1700 0084   push and link
+2000 0000   NOP
+2000 0000   NOP
+2000 0000   NOP
+2000 0000   NOP
 0000 0000   halt
-010C 0C0B   RC <- RC + RB                   c = c + b;
-2000 0000
+MEM 0084 ROUTINE2
+090C 000C   mem[0C] <- RC
+2000 0000   NOP
+1900 0000   pop and link
+0000 0000

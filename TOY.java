@@ -64,8 +64,12 @@
 
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
+import java.util.Map;
+import java.util.HashMap;
 
 public class TOY { 
+    static HashMap<String, Integer> label = new HashMap<String, Integer>();
+
     static  StringBuffer sb = new StringBuffer(120);
     static  StringBuffer programAsRead = new StringBuffer(1024);
     static  Instruction lastInstruction = null;
@@ -103,24 +107,35 @@ public class TOY {
         String regexpm = "^([0-9A-Fa-f]{2}):[ \t]*([0-9A-Fa-f]{4})";
         String regexp = "^[ \t]*([0-9A-Fa-f]{4})[ \t]*([0-9A-Fa-f]{4})";
         String asmregexp = "^([0-9A-Fa-f]{2}):[ \t]*([A-Fa-f]{3})";
-
-        String memregexp = "^(MEM)[ \t]*([0-9A-Fa-f]{4})";
+        String memregexp = "^(MEM)[ \t]*([0-9A-Fa-f]{4})[ \t]*([0-9A-Za-z]*)";
+        String labregexp = "^(LAB)[ \t]*([0-9A-Za-z]{4})";
         String wordregexp = "^([0-9A-Fa-f]{4}$)";
         String dwordregexp = "^([0-9A-Fa-f]{4})[ \t]*([0-9A-Fa-f]{4})";
-        
+        Finder dword = new Finder(dwordregexp); 
+
+    //l.put("START", new Integer(0));
+//map.get("name"); // returns "demo"
         
         Pattern pattern = Pattern.compile(regexp);
         Pattern asmpattern = Pattern.compile(asmregexp);
         Pattern mempattern = Pattern.compile(memregexp);
+        Pattern labpattern = Pattern.compile(labregexp);
         Pattern wordpattern = Pattern.compile(wordregexp);
         Pattern dwordpattern = Pattern.compile(dwordregexp);
 
         while (in.hasNextLine()) {
             String line = in.readLine();
             programAsRead.append(line + "\n");
+            Matcher labmatcher = labpattern.matcher(line);
+            if (labmatcher.find()) {
+                label.put(labmatcher.group(2), loadptr);
+                //l.put("START", new Integer(0));
+                continue;
+            }
             Matcher memmatcher = mempattern.matcher(line);
             if (memmatcher.find()) {
                 loadptr = fromHex(memmatcher.group(2));
+                label.put(memmatcher.group(3), loadptr);
                 continue;
             }
             Matcher dwordmatcher = dwordpattern.matcher(line);
@@ -248,6 +263,11 @@ public class TOY {
         StdOut.print("Stack memory in Hex (16 bit words):");
         StdOut.printf("  SP: %s\n", toHex(stkptr));
         showhex(stk);
+        // Print keys and values
+        StdOut.println("Labels:");
+        for (String i : label.keySet()) {
+            StdOut.printf("%s\n", "key: " + i + " value: " + TOY.toHex(label.get(i)));
+        }
     }
     static public void trace(String sz, int i) {
         System.out.println(sz + " " + toHex(i));
@@ -313,6 +333,7 @@ public class TOY {
                 case 0x10: stkptr++;stk[stkptr] = mem[addr];    break;    // push address
                 case 0x11: stkptr++;stk[stkptr] = reg[d];       break;    // push register
                 case 0x12: reg[d] = stk[stkptr];
+                           stk[stkptr] = 0xFFFF;
                            stkptr--; 
                            if (stkptr<0) stkptr=0;              break;    // pop to register
 
@@ -322,6 +343,10 @@ public class TOY {
                 case 0x16: reg[d] = reg[d] >> 1;                break;    // shift reg right
                 case 0x17: stk[++stkptr] = pc; pc = addr;       break;    // push pc and link
                 case 0x18: pc = addr;                           break;    // jump
+                case 0x19: pc = stk[stkptr];
+                           stk[stkptr] = 0xFFFF;
+                           stkptr--; 
+                           if (stkptr<0) stkptr=0;              break;    // pop and link
                 case 0x20: pc = pc;                             break;    // NOP
 
                 case 0x50: StdOut.print(reg[d]);                break;    // reg char out
@@ -352,7 +377,7 @@ public class TOY {
             // halt
             if (haltflag) break;
 
-            reg[0] = 0;                // ensure reg[0] is always 0
+            //reg[0] = 0;                // ensure reg[0] is always 0
             reg[d] = reg[d] & 0xFFFF;  // don't let reg[d] overflow a 16-bit integer
             pc = pc & 0xFFFF;          // don't let pc overflow an 16-bit integer
 
@@ -542,6 +567,7 @@ class Instruction {
                 case  0x16: sz = "shift reg right";    break;    // shift reg right
                 case  0x17: sz = "push pc and link";   break;    // push pc and link
                 case  0x18: sz = "jump";               break;    // jump
+                case  0x19: sz = "pop and link";       break;    // pop and link
                 case  0x20: sz = "NOP";                break;    // NOP
                 case  0x50: sz = "reg char out";       break;    // reg char out
                 case  0x51: sz = "mem char out";       break;    // mem char out
@@ -569,6 +595,7 @@ class Instruction {
                 case 0x15: szsz = "r[d] = r[d] << 1";             break;
                 case 0x16: szsz = "r[d] = r[d] >> 1";             break;
                 case 0x18: szsz = "pc = addr";                    break;
+                case 0x19: szsz = "pc = PopStack";                break;
                 case 0x20: szsz = "pc = pc";                      break;
 
             }
@@ -594,6 +621,7 @@ class Registers {
     }
     public String toStringVars() {
         StringBuffer sb = new StringBuffer();
+        sb.append("[[").append(TOY.toHex(this.reg[0])).append("]] ");
         for (int i = 10; i < this.reg.length; i++) sb.append(TOY.toHex(this.reg[i])).append(" ");
         return sb.toString();
     }
@@ -603,3 +631,49 @@ class Registers {
         return sb.toString();
     }
 }
+
+class Finder {
+    private String  r = "";
+    private Pattern p = null;
+    private Matcher m = null;
+
+    public Finder(String r) {
+        this.r = r;
+        this.p = Pattern.compile(r);
+    }
+    public boolean isa(String sz) {
+        return find(sz);
+    }
+    public boolean find(String sz) {
+        boolean bRet = false;
+        this.m = this.p.matcher(sz);
+        if (m.find()) {
+            bRet = true;
+        }
+        return bRet;
+    }
+
+    public int getGroupCount() {
+        return this.m.groupCount();
+    }
+    public String getString(int n) {
+        String szRet = "";
+        if ( (n>0) && (n <= this.m.groupCount()) ) szRet = new String(this.m.group(n));
+        return szRet;
+
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
