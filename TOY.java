@@ -312,15 +312,15 @@ public class TOY {
 
             // Execute
             switch (op) {
-                case 0x00: haltflag=true;    
-                           II.add(op, "halt", "haltflag = true");              break;   // halt
-
-                case 0x01: reg[d] = reg[s] +  reg[t];         
-                           II.add(op, "add", "reg[d] = reg[s] +  reg[t]");     break;   // add
-
-                case 0x02: reg[d] = reg[s] -  reg[t];
-                           II.add(op, "subtract", "reg[d] = reg[s] -  reg[t]");        break;   // subtract
-
+                case 0x00: II.add(op, "halt", "haltflag = true");
+                           haltflag=true;    
+                           break;                                                            // halt
+                case 0x01: II.add(op, "add", "reg[d] = reg[s] +  reg[t]");
+                           reg[d] = reg[s] +  reg[t];         
+                           break;                                                            // add
+                case 0x02: II.add(op, "subtract", "reg[d] = reg[s] -  reg[t]");
+                           reg[d] = reg[s] -  reg[t];
+                           break;                                                            // subtract
                 case 0x03: reg[d] = reg[s] &  reg[t];
                            II.add(op, "bitwise and", "reg[d] = reg[s] & reg[t]");  break;    // bitwise and
                 case 0x04: reg[d] = reg[s] ^  reg[t];
@@ -329,75 +329,74 @@ public class TOY {
                            II.add(op, "shift left", "reg[d] = reg[s] << reg[t]");  break;    // shift left
                 case 0x06: reg[d] = reg[s] >> reg[t];
                            II.add(op, "shift right", "reg[d] = reg[s] >> reg[t]"); break;    // shift right
-
                 case 0x07: reg[d] = addr;
                            II.add(op, "load address", "reg[d] = addr");            break;    // load address
                 case 0x08: reg[d] = mem[addr];
                            II.add(op, "load", "reg[d] = mem[addr]");               break;    // load
-
                 case 0x09: mem[addr] = reg[d];
                            II.add(op, "store", "mem[addr] = reg[d]");              break;    // store
-
                 case 0x0A: reg[d] = mem[reg[t] & 255];
                            II.add(op, "load indirect", "reg[d] = mem[reg[t] & 255]");  break;    // load indirect
-
                 case 0x0B: mem[reg[t] & 255] = reg[d];
                            II.add(op, "store indirect", "mem[reg[t] & 255] = reg[d]"); break;    // store indirect
-
                 case 0x0C: if ((short) reg[d] == 0) pc = addr;
                            II.add(op, "branch if zero", "if ((short) reg[d] == 0) pc = addr");     break; // branch if zero
-
                 case 0x0D: if ((short) reg[d] >  0) pc = addr;
-                           II.add(op, "branch if positive", "if ((short) reg[d] >  0) pc = addr"); break; // branch if positive
-                           // II.add(op, "", "
-                           // II.add(op, "", "
-                case 0x0E: pc = reg[d];
-                           II.add(op, "jump indirect", "pc = reg[d]");                            break;    // jump indirect
-
-                case 0x0F: reg[d] = pc; pc = addr;
-                           II.add(op, "jump and link", "reg[d] = pc; pc = addr");                 break;    // jump and link
+                           II.add(op, "branch if pos", "if ((short) reg[d] >  0) pc = addr"); break; // branch if positive
+                case 0x0E: II.add(op, "jump indirect", "pc = reg[d]");
+                           pc = reg[d];
+                           break;                                                                    // jump indirect
+                case 0x0F: II.add(op, "jump and link", "reg[d] = pc; pc = addr");
+                           reg[d] = pc; pc = addr;
+                           break;                                                                // jump and link
 
                 // My Instructions
-                case 0x10: stkptr++;stk[stkptr] = mem[addr];
-                           II.add(op, "push address", "push addr");        break;    // push address
-                case 0x11: stkptr++;stk[stkptr] = reg[d];
-                           II.add(op, "push register", "push reg[d]");     break;    // push register
-
-                case 0x12: reg[d] = stk[stkptr];
+                case 0x10: II.add(op, "push address", "push addr");
+                           stkptr++;stk[stkptr] = mem[addr];
+                           break;    // push address
+                case 0x11: II.add(op, "push register", "push reg[d]");
+                           stkptr++;stk[stkptr] = reg[d];
+                           break;    // push register
+                case 0x12: 
+                           II.add(op, "pop to register", "pop to reg[d]");
+                           reg[d] = stk[stkptr];
                            stk[stkptr] = 0xFFFF;
                            stkptr--; 
                            if (stkptr<0) stkptr=0;
-                           II.add(op, "pop to register", "pop to reg[d]"); break;    // pop to register
-
+                           break;    // pop to register
                 case 0x13: II.add(op, "increment register", "reg[d]++"); 
-                           reg[d] = reg[d] + 1;                 break;    // increment register
+                           reg[d] = reg[d] + 1;
+                           break;    // increment register
                 case 0x14: II.add(op, "decrement register", "reg[d]--"); 
-                           reg[d] = reg[d] - 1;                 break;    // decrement register
-
+                           reg[d] = reg[d] - 1;
+                           break;    // decrement register
                 case 0x15: II.add(op, "shift reg left", "reg[d] = reg[d] << 1");
-                           reg[d] = reg[d] << 1;                break;    // shift reg left
+                           reg[d] = reg[d] << 1;
+                           break;    // shift reg left
                 case 0x16: II.add(op, "shift reg right", "reg[d] = reg[d] >> 1");
-                           reg[d] = reg[d] >> 1;                break;    // shift reg right
-
+                           reg[d] = reg[d] >> 1;
+                           break;    // shift reg right
                 case 0x17: II.add(op, "push pc and link", "push pc and pc = addr");
-                           stk[++stkptr] = pc; pc = addr;       break;    // push pc and link
+                           stk[++stkptr] = pc; pc = addr;
+                           break;    // push pc and link
                 case 0x18: II.add(op, "jump", "pc = addr");
-                           pc = addr;                           break;    // jump
-
+                           pc = addr;
+                           break;    // jump
                 case 0x19: II.add(op, "pop and link", "pop and link");
                            pc = stk[stkptr];
                            stk[stkptr] = 0xFFFF;
                            stkptr--; 
-                           if (stkptr<0) stkptr=0;              break;    // pop and link
-                case 0x20: 
-                           II.add(op, "NOP", "pc = pc");
-                           pc = pc;                             break;    // NOP
-
+                           if (stkptr<0) stkptr=0;
+                           break;    // pop and link
+                case 0x20: II.add(op, "NOP", "pc = pc");
+                           pc = pc;
+                           break;                                                       // NOP
                 case 0x50: II.add(op, "reg char out", "reg[d] char out");
-                           StdOut.print(reg[d]);                break;    // reg char out
+                           StdOut.print(reg[d]);
+                           break;    // reg char out
                 case 0x51: II.add(op, "mem char out", "mem[addr] char out");
-                           StdOut.print(mem[addr]);             break;    // mem char out
-
+                           StdOut.print(mem[addr]);
+                           break;    // mem char out
                 case 0x52: II.add(op, "string 10 16b", "string out 16b");
                            idx=addr; 
                            while (mem[idx]!=0) {
@@ -565,23 +564,16 @@ class Instruction {
         return this.addr;
     }
     public Instruction(int[] mem, int pc) throws InstructionValueException {
-
             // Fetch and parse
             setPc(pc);
             setHighword(mem[pc++]);                   // fetch next word
             setInst(highword); 
             setOp( (highword >> 8)  & 0x00FF);        // get opcode (bits 12-15)
             setD(  (highword >>  0) & 0x00FF);        // get dest  
-
             setLowword(mem[pc++]);                    // fetch next word
             this.s    = (lowword  >>  8) & 0x00FF;    // get s    
             this.t    = lowword          & 0x00FF;    // get t   
-
             this.addr = lowword          & 0xFFFF;    // get addr
-//          if (this.d > 15) throw new InstructionValueException(this, "d too big");
-//          if (this.s > 15) throw new InstructionValueException(this, "s too big");
-//          if (this.t > 15) throw new InstructionValueException(this, "t too big");
-            //System.out.println(toHex(addr));System.exit(1);
     }
 
     public static String toDec(int n) {
