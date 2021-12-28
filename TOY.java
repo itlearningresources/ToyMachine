@@ -73,7 +73,7 @@ public class TOY {
     static  StringBuffer sb = new StringBuffer(120);
     static  StringBuffer programAsRead = new StringBuffer(1024);
     static  Instruction lastInstruction = null;
-    ISET II = new ISET();
+    InstructionSet II = new InstructionSet();
     private final int STACKSIZE = 32;          // stack size in memory locations
     private int pc;                            // program counter
     private int stkptr;                        // stack pointer
@@ -497,7 +497,7 @@ public class TOY {
     }
 }
 
-class Instruction {
+final class Instruction {
     
     private int pc;
     private int highword;
@@ -649,12 +649,11 @@ class Finder {
     }
 }
 
-class Instruct {
-    static boolean[] bI = new boolean[256];
+final class Instruction_Details {
     private int opcode;
     private String name;
     private String description;
-    public Instruct(int o, String n, String d) {
+    public Instruction_Details(int o, String n, String d) {
         this.opcode = 0;
         this.name = n;
         this.description = d;
@@ -664,20 +663,20 @@ class Instruct {
 
 }
 
-class ISET {
-    private boolean[] bI = new boolean[256];
-    private HashMap<Integer, Instruct> iset = new HashMap<Integer, Instruct>();
-    public ISET() {
-        for (int i =0;i<256;i++) bI[i]=false;
+final class InstructionSet {
+    private boolean[] b = new boolean[256];
+    private HashMap<Integer, Instruction_Details> details = new HashMap<Integer, Instruction_Details>();
+    public InstructionSet() {
+        for (int i =0;i<256;i++) b[i]=false;
     }
     public void add(int o, String n, String d) {
-        if (!bI[o]) {
-            bI[o]=true; 
-            iset.put(o, new Instruct(o,n,d));
+        if (!b[o]) {
+            b[o]=true; 
+            details.put(o, new Instruction_Details(o,n,d));
         }
     }
-    public Instruct get(int o) {
-        return iset.get(o);
+    public Instruction_Details get(int o) {
+        return details.get(o);
     }
 
 }
