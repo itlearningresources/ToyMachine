@@ -5,61 +5,6 @@
  *  Execution:    java-introcs TOY [--verbose] filename.toy 
  *  Dependencies: StdIn.java In.java
  *
- *  We use variables of type int to store the TOY registers, main
- *  memory, and program counter even though in TOY these quantities
- *  are 16 and 8 bit integers. Java does not have an 8-bit unsigned
- *  type. The type short in Java does represent 16-bit 2's complement
- *  integers, but using it requires alot of casting. Instead, we are
- *  careful to treat all of the variable as if they were the appropriate
- *  type so that the behavior truly models the TOY machine.
- *
- *  Each TOY instruction consists of 4 hex digits (16 bits). The leading (left-most) hex digit
- *  encodes one of the 16 opcodes. The second (from the left) hex digit refers to one of the
- *  16 registers, which we call the destination register and denote by d. The interpretation
- *  of the two rightmost hex digits depends on the opcode. With Format 1 opcodes, the third
- *  and fourth hex digits are each interpreted as the index of a register, which we call the
- *  two source registers and denote by s and t. For example, the instruction 1462 adds the
- *  contents of registers s = 6 and t = 2 and puts the result into register d = 4.
- *
- *  With Format 2 opcodes, the third and fourth hex digits (the rightmost 8 bits) are interpreted
- *  oas a memory address, which we denote by addr.
- *  For example, the instruction 9462 stores the contents of register d = 4 into memory location
- *  addr = 62. Note that there is no ambiguity between Format 1 and Format 2 instruction since
- *  each opcode has a unique format.
- *
- *          // Fetch and parse
- *          int inst = mem[pc++];            // fetch next instruction
- *          trace("INST", inst);
- *          int op   = (inst >> 12) &  15;   // get opcode (bits 12-15)
- *          int d    = (inst >>  8) &  15;   // get dest   (bits  8-11)
- *          int s    = (inst >>  4) &  15;   // get s      (bits  4- 7)
- *          int t    = inst         &  15;   // get t      (bits  0- 3)
- *          int addr = inst         & 255;   // get addr   (bits  0- 7)
- *
- *  % more multiply.toy
- *  10: 8AFF   read R[A]
- *  11: 8BFF   read R[B]
- *  12: 7C00   R[C] <- 0000
- *  13: 7101   R[1] <- 0001
- *  14: CA18   if (R[A] == 0) goto 18
- *  15: 1CCB   R[C] <- R[C] + R[B]
- *  16: 2AA1   R[A] <- R[A] - R[1]
- *  17: C014   goto 14
- *  18: 9CFF   write R[C]
- *  19: 0000   halt                        
- *
- *  % java-introcs TOY multiply.toy
- *  0002
- *  0004
- *  0008
- *
- *  % java-introcs TOY --verbose multiply.toy
- *  [core dump]
- *  0002
- *  0004
- *  0008
- *  [core dump]
- *
  *************************************************************************/
 
 import java.util.regex.Pattern;
@@ -101,87 +46,39 @@ public class TOY {
        /****************************************************************
         *  Read Program File
         *  Read in memory location and instruction.         
-        *  A valid input line consists of 2 hex digits followed by a 
-        *  colon, followed by any number of spaces, followed by 4
-        *  hex digits. The rest of the line is ignored.
         ****************************************************************/
-        String regexpm = "^([0-9A-Fa-f]{2}):[ \t]*([0-9A-Fa-f]{4})";
-        String regexp = "^[ \t]*([0-9A-Fa-f]{4})[ \t]*([0-9A-Fa-f]{4})";
-        String asmregexp = "^([0-9A-Fa-f]{2}):[ \t]*([A-Fa-f]{3})";
-        String memregexp = "^(MEM)[ \t]*([0-9A-Fa-f]{4})[ \t]*([#$][0-9A-Za-z]*)";
-        String labregexp = "^(LAB)[ \t]*([0-9A-Za-z]{4})";
-        String wordregexp = "^([0-9A-Fa-f]{4}$)";
-        String dwordregexp = "^([0-9A-Fa-f]{4})[ \t]*([0-9A-Fa-f]{4})";
-        Finder dword = new Finder(dwordregexp); 
 
-    //l.put("START", new Integer(0));
-//map.get("name"); // returns "demo"
-        
-        Pattern pattern = Pattern.compile(regexp);
-        Pattern asmpattern = Pattern.compile(asmregexp);
-        Pattern mempattern = Pattern.compile(memregexp);
-        Pattern labpattern = Pattern.compile(labregexp);
-        Pattern wordpattern = Pattern.compile(wordregexp);
-        Pattern dwordpattern = Pattern.compile(dwordregexp);
+        Finder label_line      = new Finder("^(LAB)[ \t]*([0-9A-Za-z]{4})");
+        Finder memory_line     = new Finder("^(MEM)[ \t]*([0-9A-Fa-f]{4})[ \t]*([#$][0-9A-Za-z]*)");
+        Finder dword_line      = new Finder("^([0-9A-Fa-f]{4})[ \t]*([0-9A-Fa-f]{4})");
+        Finder word_line       = new Finder("^([0-9A-Fa-f]{4}$)");
 
         while (in.hasNextLine()) {
             String line = in.readLine();
             programAsRead.append(line + "\n");
-            Matcher labmatcher = labpattern.matcher(line);
-            if (labmatcher.find()) {
-                label.put(labmatcher.group(2), loadptr);
-                //l.put("START", new Integer(0));
+
+            if (label_line.matches(line)) {
+                label.put(label_line.get(2), loadptr);
                 continue;
             }
-            Matcher memmatcher = mempattern.matcher(line);
-            if (memmatcher.find()) {
-                loadptr = fromHex(memmatcher.group(2));
-                label.put(memmatcher.group(3), loadptr);
+            if (memory_line.matches(line)) {
+                loadptr = fromHex(memory_line.get(2));
+                label.put(memory_line.get(3), loadptr);
                 continue;
             }
-            Matcher dwordmatcher = dwordpattern.matcher(line);
-            if (dwordmatcher.find()) {
-                mem[loadptr] = fromHex(dwordmatcher.group(1));
+            if (dword_line.matches(line)) {
+                mem[loadptr] = fromHex(dword_line.get(1));
                 loadptr++;
-                mem[loadptr] = fromHex(dwordmatcher.group(2));
+                mem[loadptr] = fromHex(dword_line.get(2));
                 loadptr++;
                 continue;
             }
-            Matcher wordmatcher = wordpattern.matcher(line);
-            if (wordmatcher.find()) {
-                mem[loadptr] = fromHex(wordmatcher.group(1));
+            if (word_line.matches(line)) {
+                mem[loadptr] = fromHex(word_line.get(1));
                 loadptr++;
                 continue;
             }
 
-            Matcher matcher = pattern.matcher(line);
-            Matcher asmmatcher = asmpattern.matcher(line);
-            if (matcher.find()) {
-                //int addr = fromHex(matcher.group(1));
-                int addr = loadptr;
-                //int inst = fromHex(matcher.group(2));
-                int inst = fromHex(matcher.group(1));
-                mem[addr] = inst;
-                inst = fromHex(matcher.group(1));
-                mem[addr++] = inst;
-                loadptr++;
-                loadptr++;
-            }
-            else {
-                if (asmmatcher.find()) {
-                    int addr = fromHex(matcher.group(1));
-                    int inst = -1;
-                    String sz = matcher.group(2);
-                        switch (sz) {
-                            case  "HLT": inst = 0;         break;    // halt
-                            case  "ADD": inst = 1;         break;    // add
-                            case  "SUB": inst = 2;         break;    // sub
-                            case  "PSH": inst = 16;        break;    // push
-                            case  "POP": inst = 17;        break;    // pop 
-                        }
-                    mem[addr] = inst;
-                }
-            }
         }
     }
     // return a 4-digit hex string corresponding to 16-bit integer n
@@ -314,38 +211,40 @@ public class TOY {
             switch (op) {
                 case 0x00: II.add(op, "halt", "haltflag = true");
                            haltflag=true;    
-                           break;                                                            // halt
+                           break;                                                                // halt
                 case 0x01: II.add(op, "add", "reg[d] = reg[s] +  reg[t]");
                            reg[d] = reg[s] +  reg[t];         
-                           break;                                                            // add
+                           break;                                                                // add
                 case 0x02: II.add(op, "subtract", "reg[d] = reg[s] -  reg[t]");
                            reg[d] = reg[s] -  reg[t];
-                           break;                                                            // subtract
+                           break;                                                                // subtract
                 case 0x03: reg[d] = reg[s] &  reg[t];
-                           II.add(op, "bitwise and", "reg[d] = reg[s] & reg[t]");  break;    // bitwise and
+                           II.add(op, "bitwise and", "reg[d] = reg[s] & reg[t]");  break;        // bitwise and
                 case 0x04: reg[d] = reg[s] ^  reg[t];
-                           II.add(op, "bitwise or",  "reg[d] = reg[s] ^  reg[t]"); break;    // bitwise xor
+                           II.add(op, "bitwise or",  "reg[d] = reg[s] ^  reg[t]"); break;        // bitwise xor
                 case 0x05: reg[d] = reg[s] << reg[t];
-                           II.add(op, "shift left", "reg[d] = reg[s] << reg[t]");  break;    // shift left
+                           II.add(op, "shift left", "reg[d] = reg[s] << reg[t]");  break;        // shift left
                 case 0x06: reg[d] = reg[s] >> reg[t];
-                           II.add(op, "shift right", "reg[d] = reg[s] >> reg[t]"); break;    // shift right
+                           II.add(op, "shift right", "reg[d] = reg[s] >> reg[t]"); break;        // shift right
                 case 0x07: reg[d] = addr;
-                           II.add(op, "load address", "reg[d] = addr");            break;    // load address
+                           II.add(op, "load address", "reg[d] = addr");            break;        // load address
                 case 0x08: reg[d] = mem[addr];
-                           II.add(op, "load", "reg[d] = mem[addr]");               break;    // load
+                           II.add(op, "load", "reg[d] = mem[addr]");               break;        // load
                 case 0x09: mem[addr] = reg[d];
-                           II.add(op, "store", "mem[addr] = reg[d]");              break;    // store
+                           II.add(op, "store", "mem[addr] = reg[d]");              break;        // store
                 case 0x0A: reg[d] = mem[reg[t] & 255];
                            II.add(op, "load indirect", "reg[d] = mem[reg[t] & 255]");  break;    // load indirect
                 case 0x0B: mem[reg[t] & 255] = reg[d];
                            II.add(op, "store indirect", "mem[reg[t] & 255] = reg[d]"); break;    // store indirect
                 case 0x0C: if ((short) reg[d] == 0) pc = addr;
-                           II.add(op, "branch if zero", "if ((short) reg[d] == 0) pc = addr");     break; // branch if zero
+                           II.add(op, "branch if zero", "if ((short) reg[d] == 0) pc = addr");  
+                           break;                                                                // branch if zero
                 case 0x0D: if ((short) reg[d] >  0) pc = addr;
-                           II.add(op, "branch if pos", "if ((short) reg[d] >  0) pc = addr"); break; // branch if positive
+                           II.add(op, "branch if pos", "if ((short) reg[d] >  0) pc = addr");
+                           break;                                                                // branch if positive
                 case 0x0E: II.add(op, "jump indirect", "pc = reg[d]");
                            pc = reg[d];
-                           break;                                                                    // jump indirect
+                           break;                                                                // jump indirect
                 case 0x0F: II.add(op, "jump and link", "reg[d] = pc; pc = addr");
                            reg[d] = pc; pc = addr;
                            break;                                                                // jump and link
@@ -353,57 +252,57 @@ public class TOY {
                 // My Instructions
                 case 0x10: II.add(op, "push address", "push addr");
                            stkptr++;stk[stkptr] = mem[addr];
-                           break;    // push address
+                           break;                                                                // push address
                 case 0x11: II.add(op, "push register", "push reg[d]");
                            stkptr++;stk[stkptr] = reg[d];
-                           break;    // push register
+                           break;                                                                // push register
                 case 0x12: 
                            II.add(op, "pop to register", "pop to reg[d]");
                            reg[d] = stk[stkptr];
                            stk[stkptr] = 0xFFFF;
                            stkptr--; 
                            if (stkptr<0) stkptr=0;
-                           break;    // pop to register
+                           break;                                                                // pop to register
                 case 0x13: II.add(op, "increment register", "reg[d]++"); 
                            reg[d] = reg[d] + 1;
-                           break;    // increment register
+                           break;                                                                // increment register
                 case 0x14: II.add(op, "decrement register", "reg[d]--"); 
                            reg[d] = reg[d] - 1;
-                           break;    // decrement register
+                           break;                                                                // decrement register
                 case 0x15: II.add(op, "shift reg left", "reg[d] = reg[d] << 1");
                            reg[d] = reg[d] << 1;
-                           break;    // shift reg left
+                           break;                                                                // shift reg left
                 case 0x16: II.add(op, "shift reg right", "reg[d] = reg[d] >> 1");
                            reg[d] = reg[d] >> 1;
-                           break;    // shift reg right
+                           break;                                                                // shift reg right
                 case 0x17: II.add(op, "push pc and link", "push pc and pc = addr");
                            stk[++stkptr] = pc; pc = addr;
-                           break;    // push pc and link
+                           break;                                                                // push pc and link
                 case 0x18: II.add(op, "jump", "pc = addr");
                            pc = addr;
-                           break;    // jump
+                           break;                                                                // jump
                 case 0x19: II.add(op, "pop and link", "pop and link");
                            pc = stk[stkptr];
                            stk[stkptr] = 0xFFFF;
                            stkptr--; 
                            if (stkptr<0) stkptr=0;
-                           break;    // pop and link
+                           break;                                                                // pop and link
                 case 0x20: II.add(op, "NOP", "pc = pc");
                            pc = pc;
-                           break;                                                       // NOP
+                           break;                                                                // NOP
                 case 0x50: II.add(op, "reg char out", "reg[d] char out");
                            StdOut.print(reg[d]);
-                           break;    // reg char out
+                           break;                                                                // reg char out
                 case 0x51: II.add(op, "mem char out", "mem[addr] char out");
                            StdOut.print(mem[addr]);
-                           break;    // mem char out
+                           break;                                                                // mem char out
                 case 0x52: II.add(op, "string 10 16b", "string out 16b");
                            idx=addr; 
                            while (mem[idx]!=0) {
                                StdOut.print( String.valueOf((char) mem[idx]) );
                                idx++;
                            }
-                           break;                                         // string out 16 bit
+                           break;                                                                // string out 16 bit
                 case 0x53: II.add(op, "string out 8b", "string out 8b");
                            idx=addr; 
                            boolean flip = true;
@@ -414,7 +313,7 @@ public class TOY {
                                n = (flip) ? (mem[idx] >> 8) & 0x00FF  : (mem[idx] >> 0) & 0x00FF; 
                                if (!flip) idx++;
                            }
-                           break;                                         // string out 8 bit
+                           break;                                                                // string out 8 bit
             }
 
             // stdout
@@ -626,6 +525,9 @@ class Finder {
         this.r = r;
         this.p = Pattern.compile(r);
     }
+    public boolean matches(String sz) {
+        return find(sz);
+    }
     public boolean isa(String sz) {
         return find(sz);
     }
@@ -641,7 +543,7 @@ class Finder {
     public int getGroupCount() {
         return this.m.groupCount();
     }
-    public String getString(int n) {
+    public String get(int n) {
         String szRet = "";
         if ( (n>0) && (n <= this.m.groupCount()) ) szRet = new String(this.m.group(n));
         return szRet;
