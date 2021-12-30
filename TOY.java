@@ -28,6 +28,14 @@ public class TOY {
     private int[] mem = new int[0xFFFF];       // main memory locations
     private int[] stk = new int[STACKSIZE];    // stack memory locations
 
+    // return a 4-digit hex string corresponding to 16-bit integer n
+    // return a 2-digit hex string corresponding to 8-bit integer n
+    // return a 16-bit integer corresponding to the 4-digit hex string s
+    public static String toHex(int n) { return String.format("%04X", n & 0xFFFF); }
+    public static String toHexShort(int n) { return String.format("%02X", n & 0xFFFF); }
+    public static int fromHex(String s) { return Integer.parseInt(s, 16) & 0xFFFF; }
+
+
     // create a new TOY VM and load with program from specified file
     public TOY(String filename) {
         this(filename, 0x10);
@@ -62,48 +70,24 @@ public class TOY {
                 continue;
             }
             if (memory_line.matches(line)) {
-                loadptr = fromHex(memory_line.get(2));
+                loadptr = TOY.fromHex(memory_line.get(2));
                 label.put(memory_line.get(3), loadptr);
                 continue;
             }
             if (dword_line.matches(line)) {
-                mem[loadptr] = fromHex(dword_line.get(1));
+                mem[loadptr] = TOY.fromHex(dword_line.get(1));
                 loadptr++;
-                mem[loadptr] = fromHex(dword_line.get(2));
+                mem[loadptr] = TOY.fromHex(dword_line.get(2));
                 loadptr++;
                 continue;
             }
             if (word_line.matches(line)) {
-                mem[loadptr] = fromHex(word_line.get(1));
+                mem[loadptr] = TOY.fromHex(word_line.get(1));
                 loadptr++;
                 continue;
             }
 
         }
-    }
-    // return a 4-digit hex string corresponding to 16-bit integer n
-    public static String toDec(int n) {
-        return String.format("%05d", n & 0xFFFF);
-    }
-    public static String toDecShort(int n) {
-        return String.format("%03d", n & 0xFFFF);
-    }
-    // return a 16-digit binary string corresponding to 16-bit integer n
-    public static String toBinary(int n) {
-        return String.format("%16s", Integer.toBinaryString(n & 0xFFFF)).replace(" ", "0");
-    }
-    // return a 4-digit hex string corresponding to 16-bit integer n
-    public static String toHex(int n) {
-        return String.format("%04X", n & 0xFFFF);
-    }
-    // return a 2-digit hex string corresponding to 8-bit integer n
-    public static String toHexShort(int n) {
-        return String.format("%02X", n & 0xFFFF);
-    }
-
-    // return a 16-bit integer corresponding to the 4-digit hex string s
-    public static int fromHex(String s) {
-        return Integer.parseInt(s, 16) & 0xFFFF;
     }
     // write to an array of hex integers, 8 per line to standard output
     public static void showhex(int[] a) {
@@ -113,20 +97,6 @@ public class TOY {
         StdOut.print(toHex(0) + ": ");
         for (int i = 0; i < count; i++) {
             StdOut.print(toHex(a[i]) + " ");
-            if (i % C == (C-1)) {
-                StdOut.println();
-                if (i+1 < count) StdOut.print(toHex(i+1) + ": ");
-            }
-        }
-    }
-    // write to an array of binary integers, 8 per line to standard output
-    public static void showbinary(int[] a) {
-        final int M = 64;
-        final int C = 8;
-        int count = (a.length >= M) ? M : a.length;
-        StdOut.print(toHex(0) + ": ");
-        for (int i = 0; i < count; i++) {
-            StdOut.print(toBinary(a[i]) + " ");
             if (i % C == (C-1)) {
                 StdOut.println();
                 if (i+1 < count) StdOut.print(toHex(i+1) + ": ");
@@ -361,8 +331,8 @@ public class TOY {
 
         // the initial value of the PC is an optional last command-line argument
         int pc = 0x10;
-        if (!isVerbose && args.length > 1) pc = fromHex(args[1]);
-        if ( isVerbose && args.length > 2) pc = fromHex(args[2]);
+        if (!isVerbose && args.length > 1) pc = TOY.fromHex(args[1]);
+        if ( isVerbose && args.length > 2) pc = TOY.fromHex(args[2]);
 
         // no command-line arguments
         if (args.length == 0) {
