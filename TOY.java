@@ -93,11 +93,21 @@ public class TOY {
     public static void showhex(int[] a) {
         final int M = 64;
         final int C = 16;
+        int t = 0;
+        int e = 0;
         int count = (a.length >= M) ? M : a.length;
+        t=0;
         StdOut.print(toHex(0) + ": ");
         for (int i = 0; i < count; i++) {
+            e = i;
             StdOut.print(toHex(a[i]) + " ");
             if (i % C == (C-1)) {
+                StdOut.print("    ");
+                    for (int j = t; j <= e; j++) {
+                       int k = (a[j]>>0) & 0xFFFF;
+                       StdOut.print( (k < 127 && k > 31) ? Character.toString((char) k) : ".");
+                       t=i;
+                    }
                 StdOut.println();
                 if (i+1 < count) StdOut.print(toHex(i+1) + ": ");
             }
@@ -148,6 +158,7 @@ public class TOY {
         boolean haltflag = false;
 
         sb.append(String.format("%26s %6s %2s %2s  %4s\n","Instruction", "D", "S", "T", "ADDR"));
+        StdOut.printf("%91s%s\n", "", "PC   A    B    C    0    1    2");
         while (true) {
 
             // Fetch and parse
@@ -169,7 +180,6 @@ public class TOY {
             int s    = I.getS();
             int t    = I.getT();
             int addr = I.getAddr();
-            //StdOut.printf("%s  %s x%s d%d\n", I.opString(), toHex(I.getLowword()), toHexShort(I.getOp()), I.getOp());
 
 
 
@@ -291,7 +301,7 @@ public class TOY {
        //         StdOut.println(toHex(mem[255]));
             //sb.append(I.toString() + "\n");
 
-            StdOut.printf("%s %s %s %-18s %-2s %-2s %-2s %-2s -- %-38s -- %s\n",
+            StdOut.printf("%s %s %s %-18s %-2s %-2s %-2s %-2s -- %-38s -- %s %s %s %s %s %s %s\n",
                                                      toHex(I.getPc()),
                                                      toHex(I.getHighword()),
                                                      toHex(I.getLowword()),
@@ -301,7 +311,14 @@ public class TOY {
                                                      toHexShort(I.getS()),
                                                      toHexShort(I.getT()),
                                                      II.get(op).getDescription(),
-                                                     toHex(pc)
+                                                     toHex(pc),
+                                                     toHex(stk[stkptr]),
+                                                     toHex(reg[0xA]),
+                                                     toHex(reg[0xB]),
+                                                     toHex(reg[0xC]),
+                                                     toHex(reg[0x0]),
+                                                     toHex(reg[0x1]),
+                                                     toHex(reg[0x2])
                                                      );
 
 
