@@ -1,5 +1,11 @@
-MEM 0000 #INITS
+MEM 0020 #INITS
 004D
+0000
+0000
+0000
+0000
+0000
+0000
 0069
 006B
 0065
@@ -7,29 +13,74 @@ MEM 0000 #INITS
 #
 #
 // comment
+# 0C0C 0044   if (RC == 0) pc goto 44      while (a != 0) {
+# 010A 0A0B   RA <- RA - RB                   a = a - b;
+# 020C 0C0B   RC <- RC + RB                   c = c + b;
+# 0022 0000
+# 1800 0018   pc <- 0018                     }
+# 090C 000C   mem[0C] <- RC
+# 2000 0000   NOP
+# 1900 0000   pop and link
+
 #
 MEM 0010 $PROGRAM
-2100 0080 Load 0x0080 into the address register
-2200 0000 Increment the address register
-070A 004D
-070B 0001
-070C 0008
+0702 0004  load 0004 into R2
+2000 0000  NOP
+2000 0000  NOP
+2400 0000  push PC
+2000 0000  NOP
+2000 0000  NOP
+0C02 0050  if (R2 == 0) pc goto 50 (#EXIT)
+0703 0020  load address 0020 into R3
+1700 0044
+1303 0000  increment R3
+1402 0000  deccrement R2
+1900 0000  pop and link
+
 0000 0000
-0C0C 0044   if (RC == 0) pc goto 44      while (a != 0) {
-010A 0A0B   RA <- RA - RB                   a = a - b;
-020C 0C0B   RC <- RC + RB                   c = c + b;
-0022 0000
-1800 0018   pc <- 0018                     }
-2000 0000
 MEM 0044 #ROUTINE1
-1700 0084   push and link
-2000 0000   NOP
-2000 0000   NOP
-2000 0000   NOP
-2000 0000   NOP
-0000 0000   halt
-MEM 0080 #ROUTINE2
-090C 000C   mem[0C] <- RC
-2000 0000   NOP
-1900 0000   pop and link
-0000 0000
+0A01 0003  Load *R3 into R1
+2000 0000  NOP
+1900 0000  pop and link
+0000 0000  halt
+
+
+MEM 0050 #EXIT
+0000 0000  halt
+
+
+//   0x00 halt                              haltflag = true                         
+//   0x01 add                               reg[d] = reg[s] + reg[t]                
+//   0x02 subtract                          reg[d] = reg[s] - reg[t]                
+//   0x03 bitwise and                       reg[d] = reg[s] & reg[t]                
+//   0x04 bitwise or                        reg[d] = reg[s] ^ reg[t]                
+//   0x05 shift left                        reg[d] = reg[s] << reg[t]               
+//   0x06 shift right                       reg[d] = reg[s] >> reg[t]               
+//   0x07 load address                      reg[d] = addr                           
+//   0x08 load                              reg[d] = mem[addr]                      
+//   0x09 store                             mem[addr] = reg[d]                      
+//   0x0A load indirect                     reg[d] = mem[reg[t] & 255]              
+//   0x0B store indirect                    mem[reg[t] & 255] = reg[d]              
+//   0x0C branch if zero                    if ((short) reg[d] == 0) pc = addr      
+//   0x0D branch if pos                     if ((short) reg[d] >  0) pc = addr      
+//   0x0E jump indirect                     pc = reg[d]                             
+//   0x0F jump and link                     reg[d] = pc; pc = addr                  
+//   0x10 push address                      push addr                               
+//   0x11 push register                     push reg[d]                             
+//   0x12 pop to register                   pop to reg[d]                           
+//   0x13 increment register                reg[d]++                                
+//   0x14 decrement register                reg[d]--                                
+//   0x15 shift reg left                    reg[d] = reg[d] << 1                    
+//   0x16 shift reg right                   reg[d] = reg[d] >> 1                    
+//   0x17 push pc and link                  push pc and pc = addr                   
+//   0x18 jump                              pc = addr                               
+//   0x19 pop and link                      pop and link                            
+//   0x20 NOP                               pc = pc                                 
+//   0x21 Load Addr Reg                     reg[ADRR] = addr                        
+//   0x22 Inc Addr Reg                      reg[ADRR]++                             
+//   0x23 Store Reg indirect Addr Reg       mem[reg[d]]= reg[ADRR]                  
+//   0x50 reg char out                      reg[d] char out                         
+//   0x51 mem char out                      mem[addr] char out                      
+//   0x52 string 10 16b                     string out 16b                          
+//   0x53 string out 8b                     string out 8b                           
+

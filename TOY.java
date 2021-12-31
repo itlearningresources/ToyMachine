@@ -46,7 +46,7 @@ public class TOY {
         final int PROGRAMMEMORY=16;
         int loadptr=PROGRAMMEMORY;
 
-        for (int i=0;i<256;i++) mem[i]=i;
+        for (int i=0;i<0xFFFF;i++) mem[i]=0;
         this.pc = pc;
         this.stkptr = 0;
         In in = new In(filename);
@@ -98,15 +98,30 @@ public class TOY {
     // write to an array of hex integers, 8 per line to standard output
     public static void showhex(int[] a) {
         final int M = 64;
+        showhex(a,M);
+    }
+    public static void showhex(int[] a, int M) {
+        final String ANSI_RESET = "\u001B[0m";
+        final String ANSI_BLACK = "\u001B[30m";
+        final String ANSI_RED = "\u001B[31m";
+        final String ANSI_GREEN = "\u001B[32m";
+        final String ANSI_YELLOW = "\u001B[33m";
+        final String ANSI_BLUE = "\u001B[34m";
+        final String ANSI_PURPLE = "\u001B[35m";
+        final String ANSI_CYAN = "\u001B[36m";
+        final String ANSI_WHITE = "\u001B[37m";
         final int C = 16;
         int t = 0;
         int e = 0;
         int count = (a.length >= M) ? M : a.length;
         t=0;
-        StdOut.print(toHex(0) + ": ");
+        StdOut.print(ANSI_PURPLE + toHex(0) + ": " + ANSI_WHITE);
         for (int i = 0; i < count; i++) {
             e = i;
-            StdOut.print(toHex(a[i]) + " ");
+            if ( a[i] == 0 )
+                StdOut.print(toHex(a[i]) + " ");
+            else
+                StdOut.print(ANSI_BLUE + toHex(a[i]) + " " + ANSI_WHITE);
             if (i % C == (C-1)) {
                 StdOut.print("    ");
                     for (int j = t; j <= e; j++) {
@@ -115,7 +130,7 @@ public class TOY {
                        t=i;
                     }
                 StdOut.println();
-                if (i+1 < count) StdOut.print(toHex(i+1) + ": ");
+                if (i+1 < count) StdOut.print(ANSI_PURPLE + toHex(i+1) + ": " + ANSI_WHITE);
             }
         }
     }
@@ -143,7 +158,7 @@ public class TOY {
         StdOut.println("Registers:");
         showreg(reg);
         StdOut.println("Main memory in Hex (16 bit words):");
-        showhex(mem);
+        showhex(mem, 16*10);
         StdOut.print("Stack memory in Hex (16 bit words):");
         StdOut.printf("  SP: %s\n", toHex(stkptr));
         showhex(stk);
@@ -164,7 +179,7 @@ public class TOY {
         boolean haltflag = false;
 
         sb.append(String.format("%26s %6s %2s %2s  %4s\n","Instruction", "D", "S", "T", "ADDR"));
-        StdOut.printf("%91s%s\n", "", "PC   A    B    C    0    1    2");
+        StdOut.printf("%91s%s\n", "", " PC   STK  A    B    C    0    1    2");
         while (true) {
 
             // Fetch and parse
@@ -281,7 +296,7 @@ public class TOY {
                            stkptr--; 
                            if (stkptr<0) stkptr=0;
                            break;                                                                // pop and link
-                case 0x20: II.add(op, "NOP", "pc = pc");
+                case 0x20: II.add(op, "NOP", "NOP");
                            pc = pc;
                            break;                                                                // NOP
                 case 0x21: II.add(op, "Load Addr Reg", "reg[ADRR] = addr");
@@ -293,6 +308,9 @@ public class TOY {
                 case 0x23: II.add(op, "Store Reg indirect Addr Reg", "mem[reg[d]]= reg[ADRR]");
                            mem[reg[ADRR]] = reg[d];
                            break;                                                                // sore indirect Address register
+                case 0x24: II.add(op, "Push This", "push inst addr (pc-2)");
+                           stk[++stkptr] = pc-2; 
+                           break;                                                                // push PC
                 case 0x50: II.add(op, "reg char out", "reg[d] char out");
                            StdOut.print(reg[d]);
                            break;                                                                // reg char out
@@ -324,8 +342,10 @@ public class TOY {
        //         StdOut.println(toHex(mem[255]));
             //sb.append(I.toString() + "\n");
 
-            StdOut.printf("%s %s %s %-18s %-2s %-2s %-2s %-2s -- %-38s -- %s %s %s %s %s %s %s\n",
-                                                     toHex(I.getPc()),
+        final String ANSI_PURPLE = "\u001B[35m";
+        final String ANSI_WHITE = "\u001B[37m";
+            StdOut.printf("%s %s %s %-18s %-2s %-2s %-2s %-2s -- %-38s -- %s %s %s %s %s %s %s %s\n",
+                                                     ANSI_PURPLE +toHex(I.getPc()) + ":" + ANSI_WHITE,
                                                      toHex(I.getHighword()),
                                                      toHex(I.getLowword()),
                                                      II.get(op).getName(),
@@ -339,9 +359,9 @@ public class TOY {
                                                      toHex(reg[0xA]),
                                                      toHex(reg[0xB]),
                                                      toHex(reg[0xC]),
-                                                     toHex(reg[0x0]),
-                                                     toHex(reg[0x1]),
-                                                     toHex(reg[0x2])
+                                                     toHex(reg[0]),
+                                                     toHex(reg[1]),
+                                                     toHex(reg[2])
                                                      );
 
 
