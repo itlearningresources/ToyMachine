@@ -170,6 +170,7 @@ public class TOY {
         int n = 0;
         Instruction I = null;
         boolean haltflag = false;
+        pc = mem[0x0000];
 
         sb.append(String.format("%26s %6s %2s %2s  %4s\n","Instruction", "D", "S", "T", "ADDR"));
         StdOut.printf("%91s%s\n", "", " PC   STK  A    B    C    0    1    2   3");
@@ -195,9 +196,7 @@ public class TOY {
             int t    = I.getT();
             int addr = I.getAddr();
 
-
-
-            // stdin 
+       // stdin 
        //     if ((addr == 255 && op == 8) || (reg[t] == 255 && op == 10))
        //         mem[255] = fromHex(StdIn.readString());
 
@@ -369,31 +368,20 @@ public class TOY {
 
     // run the TOY simulator with specified file
     public static void main(String[] args) { 
-        // -v or --verbose is an optional first command-line argument
-        boolean isVerbose = false;
-        if (args.length > 0 && (args[0].equals("-v") || args[0].equals("--verbose"))) {
-            isVerbose = true;
-        }
-
-        // the filename is the next command-line argument
-        String filename = null;
-        if (!isVerbose && args.length > 0) filename = args[0];
-        if ( isVerbose && args.length > 1) filename = args[1];
-
-        // the initial value of the PC is an optional last command-line argument
-        int pc = 0x10;
-        if (!isVerbose && args.length > 1) pc = TOY.fromHex(args[1]);
-        if ( isVerbose && args.length > 2) pc = TOY.fromHex(args[2]);
+        boolean isVerbose = true;
+        int pc = 0x0010;
 
         // no command-line arguments
         if (args.length == 0) {
             System.err.println("TOY:   invalid command-line options");
-            System.err.println("usage: java-introcs TOY [--verbose] filename.toy [pc]");
+            System.err.println("usage: java-introcs TOY filename.toy");
             return;
         }
 
+        String filename = args[0];
+
         TOY toy = new TOY(filename, pc);
-        if (isVerbose) {
+        if (isVerbose && false) {
             toy.dump("Before Executing");
             StdOut.println("Terminal");
         }
@@ -411,7 +399,6 @@ public class TOY {
 
         if (isVerbose) {
             toy.dump("After Executing");
-
         }
 
     }
