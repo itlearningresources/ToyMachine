@@ -354,11 +354,10 @@ public class TOY {
                                                      toHex(reg[3])
                                                      );
 
-
             // halt
             if (haltflag) break;
 
-            //reg[0] = 0;                // ensure reg[0] is always 0
+            reg[0] = 0;                // ensure reg[0] is always 0
             reg[d] = reg[d] & 0xFFFF;  // don't let reg[d] overflow a 16-bit integer
             pc = pc & 0xFFFF;          // don't let pc overflow an 16-bit integer
 
