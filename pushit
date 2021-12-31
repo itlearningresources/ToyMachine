@@ -1,6 +1,7 @@
 #!/bin/bash
 ./list > instructionset.txt
 
+git add instructionset.txt
 git add TOY.java
 git add Finder.java
 git add test.toy
