@@ -6,7 +6,6 @@ git add test.toy
 git add README.md
 git add pushit
 git add list
-git add stdlib\build
 git commit -m "Update"
 git push -u origin main
 
