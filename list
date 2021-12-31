@@ -1,0 +1,15 @@
+
+egrep case.*II TOY.java |   
+sed 's/case//' |
+sed 's/II.*op,/,/'  |
+sed 's/://'  |
+sed 's/ ,/,/g'  |
+sed 's/, /,/g'  |
+sed 's/);$//g'  |
+sed 's/);[ \t]*$//g'  |
+sed 's/^ [ ]*//g'   |
+sed 's/["]//g'  |
+sed 's/, /,/g'  |
+gawk -F, '{printf("%4s %-33s %-40s\n", $1,$2,$3) }';
+
+
