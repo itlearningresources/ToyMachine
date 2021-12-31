@@ -1,4 +1,5 @@
 #!/bin/bash
+./list > instructionset.txt
 
 git add TOY.java
 git add Finder.java
