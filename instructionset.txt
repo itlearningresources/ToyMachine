@@ -8,7 +8,7 @@
 //   0x07 load address                      reg[d] = addr                           
 //   0x08 load                              reg[d] = mem[addr]                      
 //   0x09 store                             mem[addr] = reg[d]                      
-//   0x0A load indirect                     reg[d] = mem[reg[t] & 255]              
+//   0x0A load indirect                     reg[d] = mem[reg[t] & 0xFFFF]           
 //   0x0B store indirect                    mem[reg[t] & 255] = reg[d]              
 //   0x0C branch if zero                    if ((short) reg[d] == 0) pc = addr      
 //   0x0D branch if pos                     if ((short) reg[d] >  0) pc = addr      
@@ -23,12 +23,12 @@
 //   0x16 shift reg right                   reg[d] = reg[d] >> 1                    
 //   0x17 push pc and link                  push pc and pc = addr                   
 //   0x18 jump                              pc = addr                               
-//   0x19 pop and link                      pop and link                            
+//   0x19 pop and link                      return                                  
 //   0x20 NOP                               NOP                                     
 //   0x21 Load Addr Reg                     reg[ADRR] = addr                        
 //   0x22 Inc Addr Reg                      reg[ADRR]++                             
 //   0x23 Store Reg indirect Addr Reg       mem[reg[d]]= reg[ADRR]                  
-//   0x24 Push This                         push inst addr (pc-2)                   
+//   0x24 Push This                         push this addr                          
 //   0x50 reg char out                      reg[d] char out                         
 //   0x51 mem char out                      mem[addr] char out                      
 //   0x52 string 10 16b                     string out 16b                          

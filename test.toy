@@ -1,11 +1,5 @@
 MEM 0020 #INITS
 004D
-0000
-0000
-0000
-0000
-0000
-0000
 0069
 006B
 0065
@@ -22,30 +16,26 @@ MEM 0020 #INITS
 # 2000 0000   NOP
 # 1900 0000   pop and link
 
-#
-MEM 0010 $PROGRAM
-0702 0004  load 0004 into R2
-2000 0000  NOP
-2000 0000  NOP
-2400 0000  push PC
-2000 0000  NOP
-2000 0000  NOP
-0C02 0050  if (R2 == 0) pc goto 50 (#EXIT)
-0703 0020  load address 0020 into R3
-1700 0044
-1303 0000  increment R3
-1402 0000  deccrement R2
-1900 0000  pop and link
+# R2 is the loop counter
+# R3 is the index of the memory array
+MEM  0100 $PROGRAM
+0702 0004 load 0010 into R2
+0703 0020 load address 0020 into R3
+2400 0000 push this address
+0C02 0500 if (R2 == 0) pc goto 500 (#EXIT)
+1700 0144 call 0144
+1303 0000 increment R3
+1402 0000 deccrement R2
+1900 0000 pop and link (return)
 
 0000 0000
-MEM 0044 #ROUTINE1
+MEM 0144 #ROUTINE1
 0A01 0003  Load *R3 into R1
-2000 0000  NOP
-1900 0000  pop and link
+1900 0000  pop and link (return)
 0000 0000  halt
 
 
-MEM 0050 #EXIT
+MEM 0500 #EXIT
 0000 0000  halt
 
 
