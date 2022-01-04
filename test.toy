@@ -1,45 +1,33 @@
 MEM 0000 #BOOTSTRAP
-0100
+P1
 
-MEM 0020 #INITS
-004D
-0069
-006B
-0065
-0000
-#
-#
-// comment
-# 0C0C 0044   if (RC == 0) pc goto 44      while (a != 0) {
-# 010A 0A0B   RA <- RA - RB                   a = a - b;
-# 020C 0C0B   RC <- RC + RB                   c = c + b;
-# 0022 0000
-# 1800 0018   pc <- 0018                     }
-# 090C 000C   mem[0C] <- RC
-# 2000 0000   NOP
-# 1900 0000   pop and link
+PAGE 03 $THIRDPAGE
+TEXT ESTES
+PAGE 04 $FOURTHPAGE
+TEXT JOSEPHINE
 
 # R2 is the loop counter
 # R3 is the index of the memory array
-MEM  0100 $PROGRAM
+PAGE 01 $CODEPAGE
 0702 0004 load 0010 into R2
-0703 0020 load address 0020 into R3
+0703 00A0 load address 00A0 into R3
 2400 0000 push this address
 0C02 0500 if (R2 == 0) pc goto 500 (#EXIT)
-1700 0144 call 0144
+1700 P7   call 0144
 1303 0000 increment R3
 1402 0000 deccrement R2
 1900 0000 pop and link (return)
-
 0000 0000
-MEM 0144 #ROUTINE1
+
+PAGE 07 $ROUTINE1
 0A01 0003  Load *R3 into R1
 1900 0000  pop and link (return)
 0000 0000  halt
 
 
-MEM 0500 #EXIT
+PAGE 08 $EXIT
 0000 0000  halt
+
 
 
 //   0x00 halt                              haltflag = true                         
@@ -52,7 +40,7 @@ MEM 0500 #EXIT
 //   0x07 load address                      reg[d] = addr                           
 //   0x08 load                              reg[d] = mem[addr]                      
 //   0x09 store                             mem[addr] = reg[d]                      
-//   0x0A load indirect                     reg[d] = mem[reg[t] & 255]              
+//   0x0A load indirect                     reg[d] = mem[reg[t] & 0xFFFF]           
 //   0x0B store indirect                    mem[reg[t] & 255] = reg[d]              
 //   0x0C branch if zero                    if ((short) reg[d] == 0) pc = addr      
 //   0x0D branch if pos                     if ((short) reg[d] >  0) pc = addr      
@@ -67,13 +55,24 @@ MEM 0500 #EXIT
 //   0x16 shift reg right                   reg[d] = reg[d] >> 1                    
 //   0x17 push pc and link                  push pc and pc = addr                   
 //   0x18 jump                              pc = addr                               
-//   0x19 pop and link                      pop and link                            
-//   0x20 NOP                               pc = pc                                 
+//   0x19 pop and link                      return                                  
+//   0x20 NOP                               NOP                                     
 //   0x21 Load Addr Reg                     reg[ADRR] = addr                        
 //   0x22 Inc Addr Reg                      reg[ADRR]++                             
 //   0x23 Store Reg indirect Addr Reg       mem[reg[d]]= reg[ADRR]                  
+//   0x24 Push This                         push this addr                          
 //   0x50 reg char out                      reg[d] char out                         
 //   0x51 mem char out                      mem[addr] char out                      
 //   0x52 string 10 16b                     string out 16b                          
 //   0x53 string out 8b                     string out 8b                           
-
+#
+#
+// comment
+# 0C0C 0044   if (RC == 0) pc goto 44      while (a != 0) {
+# 010A 0A0B   RA <- RA - RB                   a = a - b;
+# 020C 0C0B   RC <- RC + RB                   c = c + b;
+# 0022 0000
+# 1800 0018   pc <- 0018                     }
+# 090C 000C   mem[0C] <- RC
+# 2000 0000   NOP
+# 1900 0000   pop and link

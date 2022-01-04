@@ -12,7 +12,9 @@ import java.util.regex.Matcher;
 import java.util.Map;
 import java.util.HashMap;
 public class TOY { 
+    static int PAGESIZE=32;
     static HashMap<String, Integer> label = new HashMap<String, Integer>();
+    static HashMap<String, Integer> pages = new HashMap<String, Integer>();
 
 
     static  StringBuffer sb = new StringBuffer(120);
@@ -23,9 +25,9 @@ public class TOY {
     private int pc;                            // program counter
     private int stkptr;                        // stack pointer
 
-    private int[] reg   = new int[16];           // 16 registers
+    private int[] xreg   = new int[16];           // 16 registers
     final int ADRR = 0x01;
-    private Registers R = new Registers(reg);
+    private Registers R = null;
     private int[] mem   = new int[0xFFFF];       // main memory locations
     private int[] stk   = new int[STACKSIZE];    // stack memory locations
 
@@ -36,6 +38,7 @@ public class TOY {
     public static String toHexShort(int n) { return String.format("%02X", n & 0xFFFF); }
     public static int fromHex(String s) { return Integer.parseInt(s, 16) & 0xFFFF; }
 
+    private HW hw = null;
 
     // create a new TOY VM and load with program from specified file
     public TOY(String filename) {
@@ -46,23 +49,37 @@ public class TOY {
         final int PROGRAMMEMORY=16;
         int loadptr=PROGRAMMEMORY;
 
-        for (int i=0;i<0xFFFF;i++) mem[i]=0;
         this.pc = pc;
         this.stkptr = 0;
         In in = new In(filename);
 
+       /****************************************************************
+        *  Create a Hardware Object
+        ****************************************************************/
+        hw = new HW();
+        R = new Registers(hw.getReg());
+
+        int[] mem = hw.getMem();
+        for (int i=0;i<mem.length;i++) mem[i]=0;
 
        /****************************************************************
         *  Read Program File
         *  Read in memory location and instruction.         
         ****************************************************************/
+// Force Core Dump
+//if (true) { StdOut.println("Core Dump" + line); showhex(mem, 16*10); System.exit(1); }
 
         Finder empty_line      = new Finder("^[ \t]*$");
         Finder comment_line    = new Finder("^([#]|[/][/])");
         Finder label_line      = new Finder("^(LAB)[ \t]*([0-9A-Za-z]{4})");
         Finder memory_line     = new Finder("^(MEM)[ \t]*([0-9A-Fa-f]{4})[ \t]*([#$][0-9A-Za-z]*)");
         Finder dword_line      = new Finder("^([0-9A-Fa-f]{4})[ \t]*([0-9A-Fa-f]{4})");
+        Finder wordandpage_line= new Finder("^([0-9A-Fa-f]{4})[ \t]*(P[0-9]{1})");
         Finder word_line       = new Finder("^([0-9A-Fa-f]{4}$)");
+
+        Finder string_line     = new Finder("^(TEXT|STRING)[ \t]*([0-9A-Za-z]*)");
+        Finder page_line       = new Finder("^(PAGE)[ \t]*([0-9A-Fa-f]{2})[ \t]*([#$][0-9A-Za-z]*)");
+        Finder pword_line      = new Finder("^(P[0-9]{1})");
 
         while (in.hasNextLine()) {
             String line = in.readLine();
@@ -71,8 +88,40 @@ public class TOY {
             if (empty_line.matches(line)) continue;
             if (comment_line.matches(line)) continue;
 
+            if (string_line.matches(line)) {
+                for (int i=0;i<string_line.get2().length();i++)
+                    mem[loadptr++] = string_line.get2().charAt(i);
+                continue;
+            }
+
+            if (pword_line.matches(line)) {
+                mem[loadptr] = fromHex(pword_line.get(1).substring(1)) * PAGESIZE;
+                loadptr++;
+                continue;
+            }
+            if (wordandpage_line.matches(line)) {
+                mem[loadptr] = fromHex(wordandpage_line.get(1));
+                loadptr++;
+                mem[loadptr] = fromHex(wordandpage_line.get(2).substring(1)) * PAGESIZE;
+                loadptr++;
+                continue;
+            }
+            if (dword_line.matches(line)) {
+                mem[loadptr] = fromHex(dword_line.get(1));
+                loadptr++;
+                mem[loadptr] = fromHex(dword_line.get(2));
+                loadptr++;
+                continue;
+            }
+
             if (label_line.matches(line)) {
                 label.put(label_line.get(2), loadptr);
+                continue;
+            }
+            if (page_line.matches(line)) {
+                loadptr = TOY.fromHex(page_line.get(2)) * PAGESIZE;
+                label.put(page_line.get(3), loadptr);
+                pages.put(page_line.get(3), loadptr);
                 continue;
             }
             if (memory_line.matches(line)) {
@@ -94,46 +143,43 @@ public class TOY {
             }
 
         }
+
+        // Force Core Dump
+        if (false) {
+            StdOut.println("Main memory in Hex (16 bit words):");
+            showhex(mem,0,16*10);
+            System.exit(1);
+        }
     }
-    // write to an array of hex integers, 8 per line to standard output
-    public static void showhex(int[] a) {
-        final int M = 64;
-        showhex(a,M);
-    }
-    public static void showhex(int[] a, int M) {
+
+    // write to an array of hex integers
+    public static void showhex(int[] a, int offset, int M) {
         final int C = 16;
         int t = 0;
         int e = 0;
-        int count = (a.length >= M) ? M : a.length;
+        int i = offset;
+        int count = PAGESIZE;
+        count = (count < a.length) ? count : a.length;
+
         t=0;
-        StdOut.print(ANSI.PURPLE + toHex(0) + ": " + ANSI.WHITE);
-        for (int i = 0; i < count; i++) {
-            e = i;
+        StdOut.print(ANSI.PURPLE + toHex(0+offset) + ": " + ANSI.WHITE);
+        while (i < (count+offset) ) {
             if ( a[i] == 0 )
                 StdOut.print(toHex(a[i]) + " ");
             else
                 StdOut.print(ANSI.BLUE + toHex(a[i]) + " " + ANSI.WHITE);
-            if (i % C == (C-1)) {
-                StdOut.print("    ");
-                    for (int j = t; j <= e; j++) {
-                       int k = (a[j]>>0) & 0xFFFF;
-                       StdOut.print( (k < 127 && k > 31) ? Character.toString((char) k) : ".");
-                       t=i;
-                    }
-                StdOut.println();
-                if (i+1 < count) StdOut.print(ANSI.PURPLE + toHex(i+1) + ": " + ANSI.WHITE);
-            }
+
+             if ( (i+1) % 16 == 0 ) {
+                 StdOut.print("  ");
+                 for (int j=(i-15);j<=i;j++) StdOut.print( (a[j] < 127 && a[j] > 31) ? Character.toString((char) a[j]) : ".");
+                 StdOut.println("");
+                 if ( i+1 < (count+offset) ) StdOut.print(ANSI.PURPLE + toHex(i+1) + ": " + ANSI.WHITE);
+             }
+            i++;
         }
+        StdOut.println();
     }
 
-    // write to an array of hex integers, 8 per line to standard output
-    public static void show(int[] a) {
-        int count = (a.length >= 16) ? 16 : a.length;
-        for (int i = 0; i < count; i++) {
-            StdOut.print(toHex(a[i]) + " ");
-            if (i % 8 == 7) StdOut.println();
-        }
-    }
     public static void showreg(int[] a) {
         String sz = "";
         int count = a.length;
@@ -149,12 +195,19 @@ public class TOY {
     public void dump(String sz) {
         StdOut.printf("%s  PC: %s\n", sz, toHex(pc) );
         StdOut.println("Registers:");
-        showreg(reg);
-        StdOut.println("Main memory in Hex (16 bit words):");
-        showhex(mem, 16*10);
-        StdOut.print("Stack memory in Hex (16 bit words):");
+        showreg(hw.getReg());
+//      StdOut.println("Main:");
+//      showhex(hw.getMem(), 0x0010 * 0x0010);
+        StdOut.print("Stack:");
         StdOut.printf("  SP: %s\n", toHex(stkptr));
-        showhex(stk);
+        showhex(stk, 0, 0x0020);
+
+        // Print keys and values
+        StdOut.println("Pages:");
+        for (String i : pages.keySet()) {
+            StdOut.printf("%s\n", "" + i + " @ " + TOY.toHex(pages.get(i)));
+            showhex(hw.getMem(), pages.get(i), PAGESIZE);
+        }
         // Print keys and values
         StdOut.println("Labels:");
         for (String i : label.keySet()) {
@@ -170,7 +223,17 @@ public class TOY {
         int n = 0;
         Instruction I = null;
         boolean haltflag = false;
+
+        int[] reg = hw.getReg();
+        int[] mem = hw.getMem();
         pc = mem[0x0000];
+
+        // Force Core Dump
+        if (false) {
+            StdOut.println("Main memory in Hex (16 bit words):");
+            showhex(mem, 0, 16*10);
+            System.exit(1);
+        }
 
         sb.append(String.format("%26s %6s %2s %2s  %4s\n","Instruction", "D", "S", "T", "ADDR"));
         StdOut.printf("%91s%s\n", "", " PC   STK  A    B    C    0    1    2   3");
@@ -178,7 +241,12 @@ public class TOY {
 
             // Fetch and parse
                try {
-                   I = new Instruction(mem,pc); 
+                   I = new Instruction(hw.getMem(),pc); 
+                   // Force Core Dump
+                   if (false) {
+                       StdOut.println("Main memory in Hex (16 bit words):");
+                       showhex(hw.getMem(), 0, 16*10);
+                   }
                } catch (Exception e) {
                     System.out.println("Caught Exception: "+ e.getMessage());
                     System.out.println(TOY.programAsRead.toString());
@@ -235,7 +303,7 @@ public class TOY {
                 case 0x0A: II.add(op, "load indirect", "reg[d] = mem[reg[t] & 0xFFFF]");
                            reg[d] = mem[reg[t] & 0xFFFF];
                            break;                                                                // load indirect
-                case 0x0B: II.add(op, "store indirect", "mem[reg[t] & 255] = reg[d]"); 
+                case 0x0B: II.add(op, "store indirect", "mem[reg[t] & 0x0FFFF] = reg[d]"); 
                            mem[reg[t] & 255] = reg[d];
                            break;                                                                // store indirect
                 case 0x0C: II.add(op, "branch if zero", "if ((short) reg[d] == 0) pc = addr");  
@@ -333,7 +401,7 @@ public class TOY {
        //  if ((addr == 255 && op == 9) || (reg[t] == 255 && op == 11))
        //         StdOut.println(toHex(mem[255]));
             //sb.append(I.toString() + "\n");
-            StdOut.printf("%s %s %s %-18s %-2s %-2s %-2s %-2s -- %-38s -- %s %s %s %s %s %s %s %s %s\n",
+            StdOut.printf("%s %s %s %-18s %-2s %-2s %-2s %-2s -- %-38s -- %s %s %s %s %s %s\n",
                                                      ANSI.PURPLE +toHex(I.getPc()) + ":" + ANSI.WHITE,
                                                      toHex(I.getHighword()),
                                                      toHex(I.getLowword()),
@@ -345,9 +413,6 @@ public class TOY {
                                                      II.get(op).getDescription(),
                                                      toHex(pc),
                                                      toHex(stk[stkptr]),
-                                                     toHex(reg[0xA]),
-                                                     toHex(reg[0xB]),
-                                                     toHex(reg[0xC]),
                                                      toHex(reg[0]),
                                                      toHex(reg[1]),
                                                      toHex(reg[2]),
@@ -480,6 +545,19 @@ final class Instruction {
             this.s    = (lowword  >>  8) & 0x00FF;    // get s    
             this.t    = lowword          & 0x00FF;    // get t   
             this.addr = lowword          & 0xFFFF;    // get addr
+    }
+    public void decode() {
+           
+            StdOut.printf("onk\n");
+            StdOut.printf("%s %s %s %s %s %s %s\n",
+                                                     ANSI.PURPLE +toHex(this.getPc()) + ":" + ANSI.WHITE,
+                                                     toHex(this.getHighword()),
+                                                     toHex(this.getLowword()),
+                                                     toHexShort(this.getOp()),
+                                                     toHexShort(this.getD()),
+                                                     toHexShort(this.getS()),
+                                                     toHexShort(this.getT())
+                                                     );
     }
 
     public static String toDec(int n) {

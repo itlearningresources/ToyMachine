@@ -28,6 +28,14 @@ public class Finder {
     public int getGroupCount() {
         return this.m.groupCount();
     }
+    public String get1() {
+        return new String(this.m.group(1));
+
+    }
+    public String get2() {
+        return new String(this.m.group(2));
+
+    }
     public String get(int n) {
         String szRet = "";
         if ( (n>0) && (n <= this.m.groupCount()) ) szRet = new String(this.m.group(n));
