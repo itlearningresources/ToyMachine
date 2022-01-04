@@ -80,6 +80,7 @@ public class TOY {
         Finder string_line     = new Finder("^(TEXT|STRING)[ \t]*([0-9A-Za-z]*)");
         Finder page_line       = new Finder("^(PAGE)[ \t]*([0-9A-Fa-f]{2})[ \t]*([#$][0-9A-Za-z]*)");
         Finder pword_line      = new Finder("^(P[0-9]{1})");
+        Finder pagesize_line   = new Finder("^(PAGESIZE)[ \t]*([0-9]*)");
 
         while (in.hasNextLine()) {
             String line = in.readLine();
@@ -87,6 +88,11 @@ public class TOY {
 
             if (empty_line.matches(line)) continue;
             if (comment_line.matches(line)) continue;
+
+            if (pagesize_line.matches(line)) {
+                PAGESIZE = fromHex(pagesize_line.get(2));
+                continue;
+            }
 
             if (string_line.matches(line)) {
                 for (int i=0;i<string_line.get2().length();i++)
@@ -445,7 +451,7 @@ public class TOY {
         String filename = args[0];
 
         TOY toy = new TOY(filename, pc);
-        if (isVerbose && false) {
+        if (isVerbose && true) {
             toy.dump("Before Executing");
             StdOut.println("Terminal");
         }

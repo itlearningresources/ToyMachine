@@ -35,6 +35,8 @@ public class ANSI {
         static final String PURPLE_UNDERLINED = "\033[4;35m";
         static final String CYAN_UNDERLINED = "\033[4;36m";
         static final String WHITE_UNDERLINED = "\033[4;37m";
+
+        static final String CLEAR = "\033[2J";
 }
 // https://stackoverflow.com/questions/5762491/how-to-print-color-in-console-using-system-out-println
 //
