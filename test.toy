@@ -5,7 +5,7 @@ PAGE 00 $BOOTSTRAP
 # R2 is the loop counter
 # R3 is the index of the memory array
 PAGE 01 $CODEPAGE
-0702 A0A0 load 0010 into R2
+0702 0006 load 0010 into R2
 0703 00A0 load address 00A0 into R3
 2400 0000 push this address
 0C02 0500 if (R2 == 0) pc goto 500 (#EXIT)

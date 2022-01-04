@@ -1,9 +1,8 @@
 /*************************************************************************
  *  Attribution:  https://introcs.cs.princeton.edu/java/home/
  *
- *  Compilation:  javac-introcs TOY.java
- *  Execution:    java-introcs TOY [--verbose] filename.toy 
- *  Dependencies: StdIn.java In.java
+ *  Execution:    java TOY filename.toy 
+ *  Dependencies: StdIn.java In.java Finder.java
  *
  *************************************************************************/
 
@@ -28,17 +27,32 @@ public class TOY {
     private int[] xreg   = new int[16];           // 16 registers
     final int ADRR = 0x01;
     private Registers R = null;
-    private int[] mem   = new int[0xFFFF];       // main memory locations
     private int[] stk   = new int[STACKSIZE];    // stack memory locations
+    private HW hw = null;
 
     // return a 4-digit hex string corresponding to 16-bit integer n
     // return a 2-digit hex string corresponding to 8-bit integer n
     // return a 16-bit integer corresponding to the 4-digit hex string s
-    public static String toHex(int n) { return String.format("%04X", n & 0xFFFF); }
+    public static String toHex(int n)      { return String.format("%04X", n & 0xFFFF); }
     public static String toHexShort(int n) { return String.format("%02X", n & 0xFFFF); }
-    public static int fromHex(String s) { return Integer.parseInt(s, 16) & 0xFFFF; }
+    public static int fromHex(String s)    { return Integer.parseInt(s, 16) & 0xFFFF; }
+    public final boolean HALT = true;
+    public final boolean DUMP = true;
+    public final boolean NOHALT = false;
+    public final boolean NODUMP = false;
+    public void coreDump(boolean dump, boolean halt) { 
+        if (dump) {
+            showhex(hw.getMem(),0,256);
+            for (String i : pages.keySet()) {
+                StdOut.printf("%s\n", "" + i + " @ " + TOY.toHex(pages.get(i)));
+                showhex(hw.getMem(), pages.get(i), PAGESIZE);
+            }
 
-    private HW hw = null;
+            StdOut.println();
+            StdOut.println(TOY.programAsRead.toString());
+            if (halt) System.exit(1);
+        }
+    }
 
     // create a new TOY VM and load with program from specified file
     public TOY(String filename) {
@@ -66,9 +80,7 @@ public class TOY {
         *  Read Program File
         *  Read in memory location and instruction.         
         ****************************************************************/
-// Force Core Dump
-//if (true) { StdOut.println("Core Dump" + line); showhex(mem, 16*10); System.exit(1); }
-
+        coreDump(NODUMP,HALT);
         Finder empty_line      = new Finder("^[ \t]*$");
         Finder comment_line    = new Finder("^([#]|[/][/])");
         Finder label_line      = new Finder("^(LAB)[ \t]*([0-9A-Za-z]{4})");
@@ -84,10 +96,11 @@ public class TOY {
 
         while (in.hasNextLine()) {
             String line = in.readLine();
-            programAsRead.append(line + "\n");
 
             if (empty_line.matches(line)) continue;
             if (comment_line.matches(line)) continue;
+
+            programAsRead.append(line + "\n");
 
             if (pagesize_line.matches(line)) {
                 PAGESIZE = fromHex(pagesize_line.get(2));
@@ -150,36 +163,28 @@ public class TOY {
 
         }
 
-        // Force Core Dump
-        if (false) {
-            StdOut.println("Main memory in Hex (16 bit words):");
-            showhex(mem,0,16*10);
-            System.exit(1);
-        }
+        coreDump(NODUMP,HALT);
     }
 
     // write to an array of hex integers
-    public static void showhex(int[] a, int offset, int M) {
+    public static void showhex(int[] a, int offset, int override) {
         final int C = 16;
-        int t = 0;
-        int e = 0;
         int i = offset;
-        int count = PAGESIZE;
-        count = (count < a.length) ? count : a.length;
+        int count = (PAGESIZE < a.length) ? PAGESIZE : a.length;
+        if ( override > 0) count = (override < a.length) ? override : a.length;
 
-        t=0;
-        StdOut.print(ANSI.PURPLE + toHex(0+offset) + ": " + ANSI.WHITE);
+        StdOut.print(ANSI.PURPLE + toHex(0+offset) + ": " + ANSI.RESET);
         while (i < (count+offset) ) {
             if ( a[i] == 0 )
                 StdOut.print(toHex(a[i]) + " ");
             else
-                StdOut.print(ANSI.BLUE + toHex(a[i]) + " " + ANSI.WHITE);
+                StdOut.print(ANSI.DATA + toHex(a[i]) + ANSI.RESET + " ");
 
              if ( (i+1) % 16 == 0 ) {
                  StdOut.print("  ");
                  for (int j=(i-15);j<=i;j++) StdOut.print( (a[j] < 127 && a[j] > 31) ? Character.toString((char) a[j]) : ".");
                  StdOut.println("");
-                 if ( i+1 < (count+offset) ) StdOut.print(ANSI.PURPLE + toHex(i+1) + ": " + ANSI.WHITE);
+                 if ( i+1 < (count+offset) ) StdOut.print(ANSI.PURPLE + toHex(i+1) + ": " + ANSI.RESET);
              }
             i++;
         }
@@ -189,9 +194,21 @@ public class TOY {
     public static void showreg(int[] a) {
         String sz = "";
         int count = a.length;
+        count = 4;
         for (int i = 0; i < count; i++) {
-            sz = (a[i] == 0) ? ANSI.WHITE + toHex(a[i]) : ANSI.BLUE + toHex(a[i]) + ANSI.WHITE;
-            StdOut.print(ANSI.PURPLE + toHexShort(i) + ": " + sz  + " ");
+            sz = (a[i] == 0) ? ANSI.RESET + toHex(a[i]) : ANSI.DATA + toHex(a[i]) + ANSI.RESET;
+            StdOut.print(ANSI.PURPLE + "R" + toHexShort(i) + ": " + sz  + " ");
+            if (i % 8 == 7) StdOut.println();
+        }
+    }
+    public  static void showstate(int[] a, int pc) {
+        String sz = "";
+        int count = a.length;
+        count = 4;
+        StdOut.printf("%s %s ", ANSI.PURPLE + "PC:" + ANSI.RESET, toHex(pc));
+        for (int i = 0; i < count; i++) {
+            sz = (a[i] == 0) ? ANSI.RESET + toHex(a[i]) : ANSI.DATA + toHex(a[i]) + ANSI.RESET;
+            StdOut.print(ANSI.PURPLE + "R" + toHexShort(i) + ": " + sz  + " ");
             if (i % 8 == 7) StdOut.println();
         }
     }
@@ -199,12 +216,14 @@ public class TOY {
 
     // print core dump of TOY to standard output
     public void dump(String sz) {
-        StdOut.printf("%s  PC: %s\n", sz, toHex(pc) );
-        StdOut.println("Registers:");
-        showreg(hw.getReg());
+        StdOut.println("Machine State:");
+        showstate(hw.getReg(), pc);
+//      StdOut.printf("%s  PC: %s\n", sz, toHex(pc) );
+//      StdOut.println("Registers:");
+//      showreg(hw.getReg());
 //      StdOut.println("Main:");
 //      showhex(hw.getMem(), 0x0010 * 0x0010);
-        StdOut.print("Stack:");
+        StdOut.print("\n\nStack:");
         StdOut.printf("  SP: %s\n", toHex(stkptr));
         showhex(stk, 0, 0x0020);
 
@@ -234,25 +253,15 @@ public class TOY {
         int[] mem = hw.getMem();
         pc = mem[0x0000];
 
-        // Force Core Dump
-        if (false) {
-            StdOut.println("Main memory in Hex (16 bit words):");
-            showhex(mem, 0, 16*10);
-            System.exit(1);
-        }
+        coreDump(NODUMP,HALT);
 
         sb.append(String.format("%26s %6s %2s %2s  %4s\n","Instruction", "D", "S", "T", "ADDR"));
-        StdOut.printf("%91s%s\n", "", " PC   STK  A    B    C    0    1    2   3");
+        StdOut.printf("%91s%s\n", "", " PC   STK  0    1    2    3");
         while (true) {
-
             // Fetch and parse
                try {
                    I = new Instruction(hw.getMem(),pc); 
-                   // Force Core Dump
-                   if (false) {
-                       StdOut.println("Main memory in Hex (16 bit words):");
-                       showhex(hw.getMem(), 0, 16*10);
-                   }
+                   coreDump(NODUMP,HALT);
                } catch (Exception e) {
                     System.out.println("Caught Exception: "+ e.getMessage());
                     System.out.println(TOY.programAsRead.toString());
@@ -408,7 +417,7 @@ public class TOY {
        //         StdOut.println(toHex(mem[255]));
             //sb.append(I.toString() + "\n");
             StdOut.printf("%s %s %s %-18s %-2s %-2s %-2s %-2s -- %-38s -- %s %s %s %s %s %s\n",
-                                                     ANSI.PURPLE +toHex(I.getPc()) + ":" + ANSI.WHITE,
+                                                     ANSI.PURPLE +toHex(I.getPc()) + ":" + ANSI.RESET,
                                                      toHex(I.getHighword()),
                                                      toHex(I.getLowword()),
                                                      II.get(op).getName(),
@@ -444,7 +453,7 @@ public class TOY {
         // no command-line arguments
         if (args.length == 0) {
             System.err.println("TOY:   invalid command-line options");
-            System.err.println("usage: java-introcs TOY filename.toy");
+            System.err.println("usage: java TOY filename.toy");
             return;
         }
 
@@ -556,7 +565,7 @@ final class Instruction {
            
             StdOut.printf("onk\n");
             StdOut.printf("%s %s %s %s %s %s %s\n",
-                                                     ANSI.PURPLE +toHex(this.getPc()) + ":" + ANSI.WHITE,
+                                                     ANSI.PURPLE +toHex(this.getPc()) + ":" + ANSI.RESET,
                                                      toHex(this.getHighword()),
                                                      toHex(this.getLowword()),
                                                      toHexShort(this.getOp()),
