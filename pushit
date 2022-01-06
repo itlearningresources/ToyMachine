@@ -3,6 +3,7 @@
 
 git add instructionset.txt
 git add ANSI.java
+git add Pane.java
 git add HW.java
 git add TOY.java
 git add Finder.java
