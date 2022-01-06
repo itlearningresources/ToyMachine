@@ -33,3 +33,4 @@
 //   0x51 mem char out                      mem[addr] char out                      
 //   0x52 string 10 16b                     string out 16b                          
 //   0x53 string out 8b                     string out 8b                           
+//   0x60 int to ascii                      int to ascii                            

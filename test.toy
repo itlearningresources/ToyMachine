@@ -4,15 +4,38 @@ PAGE 00 $BOOTSTRAP
 
 # R2 is the loop counter
 # R3 is the index of the memory array
+# R4 output memory
 PAGE 01 $CODEPAGE
-0702 0006 load 0010 into R2
+0705 P6
+0702 AFAF
+6002 0005
+0702 0020
+
+0B02 0005
+1305 0000 ++
+
+0B02 0005
+1305 0000 ++
+
+
+0702 AFAF
+6002 0005
+
+0000 0000
+0702 01A6 load 0010 into R2
 0703 00A0 load address 00A0 into R3
+0705 P6   load address of P6 00A0 into R3
 2400 0000 push this address
 0C02 0500 if (R2 == 0) pc goto 500 (#EXIT)
 1700 P4   call 0144
 1303 0000 increment R3
 1402 0000 deccrement R2
 1900 0000 pop and link (return)
+0705 P6
+0702 AFAF
+6002 0005
+0000 0000
+6002 0005
 0000 0000
 
 PAGE 02 $SECONDPAGE
@@ -26,7 +49,14 @@ PAGE 04 $ROUTINE1
 1900 0000  pop and link (return)
 0000 0000  halt
 
+PAGE 06 $OUTPUT
+0000 0000  halt
+
 PAGE 05 $EXIT
+0000 0000  halt
+
+PAGE 04 $ASCIICONVERT
+6002 0005
 0000 0000  halt
 
 

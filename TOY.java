@@ -91,7 +91,7 @@ public class TOY {
 
         Finder string_line     = new Finder("^(TEXT|STRING)[ \t]*([0-9A-Za-z]*)");
         Finder page_line       = new Finder("^(PAGE)[ \t]*([0-9A-Fa-f]{2})[ \t]*([#$][0-9A-Za-z]*)");
-        Finder pword_line      = new Finder("^(P[0-9]{1})");
+        Finder pword_line      = new Finder("^(P[0-9]{2})");
         Finder pagesize_line   = new Finder("^(PAGESIZE)[ \t]*([0-9]*)");
 
         while (in.hasNextLine()) {
@@ -194,7 +194,7 @@ public class TOY {
     public static void showreg(int[] a) {
         String sz = "";
         int count = a.length;
-        count = 4;
+        count = 8;
         for (int i = 0; i < count; i++) {
             sz = (a[i] == 0) ? ANSI.RESET + toHex(a[i]) : ANSI.DATA + toHex(a[i]) + ANSI.RESET;
             StdOut.print(ANSI.PURPLE + "R" + toHexShort(i) + ": " + sz  + " ");
@@ -204,7 +204,7 @@ public class TOY {
     public  static void showstate(int[] a, int pc) {
         String sz = "";
         int count = a.length;
-        count = 4;
+        count = 8;
         StdOut.printf("%s %s ", ANSI.PURPLE + "PC:" + ANSI.RESET, toHex(pc));
         for (int i = 0; i < count; i++) {
             sz = (a[i] == 0) ? ANSI.RESET + toHex(a[i]) : ANSI.DATA + toHex(a[i]) + ANSI.RESET;
@@ -212,17 +212,38 @@ public class TOY {
             if (i % 8 == 7) StdOut.println();
         }
     }
+    public static char intToHexChar(int N) {
+           char rChar = 0;
+           final int BASE= 16;
+           if ((N %BASE) <10) rChar = (char)(N % BASE + '0');
+           if ((N % BASE)==10) rChar = (char)('A');
+           if ((N % BASE)==11) rChar = (char)('B');
+           if ((N % BASE)==12) rChar = (char)('C');
+           if ((N % BASE)==13) rChar = (char)('D');
+           if ((N % BASE)==14) rChar = (char)('E');
+           if ((N % BASE)==15) rChar = (char)('F');
+           return rChar;
+    }
+    public static char[] convertIntegerToCharArray(int N) {
+        char[] arr = new char[4];
+        int m = N;
+        arr[0] = intToHexChar(((N >> 12) & 0x000F) % 16 );
+        arr[1] = intToHexChar(((N >>  8) & 0x000F) % 16 );
+        arr[2] = intToHexChar(((N >>  4) & 0x000F) % 16 );
+        arr[3] = intToHexChar(((N >>  0) & 0x000F) % 16 );
 
+        return (char[])arr;
+    }
 
     // print core dump of TOY to standard output
     public void dump(String sz) {
         StdOut.println("Machine State:");
-        showstate(hw.getReg(), pc);
-//      StdOut.printf("%s  PC: %s\n", sz, toHex(pc) );
-//      StdOut.println("Registers:");
-//      showreg(hw.getReg());
-//      StdOut.println("Main:");
-//      showhex(hw.getMem(), 0x0010 * 0x0010);
+//        showstate(hw.getReg(), pc);
+      StdOut.printf("%s  PC: %s\n", sz, toHex(pc) );
+      StdOut.println("Registers:");
+      showreg(hw.getReg());
+      StdOut.println("Main:");
+//       showhex(hw.getMem(), 0x0010 * 0x0010);
         StdOut.print("\n\nStack:");
         StdOut.printf("  SP: %s\n", toHex(stkptr));
         showhex(stk, 0, 0x0020);
@@ -256,7 +277,7 @@ public class TOY {
         coreDump(NODUMP,HALT);
 
         sb.append(String.format("%26s %6s %2s %2s  %4s\n","Instruction", "D", "S", "T", "ADDR"));
-        StdOut.printf("%91s%s\n", "", " PC   STK  0    1    2    3");
+        StdOut.printf("%91s%s\n", "", " PC   STK  0    1    2    3    4    5    6    7");
         while (true) {
             // Fetch and parse
                try {
@@ -319,7 +340,7 @@ public class TOY {
                            reg[d] = mem[reg[t] & 0xFFFF];
                            break;                                                                // load indirect
                 case 0x0B: II.add(op, "store indirect", "mem[reg[t] & 0x0FFFF] = reg[d]"); 
-                           mem[reg[t] & 255] = reg[d];
+                           mem[reg[t] & 0xFFFF] = reg[d];
                            break;                                                                // store indirect
                 case 0x0C: II.add(op, "branch if zero", "if ((short) reg[d] == 0) pc = addr");  
                            if ((short) reg[d] == 0) pc = addr;
@@ -410,13 +431,20 @@ public class TOY {
                                if (!flip) idx++;
                            }
                            break;                                                                // string out 8 bit
+                case 0x60: II.add(op, "int to ascii", "int to ascii");
+                           char[] ca = convertIntegerToCharArray(reg[d]);
+                           for (int i = 0;i<ca.length;i++) {
+                               mem[reg[t]] = ca[i];
+                               reg[t]++;
+                           }
+                           break;                                                                // int to ascii
             }
 
             // stdout
        //  if ((addr == 255 && op == 9) || (reg[t] == 255 && op == 11))
        //         StdOut.println(toHex(mem[255]));
             //sb.append(I.toString() + "\n");
-            StdOut.printf("%s %s %s %-18s %-2s %-2s %-2s %-2s -- %-38s -- %s %s %s %s %s %s\n",
+            StdOut.printf("%s %s %s %-18s %-2s %-2s %-2s %-2s -- %-38s -- %s %s %s %s %s %s %s %s %s %s\n",
                                                      ANSI.PURPLE +toHex(I.getPc()) + ":" + ANSI.RESET,
                                                      toHex(I.getHighword()),
                                                      toHex(I.getLowword()),
@@ -431,7 +459,11 @@ public class TOY {
                                                      toHex(reg[0]),
                                                      toHex(reg[1]),
                                                      toHex(reg[2]),
-                                                     toHex(reg[3])
+                                                     toHex(reg[3]),
+                                                     toHex(reg[4]),
+                                                     toHex(reg[5]),
+                                                     toHex(reg[6]),
+                                                     toHex(reg[7])
                                                      );
 
             // halt
