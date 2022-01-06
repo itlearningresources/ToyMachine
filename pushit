@@ -3,12 +3,14 @@
 
 git add instructionset.txt
 git add ANSI.java
+git add HW.java
 git add TOY.java
 git add Finder.java
 git add test.toy
 git add README.md
 git add pushit
 git add list
+git add repo.txt
 git commit -m "Update"
 git push -u origin main
 
