@@ -15,11 +15,10 @@ public class TOY {
     static HashMap<String, Integer> label = new HashMap<String, Integer>();
     static HashMap<String, Integer> pages = new HashMap<String, Integer>();
 
-        Pane p1 =  new Pane(20,  10,     1,    148);
-        Pane p2 =  new Pane(20,  10,     p1.gapcolumn(), 10);
-        Pane p3 =  new Pane(10,  p1.gaplap(),   1, 148);
-        Pane msg =  new Pane(3,  48,   1, 148);
-        //Pane p2 =  new Pane(20,  p1.overlap(),     1,    88);
+    Pane p1 =  new Pane(20,  10,            1,             148);
+    Pane p2 =  new Pane(20,  10,            p1.gapcolumn(), 10);
+    Pane p3 =  new Pane(10,  p1.gaplap(),   1,             148);
+    Pane msg =  new Pane(3,  48,            1,             148);
 
     static  StringBuffer sb = new StringBuffer(120);
     static  StringBuffer programAsRead = new StringBuffer(1024);
@@ -492,10 +491,11 @@ public class TOY {
             // stdout
        //  if ((addr == 255 && op == 9) || (reg[t] == 255 && op == 11))
        //         StdOut.println(toHex(mem[255]));
+                                                     // ANSI.PURPLE +toHex(I.getPc()) + ":" + ANSI.RESET,
             //sb.append(I.toString() + "\n");
-            String result = String.format("%s   %s %s %s %-18s %-2s %-2s %-2s %-2s -- %-38s -- %s %s %s %s %s %s %s %s %s %s\n",
+            String result = String.format("%s %s %s %s %-18s %-2s %-2s %-2s %-2s -- %-38s -- %s %s %s %s %s %s %s %s %s %s\n",
                                                      toHex(ict),
-                                                     ANSI.PURPLE +toHex(I.getPc()) + ":" + ANSI.RESET,
+                                                     toHex(I.getPc()) + ":",
                                                      toHex(I.getHighword()),
                                                      toHex(I.getLowword()),
                                                      II.get(op).getName(),

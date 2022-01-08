@@ -131,12 +131,13 @@ public class Pane {
         refresh(refreshpoint+1);
     }
     public int find(String sz) {
-        Finder f   = new Finder("^" + sz);
+        Finder f   = new Finder("^([0-9A-Fa-f]{4})[ \t]*(" + sz + ")");
         int nRet = -1;
-        for (int i =0;i<buffer.size();i++)  if (f.matches(buffer.get(i))) {
-            refresh(i+ ((int) lines /2));
-            nRet = i;
-        }
+        for (int i =0;i<buffer.size();i++)  
+            if (f.matches(buffer.get(i))) {
+                refresh(i+ ((int) lines /2));
+                nRet = i;
+            }
         return nRet;
     }
 
