@@ -4,9 +4,16 @@ import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.Locale;
 import java.util.ArrayList;
+class CircularList {
+    private ArrayList<String> buffer = new ArrayList<String>();
+}
 
 public class Pane {
-    private ArrayList<String> buffer = new ArrayList<String>();
+    private ArrayList<String> buffer = null;
+    private ArrayList<String> b1 = new ArrayList<String>();
+    private ArrayList<String> b2 = new ArrayList<String>();
+    private ArrayList<String> b3 = new ArrayList<String>();
+    private ArrayList<String> b4 = new ArrayList<String>();
     private int r;
     private int c;
     private int w = 80;
@@ -22,7 +29,13 @@ public class Pane {
     // send output here
     private static java.io.PrintStream out;
 
+    public void buffer1() { this.buffer = b1;}
+    public void buffer2() { this.buffer = b2;}
+    public void buffer3() { this.buffer = b3;}
+    public void buffer4() { this.buffer = b4;}
+
     public Pane(int lines, int r, int c, int w) {
+        this.buffer = b1;
         int rr;
         int cc;
 
@@ -55,6 +68,22 @@ public class Pane {
                 String sz = input.nextLine();
                 if (f.matches(sz)) {
                     String name = f.get1();
+                    if (name.toUpperCase().equals("I")) {
+                        this.buffer4();
+                        this.refresh(0);
+                    }
+                    if (name.toUpperCase().equals("R")) {
+                        this.buffer1();
+                        this.refresh(0);
+                    }
+                    if (name.toUpperCase().equals("P")) {
+                        this.buffer2();
+                        this.refresh(0);
+                    }
+                    if (name.toUpperCase().equals("M")) {
+                        this.buffer3();
+                        this.refresh(0);
+                    }
                     if (name.toUpperCase().equals("T")) {
                         this.top();
                     }
@@ -217,6 +246,9 @@ public class Pane {
         }
     }
 
+    public void putquiet(String sz) {
+        buffer.add(sz);
+    }
     public void put(String sz) {
         //buffer.add(sz.substring(0, Math.min(sz.length(), w)));
         buffer.add(sz);

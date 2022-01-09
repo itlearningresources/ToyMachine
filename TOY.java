@@ -15,9 +15,9 @@ public class TOY {
     static HashMap<String, Integer> label = new HashMap<String, Integer>();
     static HashMap<String, Integer> pages = new HashMap<String, Integer>();
 
-    Pane p1 =  new Pane(20,  10,            1,             148);
+    Pane p1 =  new Pane(24,  10,            1,             148);
     Pane p2 =  new Pane(20,  10,            p1.gapcolumn(), 10);
-    Pane p3 =  new Pane(10,  p1.gaplap(),   1,             148);
+    Pane p3 =  new Pane(4,  p1.gaplap(),   1,             148);
     Pane msg =  new Pane(3,  48,            1,             148);
 
     static  StringBuffer sb = new StringBuffer(120);
@@ -105,6 +105,9 @@ public class TOY {
             if (comment_line.matches(line)) continue;
 
             programAsRead.append(line + "\n");
+            p1.buffer2();
+            p1.put(toHex(loadptr) + " " + line);
+            p1.buffer1();
 
             if (pagesize_line.matches(line)) {
                 PAGESIZE = fromHex(pagesize_line.get(2));
@@ -171,6 +174,37 @@ public class TOY {
         coreDump(NODUMP,HALT);
     }
 
+    public void memoryPane(Pane p) {
+        p.buffer3();
+        final int C = 16;
+
+        int[] a = hw.getMem();
+        int offset = 0;
+        int i = offset;
+        StringBuffer sb = new StringBuffer();
+        int count = (PAGESIZE < a.length) ? PAGESIZE : a.length;
+        count =1024;
+
+        sb.append(toHex(0+offset) + ": ");
+        while (i < (count+offset) ) {
+            if ( a[i] == 0 )
+                sb.append(toHex(a[i]) + " ");
+            else
+                sb.append(toHex(a[i]) + " ");
+
+             if ( (i+1) % 16 == 0 ) {
+                 sb.append("   ||   ");
+                 for (int j=(i-15);j<=i;j++) sb.append( (a[j] < 127 && a[j] > 31) ? Character.toString((char) a[j]) : ".");
+                 p.putquiet(sb.toString());
+                 sb.delete(0, sb.length());
+                 sb.append(toHex(i+1) + ": ");
+             }
+            i++;
+        }
+                p.putquiet(sb.toString());
+                sb.delete(0, sb.length());
+                p.buffer1();
+   }
     public void showhexp(int[] a, int offset, int override,Pane p) {
         final int C = 16;
         int i = offset;
@@ -325,7 +359,7 @@ public class TOY {
         coreDump(NODUMP,HALT);
 
         sb.append(String.format("%26s %6s %2s %2s  %4s\n","Instruction", "D", "S", "T", "ADDR"));
-        p1.put(String.format("%91s%s\n", "", " PC   STK  0    1    2    3    4    5    6    7"));
+        p1.put(String.format("%91s%s\n", "", "      PC   STK  0    1    2    3    4    5    6    7"));
         while (true) {
             // Fetch and parse
                try {
@@ -552,7 +586,14 @@ public class TOY {
             StdOut.println("Terminal");
         }
         try {
+            In inI = new In("instructionset.txt");
+            toy.p1.buffer4();
+            while (inI.hasNextLine()) {
+                toy.p1.put(inI.readLine());
+            }
+            toy.p1.buffer1();
             toy.run();
+            toy.memoryPane(toy.p1);
             toy.showstatev();
             toy.showhexp(toy.hw.getMem(), 0x0100, PAGESIZE,toy.p3);
             //toy.dump("After Executing");
