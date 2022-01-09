@@ -310,6 +310,7 @@ public class Pane {
 
 
      public static void main(String[] args) {
+         H.KILLER();
      System.out.print("\033[2J");
 
             Pane p =  new Pane(16,  3,     1,    66);

@@ -26,4 +26,21 @@ public final class H {
             if (b) System.exit(1);
     }
 
+
+    public final static void KILLER() {
+        try {
+            throw new HException("H Exception from KILLER");
+        } catch (HException e) {
+             System.out.println("Caught Exception: "+ e.getMessage());
+             e.printStackTrace();
+             System.exit(1);
+        }
+    }
+
+}
+
+class HException extends Exception {
+     public HException(String sz) {
+         super(sz);
+     }
 }
