@@ -18,7 +18,7 @@ public class TOY {
     Pane p1 =  new Pane(24,  10,            1,             148);
     Pane p2 =  new Pane(20,  10,            p1.gapcolumn(), 10);
     Pane p3 =  new Pane(4,  p1.gaplap(),   1,             148);
-    Pane msg =  new Pane(3,  48,            1,             148);
+    Pane msg =  new Pane(1,  48,            1,             148);
 
     static  StringBuffer sb = new StringBuffer(120);
     static  StringBuffer programAsRead = new StringBuffer(1024);
@@ -70,6 +70,12 @@ public class TOY {
         this.pc = pc;
         this.stkptr = 0;
         In in = new In(filename);
+
+        ObjectRing ring = new ObjectRing();
+        ring.add(this.p1);
+        ring.add(this.p2);
+        ring.add(this.p3);
+        ring.add(this.msg);
 
        /****************************************************************
         *  Create a Hardware Object

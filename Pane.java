@@ -4,9 +4,6 @@ import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.Locale;
 import java.util.ArrayList;
-class CircularList {
-    private ArrayList<String> buffer = new ArrayList<String>();
-}
 
 public class Pane {
     private ArrayList<String> buffer = null;
@@ -14,6 +11,7 @@ public class Pane {
     private ArrayList<String> b2 = new ArrayList<String>();
     private ArrayList<String> b3 = new ArrayList<String>();
     private ArrayList<String> b4 = new ArrayList<String>();
+    private ArrayList<String> temp = new ArrayList<String>();
     private int r;
     private int c;
     private int w = 80;
@@ -22,6 +20,8 @@ public class Pane {
     private int rpos;
     private int cpos;
     private int refreshpoint;
+    private final int COMMAND_ROW = 44;
+    private final int COMMAND_COLUMN = 1;
     // forceeUnicode UTF-8 encoding; otherwise it's system dependent
     private static final String CHARSET_NAME = "UTF-8";
     // assume language = English, country = US for consistency with StdIn
@@ -33,12 +33,13 @@ public class Pane {
     public void buffer2() { this.buffer = b2;}
     public void buffer3() { this.buffer = b3;}
     public void buffer4() { this.buffer = b4;}
+    public void buffertemp() { this.buffer = temp;}
 
     public Pane(int lines, int r, int c, int w) {
         this.buffer = b1;
         int rr;
         int cc;
-
+ 
     // this is called before invoking any methods
             try {
                 out = System.out;
@@ -59,12 +60,14 @@ public class Pane {
         clear();
     }
     public void commandline() {
-            this.pos(44,1);
+            this.pos(COMMAND_ROW,COMMAND_COLUMN);
             Scanner input = new Scanner(System.in);
             Finder f   = new Finder("^([/0-9A-Za-z]{1})[ \t]*([0-9A-Za-z]*)");
+            Finder f2   = new Finder("^([/])([0-9A-Za-z]*)");
             while (true) {
-                this.pos(44,1);
+                this.pos(COMMAND_ROW,COMMAND_COLUMN);
                 System.out.print(">> ");
+                System.out.print("\033[K");
                 String sz = input.nextLine();
                 if (f.matches(sz)) {
                     String name = f.get1();
@@ -106,11 +109,15 @@ public class Pane {
                         System.exit(1);
                     }
                 }
+                if (f2.matches(sz)) {
+                    gfind(f2.get2());
+                }
             }
     }
     public void clear() {
         String dashes = new String(new char[w]).replace("\0", "-");
         String blanks = new String(new char[w]).replace("\0", " ");
+        this.out.print(ANSI.RESET);
         this.out.print("\033[" + (r-1) + ";" + c + "H" + "+ " + dashes + " +");
         int rr = r;
         int cc = c;
@@ -169,7 +176,41 @@ public class Pane {
             }
         return nRet;
     }
+    public int gfind(String sz) {
+        Finder f   = new Finder(sz);
+        int nRet = -1;
+        String line = null;
+        for (int i =0;i<buffer.size();i++) { 
+            line = buffer.get(i);
+            if (f.matches(line)) {
+                refreshpoint = i;
+                refreshzed(i);
+                nRet = i;
+                break;
+            }
+        }
+        return nRet;
+    }
 
+    public void refreshzed(int n) {
+//      if (n <0) n = 0;
+//      if (n >= buffer.size()) n = buffer.size()-1;
+//      if (n < lines) n = Math.min(lines-1, buffer.size()-1);
+        refreshpoint = n;
+        clear();
+        count =1;
+        rpos = r;
+        cpos = c;
+        int end = Math.min(n+(lines-1),buffer.size()-1);
+        for (int i = n; i <= end; i++) {
+            this.out.print("\033[" + rpos + ";" + (cpos) + "H" + "| ");
+//            this.out.print("\033[K");
+            this.out.print(buffer.get(i));
+            this.out.print("\033[" + rpos + ";" + (cpos+w+3) + "H" + "|");
+            rpos++;
+            this.pos(COMMAND_ROW,COMMAND_COLUMN);
+        }
+    }
     public void refresh(int n) {
         if (n <0) n = 0;
         if (n >= buffer.size()) n = buffer.size()-1;
@@ -222,7 +263,7 @@ public class Pane {
             //this.out.print(buffer.get(i).substring(0, Math.min(buffer.get(i).length(), w)));
             this.out.print("\033[" + rpos + ";" + (cpos+w+3) + "H" + "|");
             rpos++;
-            this.pos(44,1);
+            this.pos(COMMAND_ROW,COMMAND_COLUMN);
 //if ( i == 1) System.exit(1);
         }
     }
