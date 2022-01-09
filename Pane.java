@@ -34,6 +34,10 @@ public class Pane {
     public void buffer3() { this.buffer = b3;}
     public void buffer4() { this.buffer = b4;}
     public void buffertemp() { this.buffer = temp;}
+    public ArrayList<String>  getBuffer1() { return  b1;}
+    public ArrayList<String>  getBuffer2() { return  b2;}
+    public ArrayList<String>  getBuffer3() { return  b3;}
+    public ArrayList<String>  getBuffer4() { return  b4;}
 
     public Pane(int lines, int r, int c, int w) {
         this.buffer = b1;
@@ -59,6 +63,15 @@ public class Pane {
         this.out.print("\033[" + (r-1) + ";" + c + "H" + "+ " + dashes + " +");
         clear();
     }
+    public void loadPane(String filename, ArrayList<String> b) {
+            ArrayList<String> temp = this.buffer;
+            this.buffer = b;
+            In in = new In(filename);
+            while (in.hasNextLine()) {
+                this.putquiet(in.readLine());
+            }
+            this.buffer = temp;
+    };
     public void commandline() {
             this.pos(COMMAND_ROW,COMMAND_COLUMN);
             Scanner input = new Scanner(System.in);
@@ -254,8 +267,8 @@ public class Pane {
 //      o.print("\ns             "  +  s);
 
         for (int i = j; i <= s; i++) {
-            assertion(  (i>=0),              "i >= 0"  );
-            assertion(  (i<buffer.size()),   "i < buffer.size()", n + ""  );
+            H.assertion(  (i>=0),              "i >= 0"  );
+            H.assertion(  (i<buffer.size()),   "i < buffer.size()", n + ""  );
 
             this.out.print("\033[K");
             this.out.print("\033[" + rpos + ";" + (cpos) + "H" + "| ");
@@ -264,26 +277,6 @@ public class Pane {
             this.out.print("\033[" + rpos + ";" + (cpos+w+3) + "H" + "|");
             rpos++;
             this.pos(COMMAND_ROW,COMMAND_COLUMN);
-//if ( i == 1) System.exit(1);
-        }
-    }
-    public static void assertion(boolean b, String sz) {
-            final String c = "\n\033[K";
-        if (!b) {
-            System.out.print(c + "ASSERTION FAILED");
-            System.out.print(c + sz);
-            System.out.print(c + "ASSERTION FAILED\n");
-            System.exit(1);
-        }
-    }
-    public static void assertion(boolean b, String sz, String szValue) {
-            final String c = "\n\033[K";
-        if (!b) {
-            System.out.print(c + "ASSERTION FAILED");
-            System.out.print(c + sz);
-            System.out.print(c + "VALUE IS:    " + szValue);
-            System.out.print(c + "ASSERTION FAILED\n");
-            System.exit(1);
         }
     }
 
@@ -310,7 +303,7 @@ public class Pane {
 
 
      public static void main(String[] args) {
-         H.KILLER();
+     H.ABEND();
      System.out.print("\033[2J");
 
             Pane p =  new Pane(16,  3,     1,    66);
