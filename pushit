@@ -1,6 +1,7 @@
 #!/bin/bash
 ./list > instructionset.txt
 
+git add ObjectRing.java
 git add instructionset.txt
 git add ANSI.java
 git add Pane.java

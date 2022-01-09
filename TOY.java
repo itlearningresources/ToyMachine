@@ -1,8 +1,11 @@
 /*************************************************************************
  *  Attribution:  https://introcs.cs.princeton.edu/java/home/
  *
+ *  Started with the source code from the princeton site and expanded it
+ *  extensively.
+ *
  *  Execution:    java TOY filename.toy 
- *  Dependencies: StdIn.java In.java Finder.java
+ *  Dependencies: StdIn.java In.java Finder.java HW.java ANSI.java
  *
  *************************************************************************/
 
