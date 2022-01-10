@@ -589,6 +589,10 @@ public class TOY {
                         //[f.get2()] = 0;
                         H.fromHex(input.nextLine());
                     }
+                    if (name.toUpperCase().equals("H")) {
+                        p.bufferHelp();
+                        p.refresh(0);
+                    }
                     if (name.toUpperCase().equals("Q")) {
                         System.exit(1);
                     }
@@ -626,6 +630,7 @@ public class TOY {
         TOY toy = new TOY(filename, pc).coreDump(NODUMP,HALT);
         p1.loadPane(filename, p1.getBuffer2() );
         p1.loadPane("instructionset.txt", p1.getBuffer4() );
+        p1.loadPane("help.txt", p1.getBufferHelp() );
 
         try {
             toy.run(p1);

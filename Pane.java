@@ -12,6 +12,7 @@ public class Pane {
     private ArrayList<String> b3 = new ArrayList<String>();
     private ArrayList<String> b4 = new ArrayList<String>();
     private ArrayList<String> temp = new ArrayList<String>();
+    private ArrayList<String> help = new ArrayList<String>();
     private int r;
     private int c;
     private int w = 80;
@@ -35,11 +36,13 @@ public class Pane {
     public void buffer2() { this.buffer = b2;}
     public void buffer3() { this.buffer = b3;}
     public void buffer4() { this.buffer = b4;}
+    public void bufferHelp() { this.buffer = help;}
     public void buffertemp() { this.buffer = temp;}
     public ArrayList<String>  getBuffer1() { return  b1;}
     public ArrayList<String>  getBuffer2() { return  b2;}
     public ArrayList<String>  getBuffer3() { return  b3;}
     public ArrayList<String>  getBuffer4() { return  b4;}
+    public ArrayList<String>  getBufferHelp() { return help;}
 
     public Pane(int lines, int r, int c, int w) {
         this.buffer = b1;
