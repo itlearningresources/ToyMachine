@@ -10,6 +10,7 @@
  *
  *************************************************************************/
 
+import java.util.Scanner;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 import java.util.Map;
@@ -18,14 +19,10 @@ public class TOY {
     static int PAGESIZE=32;
     static HashMap<String, Integer> label = new HashMap<String, Integer>();
     static HashMap<String, Integer> pages = new HashMap<String, Integer>();
+    static  StringBuffer programAsRead = new StringBuffer(1024);
 
-    Pane p1 =  new Pane(24,  10,            1,             148);
-    Pane p2 =  new Pane(20,  10,            p1.gapcolumn(), 10);
-    Pane p3 =  new Pane(4,  p1.gaplap(),   1,             148);
-    Pane msg =  new Pane(1,  48,            1,             148);
 
     static  StringBuffer sb = new StringBuffer(120);
-    static  StringBuffer programAsRead = new StringBuffer(1024);
     static  Instruction lastInstruction = null;
     InstructionSet II = new InstructionSet();
     private final int STACKSIZE = 32;          // stack size in memory locations
@@ -73,11 +70,6 @@ public class TOY {
         this.stkptr = 0;
         In in = new In(filename);
 
-        ObjectRing ring = new ObjectRing();
-        ring.add(this.p1);
-        ring.add(this.p2);
-        ring.add(this.p3);
-        ring.add(this.msg);
 
        /****************************************************************
         *  Create a Hardware Object
@@ -113,9 +105,6 @@ public class TOY {
             if (comment_line.matches(line)) continue;
 
             programAsRead.append(line + "\n");
-            p1.buffer2();
-            p1.put(H.toHex(loadptr) + " " + line);
-            p1.buffer1();
 
             if (pagesize_line.matches(line)) {
                 PAGESIZE = H.fromHex(pagesize_line.get(2));
@@ -218,7 +207,7 @@ public class TOY {
         int i = offset;
         StringBuffer sb = new StringBuffer();
         int count = (PAGESIZE < a.length) ? PAGESIZE : a.length;
-        count =32;
+        count =0;
         if ( override > 0) count = (override < a.length) ? override : a.length;
 
         sb.append(ANSI.PURPLE + H.toHex(0+offset) + ": " + ANSI.RESET);
@@ -275,7 +264,7 @@ public class TOY {
             if (i % 8 == 7) StdOut.println();
         }
     }
-    public  void showstatev() {
+    public  void showstatev(Pane p2) {
         String sz = "";
         int[] a = hw.getReg();
         int count = 8;
@@ -331,7 +320,7 @@ public class TOY {
         System.out.println(sz + " " + H.toHex(i));
     }
 
-    public void run() throws Exception {
+    public void run(Pane p1) throws Exception {
         int idx = 0;
         int ict = 0;
         int n = 0;
@@ -546,12 +535,82 @@ public class TOY {
 
         }
     }
-    public void ctrl() {
-        p1.commandline();
+    public void commandline(Pane p) {
+            p.pos(p.getCOMMAND_ROW(),p.getCOMMAND_COLUMN());
+            Scanner input = new Scanner(System.in);
+            Finder f   = new Finder("^([/0-9A-Za-z]{1})[ \t]*([0-9A-Za-z]*)");
+            Finder f2   = new Finder("^([/])([0-9A-Za-z]*)");
+            while (true) {
+                p.pos(p.getCOMMAND_ROW(),p.getCOMMAND_COLUMN());
+                System.out.print(">> ");
+                System.out.print("\033[K");
+                String sz = input.nextLine();
+                if (f.matches(sz)) {
+                    String name = f.get1();
+                    if (name.toUpperCase().equals("I")) {
+                        p.buffer4();
+                        p.refresh(0);
+                    }
+                    if (name.toUpperCase().equals("R")) {
+                        p.buffer1();
+                        p.refresh(0);
+                    }
+                    if (name.toUpperCase().equals("P")) {
+                        p.buffer2();
+                        p.refresh(0);
+                    }
+                    if (name.toUpperCase().equals("M")) {
+                        p.buffer3();
+                        p.refresh(0);
+                    }
+                    if (name.toUpperCase().equals("T")) {
+                        p.top();
+                    }
+                    if (name.toUpperCase().equals("B")) {
+                        p.bottom();
+                    }
+                    if (name.toUpperCase().equals("U")) {
+                        p.up();
+                    }
+                    if (name.toUpperCase().equals("D")) {
+                        p.down();
+                    }
+                    if (name.toUpperCase().equals("F")) {
+                        p.find(f.get2());
+                    }
+                    if (name.toUpperCase().equals("/")) {
+                        p.find(f.get2());
+                    }
+                    if (name.toUpperCase().equals("E")) {
+                        p.pos(p.getCOMMAND_ROW(),p.getCOMMAND_COLUMN());
+                        System.out.print(">edit (" + f.get2() + ")> ");
+                        //p.edit(f.get2());
+                        int[] x = hw.getMem();
+                        //[f.get2()] = 0;
+                        H.fromHex(input.nextLine());
+                    }
+                    if (name.toUpperCase().equals("Q")) {
+                        System.exit(1);
+                    }
+                }
+                if (f2.matches(sz)) {
+                    p.gfind(f2.get2());
+                }
+            }
     }
 
     // run the TOY simulator with specified file
     public static void main(String[] args) { 
+        Pane p1 =  new Pane(24,  10,            1,             148);
+        Pane p2 =  new Pane(20,  10,            p1.gapcolumn(), 10);
+        Pane p3 =  new Pane(4,  p1.gaplap(),   1,             148);
+        Pane msg =  new Pane(1,  48,            1,             148);
+        ObjectRing ring = new ObjectRing();
+        ring.add(p1);
+        ring.add(p2);
+        ring.add(p3);
+        ring.add(msg);
+
         int pc = 0x0010;
 
         StdOut.print(ANSI.RESET);
@@ -565,13 +624,15 @@ public class TOY {
         String filename = args[0];
 
         TOY toy = new TOY(filename, pc).coreDump(NODUMP,HALT);
+        p1.loadPane(filename, p1.getBuffer2() );
+        p1.loadPane("instructionset.txt", p1.getBuffer4() );
+
         try {
-            toy.p1.loadPane("instructionset.txt", toy.p1.getBuffer4() );
-            toy.run();
-            toy.memoryPane(toy.p1);
-            toy.showstatev();
-            toy.showhexp(toy.hw.getMem(), 0x0100, PAGESIZE,toy.p3);
-            toy.ctrl();
+            toy.run(p1);
+            toy.memoryPane(p1);
+            toy.showstatev(p2);
+            toy.showhexp(toy.hw.getMem(), 0x0100, PAGESIZE,p3);
+            toy.commandline(p1);
         } catch (Exception e) {
              StdOut.printf("%s\n", sb.toString());
              StdOut.println(lastInstruction.toString() + "\n");

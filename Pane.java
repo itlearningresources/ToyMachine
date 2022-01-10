@@ -29,6 +29,8 @@ public class Pane {
     // send output here
     private static java.io.PrintStream out;
 
+    public int getCOMMAND_ROW() { return this.COMMAND_ROW;}
+    public int getCOMMAND_COLUMN() { return this.COMMAND_COLUMN;}
     public void buffer1() { this.buffer = b1;}
     public void buffer2() { this.buffer = b2;}
     public void buffer3() { this.buffer = b3;}
@@ -72,61 +74,6 @@ public class Pane {
             }
             this.buffer = temp;
     };
-    public void commandline() {
-            this.pos(COMMAND_ROW,COMMAND_COLUMN);
-            Scanner input = new Scanner(System.in);
-            Finder f   = new Finder("^([/0-9A-Za-z]{1})[ \t]*([0-9A-Za-z]*)");
-            Finder f2   = new Finder("^([/])([0-9A-Za-z]*)");
-            while (true) {
-                this.pos(COMMAND_ROW,COMMAND_COLUMN);
-                System.out.print(">> ");
-                System.out.print("\033[K");
-                String sz = input.nextLine();
-                if (f.matches(sz)) {
-                    String name = f.get1();
-                    if (name.toUpperCase().equals("I")) {
-                        this.buffer4();
-                        this.refresh(0);
-                    }
-                    if (name.toUpperCase().equals("R")) {
-                        this.buffer1();
-                        this.refresh(0);
-                    }
-                    if (name.toUpperCase().equals("P")) {
-                        this.buffer2();
-                        this.refresh(0);
-                    }
-                    if (name.toUpperCase().equals("M")) {
-                        this.buffer3();
-                        this.refresh(0);
-                    }
-                    if (name.toUpperCase().equals("T")) {
-                        this.top();
-                    }
-                    if (name.toUpperCase().equals("B")) {
-                        this.bottom();
-                    }
-                    if (name.toUpperCase().equals("U")) {
-                        this.up();
-                    }
-                    if (name.toUpperCase().equals("D")) {
-                        this.down();
-                    }
-                    if (name.toUpperCase().equals("F")) {
-                        this.find(f.get2());
-                    }
-                    if (name.toUpperCase().equals("/")) {
-                        this.find(f.get2());
-                    }
-                    if (name.toUpperCase().equals("Q")) {
-                        System.exit(1);
-                    }
-                }
-                if (f2.matches(sz)) {
-                    gfind(f2.get2());
-                }
-            }
-    }
     public void clear() {
         String dashes = new String(new char[w]).replace("\0", "-");
         String blanks = new String(new char[w]).replace("\0", " ");
