@@ -27,6 +27,7 @@ public class TOY {
     InstructionSet II = new InstructionSet();
     private final int STACKSIZE = 32;          // stack size in memory locations
     private int pc;                            // program counter
+    private int original_pc;                   // program counter
     private int stkptr;                        // stack pointer
 
     private int[] xreg   = new int[16];           // 16 registers
@@ -331,9 +332,10 @@ public class TOY {
         System.out.println(sz + " " + H.toHex(i));
     }
 
-    public void run(Pane p1, int programCounter) throws Exception {
+    public void run(Pane p1, int programCounter, String mode) throws Exception {
         int idx = 0;
         int ict = 0;
+        boolean bRun = true;
         int n = 0;
         Instruction I = null;
         boolean haltflag = false;
@@ -341,13 +343,20 @@ public class TOY {
         int[] reg = hw.getReg();
         int[] mem = hw.getMem();
         pc = programCounter;
-        if ( pc == -1 ) pc = mem[0x0000];
+        original_pc = pc;
+        if ( pc == -1 ) {
+            pc = mem[0x0000];
+            original_pc = pc;
+        }
 
         coreDump(NODUMP,HALT);
 
         sb.append(String.format("%26s %6s %2s %2s  %4s\n","Instruction", "D", "S", "T", "ADDR"));
-        p1.put(String.format("%91s%s\n", "", "      PC   STK  0    1    2    3    4    5    6    7"));
-        while (true) {
+        //p1.put(String.format("%91s%s\n", "", "      PC   STK  0    1    2    3    4    5    6    7"));
+        if (mode.equals("READY")) bRun = false;
+        while (bRun) {
+           if (pc == 0) return;
+           if (mode.equals("STEP")) bRun = false;
             // Fetch and parse
                try {
                    I = new Instruction(hw.getMem(),pc); 
@@ -539,7 +548,11 @@ public class TOY {
             p1.put(result);
 
             // halt
-            if (haltflag) break;
+            if (haltflag) {
+                p1.put("Halt State");
+                pc = 0;
+                break;
+            }
 
             reg[0] = 0;                // ensure reg[0] is always 0
             reg[d] = reg[d] & 0xFFFF;  // don't let reg[d] overflow a 16-bit integer
@@ -550,7 +563,7 @@ public class TOY {
     public void commandline(Pane p, Pane[] panes) {
             p.pos(p.getCOMMAND_ROW(),p.getCOMMAND_COLUMN());
             Scanner input = new Scanner(System.in);
-            Finder f   = new Finder("^([/0-9A-Za-z]{1})[ \t]*([0-9A-Za-z]*)");
+            Finder f   = new Finder("^([/0-9A-Za-z]*)[ \t]*([0-9A-Za-z]*)");
             Finder f2   = new Finder("^([/])([0-9A-Za-z]*)");
             while (true) {
                 p.pos(p.getCOMMAND_ROW(),p.getCOMMAND_COLUMN());
@@ -563,9 +576,24 @@ public class TOY {
                         p.buffer4();
                         p.refresh(0);
                     }
+
+                    if (name.toUpperCase().equals("S")) {
+                        try {
+                            this.run(p, pc, "STEP");
+                            this.showstatev(panes[2]);
+//                          toy.memoryPane(p1);
+//                          toy.showhexp(toy.hw.getMem(), 0x0100, PAGESIZE,p3);
+                        } catch (Exception e) {
+                             StdOut.printf("%s\n", sb.toString());
+                             StdOut.println(lastInstruction.toString() + "\n");
+                             System.out.println("Caught Exception: "+ e.getMessage());
+                             e.printStackTrace();
+                             System.exit(1);
+                        }
+                    }
                     if (name.toUpperCase().equals("G")) {
                         try {
-                            this.run(p, H.fromHex(f.get2()));
+                            this.run(p, H.fromHex(f.get2()), "");
                             this.showstatev(panes[2]);
 //                          toy.memoryPane(p1);
 //                          toy.showhexp(toy.hw.getMem(), 0x0100, PAGESIZE,p3);
@@ -587,56 +615,60 @@ public class TOY {
 
                        p.refresh(0);
                     }
-                    if (name.toUpperCase().equals("R")) {  // HELP:: R  - Show Program Trace
+                    if (name.toUpperCase().equals("R")) {  // HELP:: R,Show Program Trace
                         p.buffer1();
                         p.refresh(0);
                     }
-                    if (name.toUpperCase().equals("P")) {  // HELP:: P  - Show Program as read in
+                    if (name.toUpperCase().equals("P")) {  // HELP:: P,Show Program as read in
                         p.buffer2();
                         p.refresh(0);
                     }
-                    if (name.toUpperCase().equals("M")) {  // HELP:: M  - Show Memory
+                    if (name.toUpperCase().equals("M")) {  // HELP:: M,Show Memory
                         p.buffer3clear();
                         this.memoryPane(p);
                         p.buffer3();
                         p.refresh(0);
                     }
-                    if (name.toUpperCase().equals("T")) {
+                    if (name.toUpperCase().equals("T")) {      // HELP:: T,Move to Top
                         p.top();
                     }
-                    if (name.toUpperCase().equals("B")) {
+                    if (name.toUpperCase().equals("B")) {      // HELP:: B,Move to Bottom
                         p.bottom();
                     }
-                    if (name.toUpperCase().equals("U")) {
+                    if (name.toUpperCase().equals("U")) {      // HELP:: U,Move Up
                         p.up();
                     }
-                    if (name.toUpperCase().equals("D")) {
+                    if (name.toUpperCase().equals("D")) {      // HELP:: D,Move Down
                         p.down();
                     }
-                    if (name.toUpperCase().equals("F")) {
+                    if (name.toUpperCase().equals("F")) {      // HELP:: F,Find
                         p.find(f.get2());
                     }
-                    if (name.toUpperCase().equals("/")) {
+                    if (name.toUpperCase().equals("/")) {      // HELP:: /,Find
                         p.find(f.get2());
                     }
-                    if (name.toUpperCase().equals("E")) {
+                    if (name.toUpperCase().equals("E")) {      // HELP:: E,Edit Memory <Address>
                         p.pos(p.getCOMMAND_ROW(),p.getCOMMAND_COLUMN());
                         System.out.print(">edit (" + f.get2() + ")> ");
                         int[] x = hw.getMem();
                         x[H.fromHex(f.get2())] = H.fromHex(input.nextLine());
                         //p.edit(f.get2());
                     }
-                    if (name.toUpperCase().equals("H")) {
+                    if (name.toUpperCase().equals("H")) {      // HELP:: H,Help
                         p.bufferHelp();
                         p.refresh(0);
                     }
-                    if (name.toUpperCase().equals("Q")) {
+                    if (name.toUpperCase().equals("RESET")) {      // HELP:: RESET,Resets PC
+                        pc = original_pc;
+                        this.showstatev(panes[2]);
+                    }
+                    if (name.toUpperCase().equals("Q")) {      // HELP:: Q,Quit
                         System.exit(1);
                     }
                 }
-                if (f2.matches(sz)) {
-                    p.gfind(f2.get2());
-                }
+//              if (f2.matches(sz)) {
+//                  p.gfind(f2.get2());
+//              }
             }
     }
 
@@ -676,7 +708,7 @@ public class TOY {
         p1.loadPane("help.txt", p1.getBufferHelp() );
 
         try {
-            toy.run(p1, -1);
+            toy.run(p1, -1, "");
             toy.memoryPane(p1);
             toy.showstatev(p2);
             toy.showhexp(toy.hw.getMem(), 0x0100, PAGESIZE,p3);

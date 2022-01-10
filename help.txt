@@ -1,3 +1,13 @@
- R  - Show Program Trace
- P  - Show Program as read in
- M  - Show Memory
+  B            Move to Bottom
+  D            Move Down
+  E            Edit Memory <Address>
+  F            Find
+  /            Find
+  H            Help
+  M            Show Memory
+  P            Show Program as read in
+  Q            Quit
+  RESET        Resets PC
+  R            Show Program Trace
+  T            Move to Top
+  U            Move Up

@@ -26,12 +26,14 @@ public final class H {
     }
 
 
-    public final static void ABEND(boolean b) { if(b) ABEND(); }
-    public final static void ABEND() {
+    public final static void ABEND(boolean b, int n) { if(b) ABEND( n + ""); }
+    public final static void ABEND(boolean b, String sz) { if(b) ABEND(sz); }
+    public final static void ABEND(boolean b) { if(b) ABEND(""); }
+    public final static void ABEND(String sz) {
         try {
-            throw new HException("H Exception from KILLER");
+            throw new HException(sz);
         } catch (HException e) {
-             System.out.println("Caught Exception: "+ e.getMessage());
+             System.out.println("ABEND: "+ e.getMessage());
              e.printStackTrace();
              System.exit(1);
         }

@@ -1,3 +1,8 @@
 egrep HELP:: TOY.java |   
-sed 's/^.*HELP:://'   |
-cat | tee help.txt
+sed 's/^.*HELP:: //'   |
+gawk -F, '
+{
+    printf("  %-12s %s\n",$1,$2);
+}
+' |
+cat | sort | tee help.txt
