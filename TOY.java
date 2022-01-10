@@ -266,6 +266,7 @@ public class TOY {
     }
     public  void showstatev(Pane p2) {
         String sz = "";
+        p2.reset();
         int[] a = hw.getReg();
         int count = 8;
         p2.put(ANSI.PURPLE + "PC : " + ANSI.RESET + H.toHex(pc));
@@ -320,7 +321,7 @@ public class TOY {
         System.out.println(sz + " " + H.toHex(i));
     }
 
-    public void run(Pane p1) throws Exception {
+    public void run(Pane p1, int programCounter) throws Exception {
         int idx = 0;
         int ict = 0;
         int n = 0;
@@ -329,7 +330,8 @@ public class TOY {
 
         int[] reg = hw.getReg();
         int[] mem = hw.getMem();
-        pc = mem[0x0000];
+        pc = programCounter;
+        if ( pc == -1 ) pc = mem[0x0000];
 
         coreDump(NODUMP,HALT);
 
@@ -535,7 +537,7 @@ public class TOY {
 
         }
     }
-    public void commandline(Pane p) {
+    public void commandline(Pane p, Pane[] panes) {
             p.pos(p.getCOMMAND_ROW(),p.getCOMMAND_COLUMN());
             Scanner input = new Scanner(System.in);
             Finder f   = new Finder("^([/0-9A-Za-z]{1})[ \t]*([0-9A-Za-z]*)");
@@ -551,6 +553,20 @@ public class TOY {
                         p.buffer4();
                         p.refresh(0);
                     }
+                    if (name.toUpperCase().equals("G")) {
+                        try {
+                            this.run(p, H.fromHex(f.get2()));
+                            this.showstatev(panes[2]);
+//                          toy.memoryPane(p1);
+//                          toy.showhexp(toy.hw.getMem(), 0x0100, PAGESIZE,p3);
+                        } catch (Exception e) {
+                             StdOut.printf("%s\n", sb.toString());
+                             StdOut.println(lastInstruction.toString() + "\n");
+                             System.out.println("Caught Exception: "+ e.getMessage());
+                             e.printStackTrace();
+                             System.exit(1);
+                        }
+                    }
                     if (name.toUpperCase().equals("R")) {
                         p.buffer1();
                         p.refresh(0);
@@ -560,6 +576,8 @@ public class TOY {
                         p.refresh(0);
                     }
                     if (name.toUpperCase().equals("M")) {
+                        p.buffer3clear();
+                        this.memoryPane(p);
                         p.buffer3();
                         p.refresh(0);
                     }
@@ -584,10 +602,9 @@ public class TOY {
                     if (name.toUpperCase().equals("E")) {
                         p.pos(p.getCOMMAND_ROW(),p.getCOMMAND_COLUMN());
                         System.out.print(">edit (" + f.get2() + ")> ");
-                        //p.edit(f.get2());
                         int[] x = hw.getMem();
-                        //[f.get2()] = 0;
-                        H.fromHex(input.nextLine());
+                        x[H.fromHex(f.get2())] = H.fromHex(input.nextLine());
+                        //p.edit(f.get2());
                     }
                     if (name.toUpperCase().equals("H")) {
                         p.bufferHelp();
@@ -605,10 +622,16 @@ public class TOY {
 
     // run the TOY simulator with specified file
     public static void main(String[] args) { 
+        Pane[] panes = new Pane[4];
+
         Pane p1 =  new Pane(24,  10,            1,             148);
         Pane p2 =  new Pane(20,  10,            p1.gapcolumn(), 10);
         Pane p3 =  new Pane(4,  p1.gaplap(),   1,             148);
         Pane msg =  new Pane(1,  48,            1,             148);
+        panes[0] = null;
+        panes[1] = p1;
+        panes[2] = p2;
+        panes[3] = p3;
         ObjectRing ring = new ObjectRing();
         ring.add(p1);
         ring.add(p2);
@@ -633,11 +656,11 @@ public class TOY {
         p1.loadPane("help.txt", p1.getBufferHelp() );
 
         try {
-            toy.run(p1);
+            toy.run(p1, -1);
             toy.memoryPane(p1);
             toy.showstatev(p2);
             toy.showhexp(toy.hw.getMem(), 0x0100, PAGESIZE,p3);
-            toy.commandline(p1);
+            toy.commandline(p1, panes);
         } catch (Exception e) {
              StdOut.printf("%s\n", sb.toString());
              StdOut.println(lastInstruction.toString() + "\n");

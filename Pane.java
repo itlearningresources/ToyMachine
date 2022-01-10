@@ -43,6 +43,7 @@ public class Pane {
     public ArrayList<String>  getBuffer3() { return  b3;}
     public ArrayList<String>  getBuffer4() { return  b4;}
     public ArrayList<String>  getBufferHelp() { return help;}
+    public void buffer3clear() { b3.clear();}
 
     public Pane(int lines, int r, int c, int w) {
         this.buffer = b1;
@@ -232,6 +233,9 @@ public class Pane {
 
     public void putquiet(String sz) {
         buffer.add(sz);
+    }
+    public void reset() {
+        buffer.clear();
     }
     public void put(String sz) {
         //buffer.add(sz.substring(0, Math.min(sz.length(), w)));
