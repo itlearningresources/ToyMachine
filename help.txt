@@ -1,13 +1,13 @@
-  B            Move to Bottom
-  D            Move Down
   E            Edit Memory <Address>
   F            Find
   /            Find
   H            Help
-  M            Show Memory
-  P            Show Program as read in
-  Q            Quit
-  RESET        Resets PC
-  R            Show Program Trace
+  D            Move Down
+  B            Move to Bottom
   T            Move to Top
   U            Move Up
+  Q            Quit
+  RESET        Resets PC
+  M            Show Memory
+  P            Show Program as read in
+  R            Show Program Trace

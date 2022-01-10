@@ -5,4 +5,4 @@ gawk -F, '
     printf("  %-12s %s\n",$1,$2);
 }
 ' |
-cat | sort | tee help.txt
+cat | sort  -k2| tee help.txt
