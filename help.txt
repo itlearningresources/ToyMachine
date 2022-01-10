@@ -1,1 +1,3 @@
-Help File for Toy
+ R  - Show Program Trace
+ P  - Show Program as read in
+ M  - Show Memory

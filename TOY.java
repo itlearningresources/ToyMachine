@@ -202,6 +202,16 @@ public class TOY {
                 sb.delete(0, sb.length());
                 p.buffer1();
    }
+    public void memorydump(int[] a, int offset, Pane p) {
+        int count = (256 < a.length) ? 256 : a.length;
+        int i = offset;
+        p.reset();
+        while (i < (count+offset) ) {
+            p.putquiet(H.toHex(i) + ": " + H.toHex(a[i]));
+            i++;
+        }
+        p.refresh(0);
+   }
     public void showhexp(int[] a, int offset, int override,Pane p) {
         final int C = 16;
         int i = offset;
@@ -567,15 +577,25 @@ public class TOY {
                              System.exit(1);
                         }
                     }
-                    if (name.toUpperCase().equals("R")) {
+                    if (name.toUpperCase().equals("X")) {
+                       p.buffer3clear();
+                       p.buffer3();
+                       if (f.get2().equals(""))
+                           memorydump(hw.getMem(), 0, p);
+                       else
+                           memorydump(hw.getMem(), H.fromHex(f.get2()), p);
+
+                       p.refresh(0);
+                    }
+                    if (name.toUpperCase().equals("R")) {  // HELP:: R  - Show Program Trace
                         p.buffer1();
                         p.refresh(0);
                     }
-                    if (name.toUpperCase().equals("P")) {
+                    if (name.toUpperCase().equals("P")) {  // HELP:: P  - Show Program as read in
                         p.buffer2();
                         p.refresh(0);
                     }
-                    if (name.toUpperCase().equals("M")) {
+                    if (name.toUpperCase().equals("M")) {  // HELP:: M  - Show Memory
                         p.buffer3clear();
                         this.memoryPane(p);
                         p.buffer3();

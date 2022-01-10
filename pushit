@@ -1,8 +1,10 @@
 #!/bin/bash
 ./list > instructionset.txt
+genhelp
 
-git add H.java
+git add genhelp
 git add help.txt
+git add H.java
 git add ObjectRing.java
 git add instructionset.txt
 git add ANSI.java

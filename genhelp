@@ -1,0 +1,3 @@
+egrep HELP:: TOY.java |   
+sed 's/^.*HELP:://'   |
+cat | tee help.txt
