@@ -5,7 +5,9 @@ PAGE 00 $BOOTSTRAP
 # R4 output memory
 MEM 0100 $CODEPAGE
 0701 00A1 load 0010 into R2
+2400 0000 push this address
 0702 00A2 load 0010 into R2
+2400 0000 push this address
 0703 00A3 load address 00A0 into R3
 0704 00A4 crload address 00A0 into R3
 0705 00A5 load address 00A0 into R3

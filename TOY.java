@@ -33,7 +33,7 @@ public class TOY {
     private int[] xreg   = new int[16];           // 16 registers
     final int ADRR = 0x01;
     private Registers R = null;
-    private int[] stk   = new int[STACKSIZE];    // stack memory locations
+    //private int[] stk   = new int[STACKSIZE];    // stack memory locations
     private HW hw = null;
 
     // return a 4-digit hex string corresponding to 16-bit integer n
@@ -283,15 +283,16 @@ public class TOY {
         p2.reset();
         int[] a = hw.getReg();
         int count = 8;
-        p2.put(ANSI.PURPLE + "PC : " + ANSI.RESET + H.toHex(pc));
+        p2.put("PC : " + ANSI.RESET + H.toHex(pc));
         for (int i = 0; i < count; i++) {
             sz = (a[i] == 0) ? ANSI.RESET + H.toHex(a[i]) : ANSI.DATA + H.toHex(a[i]) + ANSI.RESET;
-            p2.put(ANSI.PURPLE + "R" + H.toHexShort(i) + ": " + sz  + "");
+            p2.put("R" + H.toHexShort(i) + ": " + sz  + "");
         }
         p2.put("");
+            p2.put("SP : " + hw.getStkPtrHex()  + "");
         for (int i = 0; i < count; i++) {
-            sz = (stk[i] == 0) ? ANSI.RESET + H.toHex(stk[i]) : ANSI.DATA + H.toHex(stk[i]) + ANSI.RESET;
-            p2.put(ANSI.PURPLE + "STK: " + sz  + "");
+            sz = (hw.stkGet(i) == 0) ? ANSI.RESET + hw.stkGetHex(i) : ANSI.DATA + hw.stkGetHex(i) + ANSI.RESET;
+            p2.put(H.toHex2D(i) + " : " + sz  + "");
         }
     }
     public  static void showstate(int[] a, int pc) {
@@ -317,7 +318,7 @@ public class TOY {
 //       showhex(hw.getMem(), 0x0010 * 0x0010);
         StdOut.print("\n\nStack:");
         StdOut.printf("  SP: %s\n", H.toHex(stkptr));
-        showhex(stk, 0, 0x0020);
+        showhex(hw.getStk(), 0, 0x0020);
 
         // Print keys and values
         StdOut.println("Pages:");
@@ -438,16 +439,19 @@ public class TOY {
 
                 // My Instructions
                 case 0x10: II.add(op, "push address", "push addr");
-                           stkptr++;stk[stkptr] = mem[addr];
+                           //XX stkptr++;stk[stkptr] = mem[addr];
+                           hw.stkPush(mem[addr]);
                            break;                                                                // push address
                 case 0x11: II.add(op, "push register", "push reg[d]");
-                           stkptr++;stk[stkptr] = reg[d];
+                           //XX stkptr++;stk[stkptr] = reg[d];
+                           hw.stkPush(reg[d]);
                            break;                                                                // push register
                 case 0x12: II.add(op, "pop to register", "pop to reg[d]");
-                           reg[d] = stk[stkptr];
-                           stk[stkptr] = 0xFFFF;
-                           stkptr--; 
-                           if (stkptr<0) stkptr=0;
+                           //XX reg[d] = stk[stkptr];
+                           reg[d] = hw.stkPop();
+                           //XX stk[stkptr] = 0xFFFF;
+                           //XX stkptr--; 
+                           //XX if (stkptr<0) stkptr=0;
                            break;                                                                // pop to register
                 case 0x13: II.add(op, "increment register", "reg[d]++"); 
                            reg[d] = reg[d] + 1;
@@ -462,16 +466,18 @@ public class TOY {
                            reg[d] = reg[d] >> 1;
                            break;                                                                // shift reg right
                 case 0x17: II.add(op, "push pc and link", "push pc and pc = addr");
-                           stk[++stkptr] = pc; pc = addr;
+                           //XX stk[++stkptr] = pc; pc = addr;
+                           hw.stkPush(pc); pc = addr;
                            break;                                                                // push pc and link
                 case 0x18: II.add(op, "jump", "pc = addr");
                            pc = addr;
                            break;                                                                // jump
                 case 0x19: II.add(op, "pop and link", "return");
-                           pc = stk[stkptr];
-                           stk[stkptr] = 0xFFFF;
-                           stkptr--; 
-                           if (stkptr<0) stkptr=0;
+                           //XX pc = stk[stkptr];
+                           pc = hw.stkPop();
+                           //XX stk[stkptr] = 0xFFFF;
+                           //XX stkptr--; 
+                           //XX if (stkptr<0) stkptr=0;
                            break;                                                                // pop and link
                 case 0x20: II.add(op, "NOP", "NOP");
                            pc = pc;
@@ -486,7 +492,8 @@ public class TOY {
                            mem[reg[ADRR]] = reg[d];
                            break;                                                                // sore indirect Address register
                 case 0x24: II.add(op, "Push This", "push this addr");
-                           stk[++stkptr] = pc-2; 
+                           //XX stk[++stkptr] = pc-2; 
+                           hw.stkPush(pc-2); 
                            break;                                                                // push PC
                 case 0x50: II.add(op, "reg char out", "reg[d] char out");
                            StdOut.print(reg[d]);
@@ -538,7 +545,7 @@ public class TOY {
                                                      H.toHexShort(I.getT()),
                                                      II.get(op).getDescription(),
                                                      H.toHex(pc),
-                                                     H.toHex(stk[stkptr]),
+                                                     H.toHex(hw.stkTop()),
                                                      H.toHex(reg[0]),
                                                      H.toHex(reg[1]),
                                                      H.toHex(reg[2]),
@@ -667,6 +674,7 @@ public class TOY {
                         pc = hw.getMem()[0x0000];
                         original_pc = pc;
                         hw.initRegs();
+                        hw.initStk();
                         this.showstatev(panes[2]);
                     }
                     if (name.equals("BOOT")) {      // HELP:: BOOT,IPL from 0x0000
@@ -674,6 +682,7 @@ public class TOY {
                         pc = hw.getMem()[0x0000];
                         original_pc = pc;
                         hw.initRegs();
+                        hw.initStk();
                         this.showstatev(panes[2]);
                         try {
                             this.run(panes[1], pc, "");

@@ -2,7 +2,7 @@
  public class HW {
  
     private int pc;                              // program counter
-    private int stkptr;                           // stack pointer
+    private int stkptr;                          // stack pointer
     final int ADRR = 0x01;
     // private Registers R = new Registers(reg);
 
@@ -16,6 +16,10 @@
     
     private final int STACKSIZE = 32;            // stack size in memory locations
     private int[] stk   = new int[STACKSIZE];    // stack memory locations
+    public void initStk() {
+        for (int i=0;i<STACKSIZE;i++) stk[i] = 0;
+        stkptr = 0;
+    }
 
     public int getPC() {
         return this.pc;
@@ -38,29 +42,33 @@
     public void setStkPtr(int n) {
         this.stkptr = n;
     }
-    public void StkPushHex(String sz) {
+    public void stkPushHex(String sz) {
         int n = H.fromHex(sz);
         this.stkptr++;
         this.stk[stkptr] = n;
     }
-    public void StkPush(int n) {
+    public void stkPush(int n) {
         this.stkptr++;
         this.stk[stkptr] = n;
     }
-    public String StkTopHex() {
+    public String stkTopHex() {
         return H.toHex(this.stk[stkptr]);
     }
-    public int StkTop() {
+    public int stkTop() {
         return this.stk[stkptr];
     }
-    public int StkPop() {
+    public int stkPop() {
         int n = this.stk[stkptr];
+        this.stk[stkptr] = 0xFFFF;
         this.stkptr--;
+        if (this.stkptr<0) this.stkptr=0;
         return n;
     }
-    public String StkPopHex() {
+    public String stkPopHex() {
         int n = this.stk[stkptr];
+        this.stk[stkptr] = 0xFFFF;
         this.stkptr--;
+        if (this.stkptr<0) this.stkptr=0;
         return H.toHex(n);
     }
     public int incStkPtr(int n) {
@@ -69,9 +77,16 @@
     }
     public int decStkPtr(int n) {
         this.stkptr--;
+        if (this.stkptr<0) this.stkptr=0;
         return this.stkptr;
     }
 
+    public int stkGet(int index) {
+        return this.stk[index];
+    }
+    public String stkGetHex(int index) {
+        return H.toHex(this.stk[index]);
+    }
  
      public HW() {
          super();
