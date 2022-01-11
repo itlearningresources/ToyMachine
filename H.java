@@ -38,7 +38,17 @@ public final class H {
              System.exit(1);
         }
     }
-    public final static int fromHex(String s)    { return Integer.parseInt(s, 16) & 0xFFFF; }
+    public final static int fromHex(String s)    { 
+        int nRet = 0;
+        try {
+            nRet = Integer.parseInt(s, 16) & 0xFFFF; 
+        } catch (Exception e) {
+            nRet = 0;
+        } finally {
+            return nRet;
+        }
+
+    }
     public final static String toHex(int n)      { return String.format("%04X", n & 0xFFFF); }
     public final static String toHexShort(int n) { return String.format("%02X", n & 0xFFFF); }
 

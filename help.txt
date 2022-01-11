@@ -2,6 +2,8 @@
   F            Find
   /            Find
   H            Help
+  IPL          Initial Program Load
+  BOOT         IPL from 0x0000
   D            Move Down
   B            Move to Bottom
   T            Move to Top

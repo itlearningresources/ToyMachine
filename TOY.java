@@ -173,11 +173,14 @@ public class TOY {
     }
 
     public void memoryPane(Pane p) {
+        memoryPane(p, 0x0000);
+    } 
+
+    public void memoryPane(Pane p, int offset) {
         p.buffer3();
         final int C = 16;
 
         int[] a = hw.getMem();
-        int offset = 0;
         int i = offset;
         StringBuffer sb = new StringBuffer();
         int count = (PAGESIZE < a.length) ? PAGESIZE : a.length;
@@ -549,7 +552,7 @@ public class TOY {
 
             // halt
             if (haltflag) {
-                p1.put("Halt State");
+                p1.put("HALT");
                 pc = 0;
                 break;
             }
@@ -561,6 +564,7 @@ public class TOY {
         }
     }
     public void commandline(Pane p, Pane[] panes) {
+            String szIn = "";
             p.pos(p.getCOMMAND_ROW(),p.getCOMMAND_COLUMN());
             Finder f   = new Finder("^([/0-9A-Za-z]*)[ \t]*([0-9A-Za-z]*)");
             Finder f2   = new Finder("^([/])([0-9A-Za-z]*)");
@@ -568,6 +572,7 @@ public class TOY {
                 String sz = p.prompt(">> ");
                 if (f.matches(sz)) {
                     String name = f.get1().toString();
+
                     if (name.equals("I")) {
                         p.buffer4();
                         p.refresh(0);
@@ -578,7 +583,7 @@ public class TOY {
                             p.buffer1();
                             this.run(p, pc, "STEP");
                             this.showstatev(panes[2]);
-//                          toy.memoryPane(p1);
+//                          toy.memoryPane(p1, 0x0000);
 //                          toy.showhexp(toy.hw.getMem(), 0x0100, PAGESIZE,p3);
                         } catch (Exception e) {
                              StdOut.printf("%s\n", sb.toString());
@@ -602,29 +607,29 @@ public class TOY {
                              System.exit(1);
                         }
                     }
-                    if (name.equals("X")) {
-                       p.buffer3clear();
-                       p.buffer3();
-                       if (f.get2().equals(""))
-                           memorydump(hw.getMem(), 0, p);
-                       else
-                           memorydump(hw.getMem(), H.fromHex(f.get2()), p);
-
-                       p.refresh(0);
-                    }
                     if (name.equals("R")) {  // HELP:: R,Show Program Trace
-                        p.buffer1();
-                        p.refresh(0);
+                        p.buffer1(0);
                     }
                     if (name.equals("P")) {  // HELP:: P,Show Program as read in
-                        p.buffer2();
-                        p.refresh(0);
+                        p.buffer2(0);
                     }
                     if (name.equals("M")) {  // HELP:: M,Show Memory
                         p.buffer3clear();
-                        this.memoryPane(p);
-                        p.buffer3();
-                        p.refresh(0);
+                        szIn = p.prompt(">memory address > ");
+
+                        switch (szIn) {
+                            case "": this.memoryPane(p, 0x0000); break;
+                            case "R0": this.memoryPane(p, hw.getReg()[0]); break;
+                            case "R1": this.memoryPane(p, hw.getReg()[1]); break;
+                            case "R2": this.memoryPane(p, hw.getReg()[2]); break;
+                            case "R3": this.memoryPane(p, hw.getReg()[3]); break;
+                            case "R4": this.memoryPane(p, hw.getReg()[4]); break;
+                            case "R5": this.memoryPane(p, hw.getReg()[5]); break;
+                            case "R6": this.memoryPane(p, hw.getReg()[6]); break;
+                            case "R7": this.memoryPane(p, hw.getReg()[7]); break;
+                            default: this.memoryPane(p, H.fromHex(szIn));
+                         }
+                         p.buffer3(0);
                     }
                     if (name.equals("T")) {      // HELP:: T,Move to Top
                         p.top();
@@ -649,13 +654,33 @@ public class TOY {
                         x[H.fromHex(f.get2())] = H.fromHex( p.prompt(">edit (" + f.get2() + ")> ") );
                     }
                     if (name.equals("H")) {      // HELP:: H,Help
-                        p.bufferHelp();
-                        p.refresh(0);
+                        p.bufferHelp(0);
                     }
                     if (name.equals("RESET")) {      // HELP:: RESET,Resets PC
+                        panes[1].put("RESET");
                         pc = original_pc;
                         hw.initRegs();
                         this.showstatev(panes[2]);
+                    }
+                    if (name.equals("IPL")) {      // HELP:: IPL,Initial Program Load
+                        panes[1].put("IPL");
+                        pc = hw.getMem()[0x0000];
+                        original_pc = pc;
+                        hw.initRegs();
+                        this.showstatev(panes[2]);
+                    }
+                    if (name.equals("BOOT")) {      // HELP:: BOOT,IPL from 0x0000
+                        panes[1].put("BOOT");
+                        pc = hw.getMem()[0x0000];
+                        original_pc = pc;
+                        hw.initRegs();
+                        this.showstatev(panes[2]);
+                        try {
+                            this.run(panes[1], pc, "");
+                            this.showstatev(panes[2]);
+                        } catch (Exception e) {
+                             System.exit(1);
+                        }
                     }
                     if (name.equals("Q")) {      // HELP:: Q,Quit
                         System.exit(1);
@@ -668,9 +693,9 @@ public class TOY {
     public static void main(String[] args) { 
         Pane[] panes = new Pane[4];
 
-        Pane p1 =  new Pane(24,  10,            1,             148);
-        Pane p2 =  new Pane(20,  10,            p1.gapcolumn(), 10);
-        Pane p3 =  new Pane(4,  p1.gaplap(),   1,             148);
+        Pane p1 =  new Pane(24,  5,            1,             148);
+        Pane p2 =  new Pane(20,  5,            p1.gapcolumn(), 10);
+        Pane p3 =  new Pane(10,  p1.gaplap(),   1,             148);
         Pane msg =  new Pane(1,  48,            1,             148);
         panes[0] = null;
         panes[1] = p1;
@@ -700,9 +725,12 @@ public class TOY {
         p1.loadPane("help.txt", p1.getBufferHelp() );
 
         try {
-            toy.run(p1, -1, "");
+            panes[1].put("READY");
+            toy.run(p1, -1, "READY");
             toy.memoryPane(p1);
             toy.showstatev(p2);
+            toy.showhexp(toy.hw.getMem(), 0x0000, PAGESIZE,p3);
+            p3.put("");
             toy.showhexp(toy.hw.getMem(), 0x0100, PAGESIZE,p3);
             toy.commandline(p1, panes);
         } catch (Exception e) {

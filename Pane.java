@@ -32,6 +32,11 @@ public class Pane {
 
     public int getCOMMAND_ROW() { return this.COMMAND_ROW;}
     public int getCOMMAND_COLUMN() { return this.COMMAND_COLUMN;}
+    public void buffer1(int n) { this.buffer = b1; if (n>-1) this.refresh(n);}
+    public void buffer2(int n) { this.buffer = b2; if (n>-1) this.refresh(n);}
+    public void buffer3(int n) { this.buffer = b3; if (n>-1) this.refresh(n);}
+    public void buffer4(int n) { this.buffer = b4; if (n>-1) this.refresh(n);}
+    public void bufferHelp(int n) { this.buffer = help; if (n>-1) this.refresh(n);}
     public void buffer1() { this.buffer = b1;}
     public void buffer2() { this.buffer = b2;}
     public void buffer3() { this.buffer = b3;}
