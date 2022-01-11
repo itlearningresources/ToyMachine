@@ -18,5 +18,6 @@ git add pushit
 git add list
 git add repo.txt
 git commit -m "Update"
+git tag -a v2.0 -m "First Tagged Version"
 git push -u origin main
 
