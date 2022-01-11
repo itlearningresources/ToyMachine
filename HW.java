@@ -2,7 +2,7 @@
  public class HW {
  
     private int pc;                              // program counter
-    private int stkptr;                          // stack pointer
+    private int stkptr;                           // stack pointer
     final int ADRR = 0x01;
     // private Registers R = new Registers(reg);
 
@@ -20,9 +20,6 @@
     public int getPC() {
         return this.pc;
     }
-    public int getStkPtr() {
-        return this.stkptr;
-    }
     public int[] getReg() {
         return this.reg;
     }
@@ -32,10 +29,53 @@
     public int[] getStk() {
         return this.stk;
     }
+    public String getStkPtrHex() {
+        return H.toHex(this.stkptr);
+    }
+    public int getStkPtr() {
+        return this.stkptr;
+    }
+    public void setStkPtr(int n) {
+        this.stkptr = n;
+    }
+    public void StkPushHex(String sz) {
+        int n = H.fromHex(sz);
+        this.stkptr++;
+        this.stk[stkptr] = n;
+    }
+    public void StkPush(int n) {
+        this.stkptr++;
+        this.stk[stkptr] = n;
+    }
+    public String StkTopHex() {
+        return H.toHex(this.stk[stkptr]);
+    }
+    public int StkTop() {
+        return this.stk[stkptr];
+    }
+    public int StkPop() {
+        int n = this.stk[stkptr];
+        this.stkptr--;
+        return n;
+    }
+    public String StkPopHex() {
+        int n = this.stk[stkptr];
+        this.stkptr--;
+        return H.toHex(n);
+    }
+    public int incStkPtr(int n) {
+        this.stkptr++;
+        return this.stkptr;
+    }
+    public int decStkPtr(int n) {
+        this.stkptr--;
+        return this.stkptr;
+    }
 
  
      public HW() {
          super();
+         stkptr=0;
      }
  
  
