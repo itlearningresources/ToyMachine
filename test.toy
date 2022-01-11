@@ -1,8 +1,5 @@
 PAGE 00 $BOOTSTRAP
 0100
-
-
-
 # R2 is the loop counter
 # R3 is the index of the memory array
 # R4 output memory

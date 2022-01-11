@@ -8,7 +8,9 @@
 
     private final int REGSIZE = 0x0010;          // stack size in memory locations
     private int[] reg   = new int[REGSIZE];      // 16 registers
-
+    public void initRegs() {
+        for(int i=0;i<REGSIZE;i++) reg[i] = 0;
+    }
     private final int MEMSIZE = 0xFFFF;          // stack size in memory locations
     private int[] mem   = new int[MEMSIZE];      // main memory locations
     

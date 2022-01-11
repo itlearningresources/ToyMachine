@@ -562,23 +562,20 @@ public class TOY {
     }
     public void commandline(Pane p, Pane[] panes) {
             p.pos(p.getCOMMAND_ROW(),p.getCOMMAND_COLUMN());
-            Scanner input = new Scanner(System.in);
             Finder f   = new Finder("^([/0-9A-Za-z]*)[ \t]*([0-9A-Za-z]*)");
             Finder f2   = new Finder("^([/])([0-9A-Za-z]*)");
             while (true) {
-                p.pos(p.getCOMMAND_ROW(),p.getCOMMAND_COLUMN());
-                System.out.print(">> ");
-                System.out.print("\033[K");
-                String sz = input.nextLine();
+                String sz = p.prompt(">> ");
                 if (f.matches(sz)) {
-                    String name = f.get1();
-                    if (name.toUpperCase().equals("I")) {
+                    String name = f.get1().toString();
+                    if (name.equals("I")) {
                         p.buffer4();
                         p.refresh(0);
                     }
 
-                    if (name.toUpperCase().equals("S")) {
+                    if (name.equals("S")) {  // HELP:: S,Single Step
                         try {
+                            p.buffer1();
                             this.run(p, pc, "STEP");
                             this.showstatev(panes[2]);
 //                          toy.memoryPane(p1);
@@ -591,7 +588,7 @@ public class TOY {
                              System.exit(1);
                         }
                     }
-                    if (name.toUpperCase().equals("G")) {
+                    if (name.equals("G")) {
                         try {
                             this.run(p, H.fromHex(f.get2()), "");
                             this.showstatev(panes[2]);
@@ -605,7 +602,7 @@ public class TOY {
                              System.exit(1);
                         }
                     }
-                    if (name.toUpperCase().equals("X")) {
+                    if (name.equals("X")) {
                        p.buffer3clear();
                        p.buffer3();
                        if (f.get2().equals(""))
@@ -615,54 +612,52 @@ public class TOY {
 
                        p.refresh(0);
                     }
-                    if (name.toUpperCase().equals("R")) {  // HELP:: R,Show Program Trace
+                    if (name.equals("R")) {  // HELP:: R,Show Program Trace
                         p.buffer1();
                         p.refresh(0);
                     }
-                    if (name.toUpperCase().equals("P")) {  // HELP:: P,Show Program as read in
+                    if (name.equals("P")) {  // HELP:: P,Show Program as read in
                         p.buffer2();
                         p.refresh(0);
                     }
-                    if (name.toUpperCase().equals("M")) {  // HELP:: M,Show Memory
+                    if (name.equals("M")) {  // HELP:: M,Show Memory
                         p.buffer3clear();
                         this.memoryPane(p);
                         p.buffer3();
                         p.refresh(0);
                     }
-                    if (name.toUpperCase().equals("T")) {      // HELP:: T,Move to Top
+                    if (name.equals("T")) {      // HELP:: T,Move to Top
                         p.top();
                     }
-                    if (name.toUpperCase().equals("B")) {      // HELP:: B,Move to Bottom
+                    if (name.equals("B")) {      // HELP:: B,Move to Bottom
                         p.bottom();
                     }
-                    if (name.toUpperCase().equals("U")) {      // HELP:: U,Move Up
+                    if (name.equals("U")) {      // HELP:: U,Move Up
                         p.up();
                     }
-                    if (name.toUpperCase().equals("D")) {      // HELP:: D,Move Down
+                    if (name.equals("D")) {      // HELP:: D,Move Down
                         p.down();
                     }
-                    if (name.toUpperCase().equals("F")) {      // HELP:: F,Find
+                    if (name.equals("F")) {      // HELP:: F,Find
                         p.find(f.get2());
                     }
-                    if (name.toUpperCase().equals("/")) {      // HELP:: /,Find
+                    if (name.equals("/")) {      // HELP:: /,Find
                         p.find(f.get2());
                     }
-                    if (name.toUpperCase().equals("E")) {      // HELP:: E,Edit Memory <Address>
-                        p.pos(p.getCOMMAND_ROW(),p.getCOMMAND_COLUMN());
-                        System.out.print(">edit (" + f.get2() + ")> ");
+                    if (name.equals("E")) {      // HELP:: E,Edit Memory <Address>
                         int[] x = hw.getMem();
-                        x[H.fromHex(f.get2())] = H.fromHex(input.nextLine());
-                        //p.edit(f.get2());
+                        x[H.fromHex(f.get2())] = H.fromHex( p.prompt(">edit (" + f.get2() + ")> ") );
                     }
-                    if (name.toUpperCase().equals("H")) {      // HELP:: H,Help
+                    if (name.equals("H")) {      // HELP:: H,Help
                         p.bufferHelp();
                         p.refresh(0);
                     }
-                    if (name.toUpperCase().equals("RESET")) {      // HELP:: RESET,Resets PC
+                    if (name.equals("RESET")) {      // HELP:: RESET,Resets PC
                         pc = original_pc;
+                        hw.initRegs();
                         this.showstatev(panes[2]);
                     }
-                    if (name.toUpperCase().equals("Q")) {      // HELP:: Q,Quit
+                    if (name.equals("Q")) {      // HELP:: Q,Quit
                         System.exit(1);
                     }
                 }

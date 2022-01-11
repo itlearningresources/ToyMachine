@@ -242,6 +242,13 @@ public class Pane {
         buffer.add(sz);
         refresh(buffer.size()-1);
     }
+    public String prompt(String sz) {
+        Scanner input = new Scanner(System.in);
+        this.pos(this.getCOMMAND_ROW(),this.getCOMMAND_COLUMN());
+        System.out.print(sz);
+        System.out.print("\033[K");
+        return input.nextLine().toUpperCase();
+    }
     public void renderline(String sz) {
          if (count == (lines+1)) {
              count = 1;
@@ -257,7 +264,6 @@ public class Pane {
 
 
      public static void main(String[] args) {
-     H.ABEND();
      System.out.print("\033[2J");
 
             Pane p =  new Pane(16,  3,     1,    66);
