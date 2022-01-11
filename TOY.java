@@ -661,9 +661,6 @@ public class TOY {
                         System.exit(1);
                     }
                 }
-//              if (f2.matches(sz)) {
-//                  p.gfind(f2.get2());
-//              }
             }
     }
 

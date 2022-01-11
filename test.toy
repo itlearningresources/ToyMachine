@@ -4,10 +4,15 @@ PAGE 00 $BOOTSTRAP
 # R3 is the index of the memory array
 # R4 output memory
 MEM 0100 $CODEPAGE
-0702 0056 load 0010 into R2
-0703 00A0 load address 00A0 into R3
-0705 P6   load address of P6 00A0 into R3
+0701 00A1 load 0010 into R2
+0702 00A2 load 0010 into R2
+0703 00A3 load address 00A0 into R3
+0704 00A4 crload address 00A0 into R3
+0705 00A5 load address 00A0 into R3
+0706 00A6 load address 00A0 into R3
+0707 00A7 load address 00A0 into R3
 0000 0000
+0705 P6   load address of P6 00A0 into R3
 0000 0000
 2400 0000 push this address
 0C02 0500 if (R2 == 0) pc goto 500 (#EXIT)
