@@ -1,9 +1,11 @@
   E            Edit Memory <Address>
+  E            Edit Memory <Address>
   F            Find
   /            Find
   H            Help
   IPL          Initial Program Load
   BOOT         IPL from 0x0000
+  I            List Instruction Set
   D            Move Down
   B            Move to Bottom
   T            Move to Top
@@ -11,6 +13,7 @@
   Q            Quit
   RESET        Resets PC
   M            Show Memory
+  MM            Show Memory Monitor
   P            Show Program as read in
   R            Show Program Trace
   S            Single Step

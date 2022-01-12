@@ -21,8 +21,8 @@ public class Pane {
     private int rpos;
     private int cpos;
     private int refreshpoint;
-    private final int COMMAND_ROW = 44;
-    private final int COMMAND_COLUMN = 1;
+    private static int COMMAND_ROW = 44;
+    private static int COMMAND_COLUMN = 1;
     // forceeUnicode UTF-8 encoding; otherwise it's system dependent
     private static final String CHARSET_NAME = "UTF-8";
     // assume language = English, country = US for consistency with StdIn
@@ -30,8 +30,10 @@ public class Pane {
     // send output here
     private static java.io.PrintStream out;
 
-    public int getCOMMAND_ROW() { return this.COMMAND_ROW;}
-    public int getCOMMAND_COLUMN() { return this.COMMAND_COLUMN;}
+    public static int setCOMMAND_ROW(int n)    { Pane.COMMAND_ROW    = n; return n;}
+    public static int setCOMMAND_COLUMN(int n) { Pane.COMMAND_COLUMN = n; return n;}
+    public static int getCOMMAND_ROW() { return Pane.COMMAND_ROW;}
+    public static int getCOMMAND_COLUMN() { return Pane.COMMAND_COLUMN;}
     public void buffer1(int n) { this.buffer = b1; if (n>-1) this.refresh(n);}
     public void buffer2(int n) { this.buffer = b2; if (n>-1) this.refresh(n);}
     public void buffer3(int n) { this.buffer = b3; if (n>-1) this.refresh(n);}
@@ -48,7 +50,11 @@ public class Pane {
     public ArrayList<String>  getBuffer3() { return  b3;}
     public ArrayList<String>  getBuffer4() { return  b4;}
     public ArrayList<String>  getBufferHelp() { return help;}
-    public void buffer3clear() { b3.clear();}
+    public Pane bufferclear() { buffer.clear(); return this;}
+    public Pane buffer1clear() { b1.clear(); return this;}
+    public Pane buffer2clear() { b2.clear(); return this;}
+    public Pane buffer3clear() { b3.clear(); return this;}
+    public Pane buffer4clear() { b4.clear(); return this;}
 
     public Pane(int lines, int r, int c, int w) {
         this.buffer = b1;
@@ -246,6 +252,15 @@ public class Pane {
         //buffer.add(sz.substring(0, Math.min(sz.length(), w)));
         buffer.add(sz);
         refresh(buffer.size()-1);
+    }
+    public String prompt(String sz, String szDefault) {
+        String t = "";
+        Scanner input = new Scanner(System.in);
+        this.pos(this.getCOMMAND_ROW(),this.getCOMMAND_COLUMN());
+        System.out.print(sz);
+        System.out.print("\033[K");
+        t = input.nextLine().toUpperCase();
+        return (t.equals("")) ? szDefault : t.toUpperCase();
     }
     public String prompt(String sz) {
         Scanner input = new Scanner(System.in);

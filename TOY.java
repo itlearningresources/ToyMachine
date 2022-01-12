@@ -16,24 +16,19 @@ import java.util.regex.Matcher;
 import java.util.Map;
 import java.util.HashMap;
 public class TOY { 
-    static int PAGESIZE=32;
+    static int PAGESIZE=62;
     static HashMap<String, Integer> label = new HashMap<String, Integer>();
     static HashMap<String, Integer> pages = new HashMap<String, Integer>();
     static  StringBuffer programAsRead = new StringBuffer(1024);
-
-
     static  StringBuffer sb = new StringBuffer(120);
     static  Instruction lastInstruction = null;
     InstructionSet II = new InstructionSet();
-    private final int STACKSIZE = 32;          // stack size in memory locations
     private int pc;                            // program counter
     private int original_pc;                   // program counter
-    private int stkptr;                        // stack pointer
+    private int memory_monitor;                // Memory monitor address
 
-    private int[] xreg   = new int[16];           // 16 registers
     final int ADRR = 0x01;
     private Registers R = null;
-    //private int[] stk   = new int[STACKSIZE];    // stack memory locations
     private HW hw = null;
 
     // return a 4-digit hex string corresponding to 16-bit integer n
@@ -68,7 +63,7 @@ public class TOY {
         int loadptr=PROGRAMMEMORY;
 
         this.pc = pc;
-        this.stkptr = 0;
+        this.memory_monitor = 0x0000;
         In in = new In(filename);
 
 
@@ -268,17 +263,7 @@ public class TOY {
         StdOut.println();
     }
 
-    public static void showreg(int[] a) {
-        String sz = "";
-        int count = a.length;
-        count = 8;
-        for (int i = 0; i < count; i++) {
-            sz = (a[i] == 0) ? ANSI.RESET + H.toHex(a[i]) : ANSI.DATA + H.toHex(a[i]) + ANSI.RESET;
-            StdOut.print(ANSI.PURPLE + "R" + H.toHexShort(i) + ": " + sz  + " ");
-            if (i % 8 == 7) StdOut.println();
-        }
-    }
-    public  void showstatev(Pane p2) {
+    public  void showstate(Pane p2) {
         String sz = "";
         p2.reset();
         int[] a = hw.getReg();
@@ -294,47 +279,19 @@ public class TOY {
             sz = (hw.stkGet(i) == 0) ? ANSI.RESET + hw.stkGetHex(i) : ANSI.DATA + hw.stkGetHex(i) + ANSI.RESET;
             p2.put(H.toHex2D(i) + " : " + sz  + "");
         }
-    }
-    public  static void showstate(int[] a, int pc) {
-        String sz = "";
-        int count = a.length;
-        count = 8;
-        StdOut.printf("%s %s ", ANSI.PURPLE + "PC:" + ANSI.RESET, H.toHex(pc));
-        for (int i = 0; i < count; i++) {
-            sz = (a[i] == 0) ? ANSI.RESET + H.toHex(a[i]) : ANSI.DATA + H.toHex(a[i]) + ANSI.RESET;
-            StdOut.print(ANSI.PURPLE + "R" + H.toHexShort(i) + ": " + sz  + " ");
-            if (i % 8 == 7) StdOut.println();
-        }
+        p2.put("");
+            p2.put("MM : " + H.toHex(memory_monitor));
     }
 
-    // print core dump of TOY to standard output
-    public void dump(String sz) {
-        StdOut.println("Machine State:");
-//        showstate(hw.getReg(), pc);
-      StdOut.printf("%s  PC: %s\n", sz, H.toHex(pc) );
-      StdOut.println("Registers:");
-      showreg(hw.getReg());
-      StdOut.println("Main:");
-//       showhex(hw.getMem(), 0x0010 * 0x0010);
-        StdOut.print("\n\nStack:");
-        StdOut.printf("  SP: %s\n", H.toHex(stkptr));
-        showhex(hw.getStk(), 0, 0x0020);
-
-        // Print keys and values
-        StdOut.println("Pages:");
-        for (String i : pages.keySet()) {
-            StdOut.printf("%s\n", "" + i + " @ " + H.toHex(pages.get(i)));
-            showhex(hw.getMem(), pages.get(i), PAGESIZE);
-        }
-        // Print keys and values
-        StdOut.println("Labels:");
-        for (String i : label.keySet()) {
-            StdOut.printf("%s\n", "key: " + i + " value: " + H.toHex(label.get(i)));
-        }
-    }
-    static public void trace(String sz, int i) {
-        System.out.println(sz + " " + H.toHex(i));
-    }
+//      StdOut.println("Pages:");
+//      for (String i : pages.keySet()) {
+//          StdOut.printf("%s\n", "" + i + " @ " + H.toHex(pages.get(i)));
+//          showhex(hw.getMem(), pages.get(i), PAGESIZE);
+//      }
+//      StdOut.println("Labels:");
+//      for (String i : label.keySet()) {
+//          StdOut.printf("%s\n", "key: " + i + " value: " + H.toHex(label.get(i)));
+//      }
 
     public void run(Pane p1, int programCounter, String mode) throws Exception {
         int idx = 0;
@@ -572,26 +529,32 @@ public class TOY {
     }
     public void commandline(Pane p, Pane[] panes) {
             String szIn = "";
-            p.pos(p.getCOMMAND_ROW(),p.getCOMMAND_COLUMN());
+            p.pos(Pane.getCOMMAND_ROW(),Pane.getCOMMAND_COLUMN());
             Finder f   = new Finder("^([/0-9A-Za-z]*)[ \t]*([0-9A-Za-z]*)");
             Finder f2   = new Finder("^([/])([0-9A-Za-z]*)");
             while (true) {
                 String sz = p.prompt(">> ");
                 if (f.matches(sz)) {
-                    String name = f.get1().toString();
+                    String name = f.get1().toString().toUpperCase();
 
-                    if (name.equals("I")) {
+                    if (name.equals("I")) {  // HELP:: I,List Instruction Set
                         p.buffer4();
                         p.refresh(0);
                     }
 
+                    if (name.equals("MM")) {  // HELP:: MM, Show Memory Monitor
+                        panes[3].buffer1clear();
+                        this.showhexp(this.hw.getMem(), this.memory_monitor, PAGESIZE,panes[3]);
+                        this.showstate(panes[2]);
+                    }
                     if (name.equals("S")) {  // HELP:: S,Single Step
                         try {
                             p.buffer1();
                             this.run(p, pc, "STEP");
-                            this.showstatev(panes[2]);
-//                          toy.memoryPane(p1, 0x0000);
-//                          toy.showhexp(toy.hw.getMem(), 0x0100, PAGESIZE,p3);
+                            this.showstate(panes[2]);
+                            //panes[3].buffer1();
+                            panes[3].buffer1clear();
+                            this.showhexp(this.hw.getMem(), this.memory_monitor, PAGESIZE,panes[3]);
                         } catch (Exception e) {
                              StdOut.printf("%s\n", sb.toString());
                              StdOut.println(lastInstruction.toString() + "\n");
@@ -603,7 +566,7 @@ public class TOY {
                     if (name.equals("G")) {
                         try {
                             this.run(p, H.fromHex(f.get2()), "");
-                            this.showstatev(panes[2]);
+                            this.showstate(panes[2]);
 //                          toy.memoryPane(p1);
 //                          toy.showhexp(toy.hw.getMem(), 0x0100, PAGESIZE,p3);
                         } catch (Exception e) {
@@ -656,6 +619,12 @@ public class TOY {
                     if (name.equals("/")) {      // HELP:: /,Find
                         p.find(f.get2());
                     }
+                    if (H.xmatch(name,"MONITOR","MON")) {      // HELP:: E,Edit Memory <Address>
+                        int[] x = hw.getMem();
+                        this.memory_monitor = H.fromHex( p.prompt(">monitor address (" + f.get2() + ")> ", H.toHex(this.memory_monitor)));
+                        this.showhexp(this.hw.getMem(), this.memory_monitor, PAGESIZE,panes[3].bufferclear());
+                        this.showstate(panes[2]);
+                    }
                     if (name.equals("E")) {      // HELP:: E,Edit Memory <Address>
                         int[] x = hw.getMem();
                         x[H.fromHex(f.get2())] = H.fromHex( p.prompt(">edit (" + f.get2() + ")> ") );
@@ -663,11 +632,11 @@ public class TOY {
                     if (name.equals("H")) {      // HELP:: H,Help
                         p.bufferHelp(0);
                     }
-                    if (name.equals("RESET")) {      // HELP:: RESET,Resets PC
+                    if (H.xmatch(name,"RESET","RES")) {      // HELP:: RESET,Resets PC
                         panes[1].put("RESET");
                         pc = original_pc;
                         hw.initRegs();
-                        this.showstatev(panes[2]);
+                        this.showstate(panes[2]);
                     }
                     if (name.equals("IPL")) {      // HELP:: IPL,Initial Program Load
                         panes[1].put("IPL");
@@ -675,23 +644,23 @@ public class TOY {
                         original_pc = pc;
                         hw.initRegs();
                         hw.initStk();
-                        this.showstatev(panes[2]);
+                        this.showstate(panes[2]);
                     }
-                    if (name.equals("BOOT")) {      // HELP:: BOOT,IPL from 0x0000
+                    if (H.xmatch(name,"BOOT","BOO")) {      // HELP:: BOOT,IPL from 0x0000
                         panes[1].put("BOOT");
                         pc = hw.getMem()[0x0000];
                         original_pc = pc;
                         hw.initRegs();
                         hw.initStk();
-                        this.showstatev(panes[2]);
+                        this.showstate(panes[2]);
                         try {
                             this.run(panes[1], pc, "");
-                            this.showstatev(panes[2]);
+                            this.showstate(panes[2]);
                         } catch (Exception e) {
                              System.exit(1);
                         }
                     }
-                    if (name.equals("Q")) {      // HELP:: Q,Quit
+                    if (H.xmatch(name,"Q","QUI","QUIT","EXIT","EXI")) {      // HELP:: Q,Quit
                         System.exit(1);
                     }
                 }
@@ -705,7 +674,9 @@ public class TOY {
         Pane p1 =  new Pane(24,  5,            1,             148);
         Pane p2 =  new Pane(20,  5,            p1.gapcolumn(), 10);
         Pane p3 =  new Pane(10,  p1.gaplap(),   1,             148);
-        Pane msg =  new Pane(1,  48,            1,             148);
+        Pane msg =  new Pane(1,  50,            1,             148);
+        Pane.setCOMMAND_ROW(46);
+        Pane.setCOMMAND_COLUMN(1);
         panes[0] = null;
         panes[1] = p1;
         panes[2] = p2;
@@ -737,7 +708,9 @@ public class TOY {
             panes[1].put("READY");
             toy.run(p1, -1, "READY");
             toy.memoryPane(p1);
-            toy.showstatev(p2);
+            toy.showstate(p2);
+            toy.showhexp(toy.hw.getMem(), toy.memory_monitor, PAGESIZE,p3);
+            p3.put("");
             toy.showhexp(toy.hw.getMem(), 0x0000, PAGESIZE,p3);
             p3.put("");
             toy.showhexp(toy.hw.getMem(), 0x0100, PAGESIZE,p3);
@@ -832,28 +805,8 @@ final class Instruction {
             this.t    = lowword          & 0x00FF;    // get t   
             this.addr = lowword          & 0xFFFF;    // get addr
     }
-    public void decode() {
-           
-            StdOut.printf("onk\n");
-            StdOut.printf("%s %s %s %s %s %s %s\n",
-                                                     ANSI.PURPLE +H.toHex(this.getPc()) + ":" + ANSI.RESET,
-                                                     H.toHex(this.getHighword()),
-                                                     H.toHex(this.getLowword()),
-                                                     H.toHexShort(this.getOp()),
-                                                     H.toHexShort(this.getD()),
-                                                     H.toHexShort(this.getS()),
-                                                     H.toHexShort(this.getT())
-                                                     );
-    }
-
-    public static String toDec(int n) {
-        return String.format("%05d", n & 0xFFFF);
-    }
-    public static String toDecShort(int n) {
-        return String.format("%03d", n & 0xFFFF);
-    }
-
 }
+
 class InstructionValueException extends Exception {
     public InstructionValueException(Instruction I, String msg) {
         super(msg + "  " + I.toString());
@@ -879,17 +832,3 @@ class Registers {
         return sb.toString();
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-

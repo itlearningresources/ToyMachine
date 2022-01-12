@@ -1,5 +1,14 @@
 public final class H {
 
+    public final static boolean xmatch(String sz, String ... a) {
+        boolean bRet = false;
+        for (String item : a)
+            if (sz.equals(item)) {
+                bRet = true;
+                break;
+            }
+        return bRet;
+    }
     public final static void assertion(boolean b, String sz) {
             final String c = "\n\033[K";
         if (!b) {
