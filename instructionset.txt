@@ -5,11 +5,11 @@
 //   0x04 bitwise or                        reg[d] = reg[s] ^ reg[t]                
 //   0x05 shift left                        reg[d] = reg[s] << reg[t]               
 //   0x06 shift right                       reg[d] = reg[s] >> reg[t]               
-//   0x07 load address                      reg[d] = addr                           
-//   0x08 load                              reg[d] = mem[addr]                      
-//   0x09 store                             mem[addr] = reg[d]                      
-//   0x0A load indirect                     reg[d] = mem[reg[t] & 0xFFFF]           
-//   0x0B store indirect                    mem[reg[t] & 0x0FFFF] = reg[d]          
+//   0x07 load register with addr           reg[d] = addr                           
+//   0x08 load register with memory         reg[d] = mem[addr]                      
+//   0x09 store reg to mem                  mem[addr] = reg[s]                      
+//   0x0A store reg to mem idrct            mem[reg[d] & 0x0FFFF] = reg[s]          
+//   0x0B load indirect                     reg[d] = mem[reg[t] & 0xFFFF]           
 //   0x0C branch if zero                    if ((short) reg[d] == 0) pc = addr      
 //   0x0D branch if pos                     if ((short) reg[d] >  0) pc = addr      
 //   0x0E jump indirect                     pc = reg[d]                             

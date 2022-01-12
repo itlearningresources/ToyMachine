@@ -1,5 +1,9 @@
 public final class H {
 
+    public final static String shorten(String sz, int n) { 
+        n = (n<=sz.length()) ? n : sz.length();
+        return sz.substring(0,n);
+    }
     public final static boolean xmatch(String sz, String ... a) {
         boolean bRet = false;
         for (String item : a)

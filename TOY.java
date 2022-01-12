@@ -63,7 +63,7 @@ public class TOY {
         int loadptr=PROGRAMMEMORY;
 
         this.pc = pc;
-        this.memory_monitor = 0x0000;
+        this.memory_monitor = 0x1000;
         In in = new In(filename);
 
 
@@ -269,6 +269,7 @@ public class TOY {
         int[] a = hw.getReg();
         int count = 8;
         p2.put("PC : " + ANSI.RESET + H.toHex(pc));
+        p2.put("");
         for (int i = 0; i < count; i++) {
             sz = (a[i] == 0) ? ANSI.RESET + H.toHex(a[i]) : ANSI.DATA + H.toHex(a[i]) + ANSI.RESET;
             p2.put("R" + H.toHexShort(i) + ": " + sz  + "");
@@ -366,21 +367,23 @@ public class TOY {
                 case 0x06: II.add(op, "shift right", "reg[d] = reg[s] >> reg[t]"); 
                            reg[d] = reg[s] >> reg[t];
                            break;                                                                // shift right
-                case 0x07: II.add(op, "load address", "reg[d] = addr");
+                case 0x07: II.add(op, "load register with addr", "reg[d] = addr");
                            reg[d] = addr;
                            break;                                                                // load address
-                case 0x08: II.add(op, "load", "reg[d] = mem[addr]");   
+                case 0x08: II.add(op, "load register with memory", "reg[d] = mem[addr]");   
                            reg[d] = mem[addr];
                            break;                                                                // load
-                case 0x09: II.add(op, "store", "mem[addr] = reg[d]");
-                           mem[addr] = reg[d];
+
+                case 0x09: II.add(op, "store reg to mem", "mem[addr] = reg[s]");
+                           mem[addr] = reg[s];
                            break;                                                                // store
-                case 0x0A: II.add(op, "load indirect", "reg[d] = mem[reg[t] & 0xFFFF]");
+                case 0x0A: II.add(op, "store reg to mem idrct", "mem[reg[d] & 0x0FFFF] = reg[s]"); 
+                           mem[reg[d] & 0xFFFF] = reg[s];
+                           break;                                                                // store indirect
+
+                case 0x0B: II.add(op, "load indirect", "reg[d] = mem[reg[t] & 0xFFFF]");
                            reg[d] = mem[reg[t] & 0xFFFF];
                            break;                                                                // load indirect
-                case 0x0B: II.add(op, "store indirect", "mem[reg[t] & 0x0FFFF] = reg[d]"); 
-                           mem[reg[t] & 0xFFFF] = reg[d];
-                           break;                                                                // store indirect
                 case 0x0C: II.add(op, "branch if zero", "if ((short) reg[d] == 0) pc = addr");  
                            if ((short) reg[d] == 0) pc = addr;
                            break;                                                                // branch if zero
@@ -490,17 +493,16 @@ public class TOY {
        //         StdOut.println(H.toHex(mem[255]));
                                                      // ANSI.PURPLE +H.toHex(I.getPc()) + ":" + ANSI.RESET,
             //sb.append(I.toString() + "\n");
-            String result = String.format("%s %s %s %s %-18s %-2s %-2s %-2s %-2s -- %-38s -- %s %s %s %s %s %s %s %s %s %s\n",
-                                                     H.toHex(ict),
+            String result = String.format("%s %s %s %-2s %-2s %-2s %-2s  %-25s %-32s -- %s %s %s %s %s %s %s %s %s %s\n",
                                                      H.toHex(I.getPc()) + ":",
                                                      H.toHex(I.getHighword()),
                                                      H.toHex(I.getLowword()),
-                                                     II.get(op).getName(),
                                                      H.toHexShort(I.getOp()),
                                                      H.toHexShort(I.getD()),
                                                      H.toHexShort(I.getS()),
                                                      H.toHexShort(I.getT()),
-                                                     II.get(op).getDescription(),
+                                                     H.shorten(II.get(op).getName(),25),
+                                                     "(" + H.shorten(II.get(op).getDescription(),30) + ")",
                                                      H.toHex(pc),
                                                      H.toHex(hw.stkTop()),
                                                      H.toHex(reg[0]),
@@ -537,17 +539,17 @@ public class TOY {
                 if (f.matches(sz)) {
                     String name = f.get1().toString().toUpperCase();
 
-                    if (name.equals("I")) {  // HELP:: I,List Instruction Set
+                    if (H.xmatch(name,"I","ISET")) {  // HELP:: I,List Instruction Set
                         p.buffer4();
                         p.refresh(0);
                     }
 
-                    if (name.equals("MM")) {  // HELP:: MM, Show Memory Monitor
+                    if (name.equals("MM")) {  // HELP:: MM,Show Memory Monitor
                         panes[3].buffer1clear();
                         this.showhexp(this.hw.getMem(), this.memory_monitor, PAGESIZE,panes[3]);
                         this.showstate(panes[2]);
                     }
-                    if (name.equals("S")) {  // HELP:: S,Single Step
+                    if (H.xmatch(name,"S","STEP","STE")) {  // HELP:: S,Single Step
                         try {
                             p.buffer1();
                             this.run(p, pc, "STEP");
@@ -563,12 +565,13 @@ public class TOY {
                              System.exit(1);
                         }
                     }
-                    if (name.equals("G")) {
+                    if (H.xmatch(name,"G0","G")) {          // HELP:: G,Run Program
                         try {
-                            this.run(p, H.fromHex(f.get2()), "");
+                            p.buffer1();
+                            this.run(p, pc, "");
                             this.showstate(panes[2]);
-//                          toy.memoryPane(p1);
-//                          toy.showhexp(toy.hw.getMem(), 0x0100, PAGESIZE,p3);
+                            panes[3].buffer1clear();
+                            this.showhexp(this.hw.getMem(), this.memory_monitor, PAGESIZE,panes[3]);
                         } catch (Exception e) {
                              StdOut.printf("%s\n", sb.toString());
                              StdOut.println(lastInstruction.toString() + "\n");
@@ -607,7 +610,7 @@ public class TOY {
                     if (name.equals("B")) {      // HELP:: B,Move to Bottom
                         p.bottom();
                     }
-                    if (name.equals("U")) {      // HELP:: U,Move Up
+                    if (H.xmatch(name,"U")) {      // HELP:: U,Move Up
                         p.up();
                     }
                     if (name.equals("D")) {      // HELP:: D,Move Down
@@ -625,17 +628,17 @@ public class TOY {
                         this.showhexp(this.hw.getMem(), this.memory_monitor, PAGESIZE,panes[3].bufferclear());
                         this.showstate(panes[2]);
                     }
-                    if (name.equals("E")) {      // HELP:: E,Edit Memory <Address>
+                    if (H.xmatch(name,"E", "EDIT","EDI")) {      // HELP:: E,Edit Memory <Address>
                         int[] x = hw.getMem();
                         x[H.fromHex(f.get2())] = H.fromHex( p.prompt(">edit (" + f.get2() + ")> ") );
                     }
-                    if (name.equals("H")) {      // HELP:: H,Help
+                    if (H.xmatch(name, "H","HELP","HEL")) {      // HELP:: H,Help
                         p.bufferHelp(0);
                     }
                     if (H.xmatch(name,"RESET","RES")) {      // HELP:: RESET,Resets PC
                         panes[1].put("RESET");
-                        pc = original_pc;
                         hw.initRegs();
+                        pc = original_pc;
                         this.showstate(panes[2]);
                     }
                     if (name.equals("IPL")) {      // HELP:: IPL,Initial Program Load
@@ -672,7 +675,7 @@ public class TOY {
         Pane[] panes = new Pane[4];
 
         Pane p1 =  new Pane(24,  5,            1,             148);
-        Pane p2 =  new Pane(20,  5,            p1.gapcolumn(), 10);
+        Pane p2 =  new Pane(24,  5,            p1.gapcolumn(), 10);
         Pane p3 =  new Pane(10,  p1.gaplap(),   1,             148);
         Pane msg =  new Pane(1,  50,            1,             148);
         Pane.setCOMMAND_ROW(46);
