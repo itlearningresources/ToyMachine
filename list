@@ -10,6 +10,6 @@ sed 's/);[ \t]*$//g'  |
 sed 's/^ [ ]*//g'   |
 sed 's/["]//g'  |
 sed 's/, /,/g'  |
-gawk -F, '{printf("//   %4s %-33s %-40s\n", $1,$2,$3) }' | tee instructionset.txt
+gawk -F, '{printf("//   %4s %-33s %-40s\n", $1,$2,$3) }' | grep -v reserved | tee instructionset.txt
 
 
