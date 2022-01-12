@@ -377,31 +377,29 @@ public class TOY {
                 //
                 // SUBSET:: Load and Store
                 //
-                case 0x10: II.add(op, "Load Addr Reg", "reg[ADRR] = addr");
-                           reg[ADRR] = addr;
-                           break;                                                                // Load Address register
-                case 0x11: II.add(op, "reserved", "reserved"); break;                            // reserved
+                case 0x10: II.add(op, "load register with addr", "reg[d] = addr");
+                           reg[d] = addr;
+                           break;                                                                // load address
+                case 0x11: II.add(op, "load register with memory", "reg[d] = mem[addr]");   
+                           reg[d] = mem[addr];
+                           break;                                                                // load
                 case 0x12: II.add(op, "Inc Addr Reg", "reg[ADRR]++");
                            reg[ADRR] = reg[ADRR] + 1;
                            break;                                                                // Inc Address register
                 case 0x13: II.add(op, "Store Reg indirect Addr Reg", "mem[reg[d]]= reg[ADRR]");
                            mem[reg[ADRR]] = reg[d];
                            break;                                                                // sore indirect Address register
-                case 0x14: II.add(op, "load register with addr", "reg[d] = addr");
-                           reg[d] = addr;
-                           break;                                                                // load address
-                case 0x15: II.add(op, "load register with memory", "reg[d] = mem[addr]");   
-                           reg[d] = mem[addr];
-                           break;                                                                // load
-                case 0x16: II.add(op, "store reg to mem", "mem[addr] = reg[s]");
+                case 0x14: II.add(op, "store reg to mem", "mem[addr] = reg[s]");
                            mem[addr] = reg[s];
                            break;                                                                // store
-                case 0x17: II.add(op, "store reg to mem indirect", "mem[reg[d] & 0x0FFFF] = reg[s]"); 
+                case 0x15: II.add(op, "store reg to mem indirect", "mem[reg[d] & 0x0FFFF] = reg[s]"); 
                            mem[reg[d] & 0xFFFF] = reg[s];
                            break;                                                                // store indirect
-                case 0x18: II.add(op, "load indirect", "reg[d] = mem[reg[t] & 0xFFFF]");
+                case 0x16: II.add(op, "load indirect", "reg[d] = mem[reg[t] & 0xFFFF]");
                            reg[d] = mem[reg[t] & 0xFFFF];
                            break;                                                                // load indirect
+                case 0x17: II.add(op, "reserved", "reserved"); break;                            // reserved
+                case 0x18: II.add(op, "reserved", "reserved"); break;                            // reserved
                 case 0x19: II.add(op, "reserved", "reserved"); break;                            // reserved
                 case 0x1A: II.add(op, "reserved", "reserved"); break;                            // reserved
                 case 0x1B: II.add(op, "reserved", "reserved"); break;                            // reserved
@@ -522,9 +520,8 @@ public class TOY {
                 case 0x50: II.add(op, "NOP", "NOP");
                            pc = pc;
                            break;                                                                // NOP
-
                 //
-                // SUBSET:: I/O and String Instructions
+                // SUBSET:: I/O and String
                 //
                 case 0x61: II.add(op, "reg char out", "reg[d] char out");
                            StdOut.print(reg[d]);
