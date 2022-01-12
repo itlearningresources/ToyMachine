@@ -1,36 +1,87 @@
 //   0x00 halt                              haltflag = true                         
 //   0x01 add                               reg[d] = reg[s] + reg[t]                
 //   0x02 subtract                          reg[d] = reg[s] - reg[t]                
-//   0x03 bitwise and                       reg[d] = reg[s] & reg[t]                
-//   0x04 bitwise or                        reg[d] = reg[s] ^ reg[t]                
-//   0x05 shift left                        reg[d] = reg[s] << reg[t]               
-//   0x06 shift right                       reg[d] = reg[s] >> reg[t]               
-//   0x07 load register with addr           reg[d] = addr                           
-//   0x08 load register with memory         reg[d] = mem[addr]                      
-//   0x09 store reg to mem                  mem[addr] = reg[s]                      
-//   0x0A store reg to mem idrct            mem[reg[d] & 0x0FFFF] = reg[s]          
-//   0x0B load indirect                     reg[d] = mem[reg[t] & 0xFFFF]           
-//   0x0C branch if zero                    if ((short) reg[d] == 0) pc = addr      
-//   0x0D branch if pos                     if ((short) reg[d] >  0) pc = addr      
-//   0x0E jump indirect                     pc = reg[d]                             
-//   0x0F jump and link                     reg[d] = pc; pc = addr                  
-//   0x10 push address                      push addr                               
-//   0x11 push register                     push reg[d]                             
-//   0x12 pop to register                   pop to reg[d]                           
-//   0x13 increment register                reg[d]++                                
-//   0x14 decrement register                reg[d]--                                
-//   0x15 shift reg left                    reg[d] = reg[d] << 1                    
-//   0x16 shift reg right                   reg[d] = reg[d] >> 1                    
-//   0x17 push pc and link                  push pc and pc = addr                   
-//   0x18 jump                              pc = addr                               
-//   0x19 pop and link                      return                                  
-//   0x20 NOP                               NOP                                     
-//   0x21 Load Addr Reg                     reg[ADRR] = addr                        
-//   0x22 Inc Addr Reg                      reg[ADRR]++                             
-//   0x23 Store Reg indirect Addr Reg       mem[reg[d]]= reg[ADRR]                  
-//   0x24 Push This                         push this addr                          
-//   0x50 reg char out                      reg[d] char out                         
-//   0x51 mem char out                      mem[addr] char out                      
-//   0x52 string 10 16b                     string out 16b                          
-//   0x53 string out 8b                     string out 8b                           
-//   0x60 int to ascii                      int to ascii                            
+//   0x03 increment register                reg[d]++                                
+//   0x04 decrement register                reg[d]--                                
+//   0x05 accumulate                        reg[d] = reg[d] + reg[s]                
+//   0x06 deccumulate                       reg[d] = reg[d] + reg[s]                
+//   0x10 Load Addr Reg                     reg[ADRR] = addr                        
+//   0x11 reserved                          reserved); break;                            // reserved
+//   0x12 Inc Addr Reg                      reg[ADRR]++                             
+//   0x13 Store Reg indirect Addr Reg       mem[reg[d]]= reg[ADRR]                  
+//   0x14 load register with addr           reg[d] = addr                           
+//   0x15 load register with memory         reg[d] = mem[addr]                      
+//   0x16 store reg to mem                  mem[addr] = reg[s]                      
+//   0x17 store reg to mem indirect         mem[reg[d] & 0x0FFFF] = reg[s]          
+//   0x18 load indirect                     reg[d] = mem[reg[t] & 0xFFFF]           
+//   0x19 reserved                          reserved); break;                            // reserved
+//   0x1A reserved                          reserved); break;                            // reserved
+//   0x1B reserved                          reserved); break;                            // reserved
+//   0x1C reserved                          reserved); break;                            // reserved
+//   0x1D reserved                          reserved); break;                            // reserved
+//   0x1E reserved                          reserved); break;                            // reserved
+//   0x1F reserved                          reserved); break;                            // reserved
+//   0x20 jump                              pc = addr                               
+//   0x21 branch if zero                    if ((short) reg[d] == 0) pc = addr      
+//   0x22 branch if pos                     if ((short) reg[d] >  0) pc = addr      
+//   0x23 jump indirect                     pc = reg[d]                             
+//   0x24 jump and link                     reg[d] = pc; pc = addr                  
+//   0x25 reserved                          reserved); break;                            // reserved
+//   0x26 reserved                          reserved); break;                            // reserved
+//   0x27 reserved                          reserved); break;                            // reserved
+//   0x28 reserved                          reserved); break;                            // reserved
+//   0x29 reserved                          reserved); break;                            // reserved
+//   0x2A reserved                          reserved); break;                            // reserved
+//   0x2B reserved                          reserved); break;                            // reserved
+//   0x2C reserved                          reserved); break;                            // reserved
+//   0x2D reserved                          reserved); break;                            // reserved
+//   0x2E reserved                          reserved); break;                            // reserved
+//   0x2F reserved                          reserved); break;                            // reserved
+//   0x30 push address                      push addr                               
+//   0x31 push register                     push reg[d]                             
+//   0x32 pop to register                   pop to reg[d]                           
+//   0x33 pop and link                      return                                  
+//   0x34 Push This                         push this addr                          
+//   0x35 push pc and link                  push pc and pc = addr                   
+//   0x36 reserved                          reserved); break;                            // reserved
+//   0x37 reserved                          reserved); break;                            // reserved
+//   0x38 reserved                          reserved); break;                            // reserved
+//   0x39 reserved                          reserved); break;                            // reserved
+//   0x3A reserved                          reserved); break;                            // reserved
+//   0x3B reserved                          reserved); break;                            // reserved
+//   0x3C reserved                          reserved); break;                            // reserved
+//   0x3D reserved                          reserved); break;                            // reserved
+//   0x3E reserved                          reserved); break;                            // reserved
+//   0x3F reserved                          reserved); break;                            // reserved
+//   0x40 bitwise and                       reg[d] = reg[s] & reg[t]                
+//   0x41 bitwise or                        reg[d] = reg[s] ^ reg[t]                
+//   0x42 shift left                        reg[d] = reg[s] << reg[t]               
+//   0x43 shift right                       reg[d] = reg[s] >> reg[t]               
+//   0x44 shift reg left                    reg[d] = reg[d] << 1                    
+//   0x45 shift reg right                   reg[d] = reg[d] >> 1                    
+//   0x46 reserved                          reserved); break;                            // reserved
+//   0x47 reserved                          reserved); break;                            // reserved
+//   0x48 reserved                          reserved); break;                            // reserved
+//   0x49 reserved                          reserved); break;                            // reserved
+//   0x4A reserved                          reserved); break;                            // reserved
+//   0x4B reserved                          reserved); break;                            // reserved
+//   0x4C reserved                          reserved); break;                            // reserved
+//   0x4D reserved                          reserved); break;                            // reserved
+//   0x4E reserved                          reserved); break;                            // reserved
+//   0x0F reserved                          reserved); break;                            // reserved
+//   0x50 NOP                               NOP                                     
+//   0x61 reg char out                      reg[d] char out                         
+//   0x62 mem char out                      mem[addr] char out                      
+//   0x63 string 10 16b                     string out 16b                          
+//   0x64 string out 8b                     string out 8b                           
+//   0x65 int to ascii                      int to ascii                            
+//   0x66 reserved                          reserved); break;                            // reserved
+//   0x67 reserved                          reserved); break;                            // reserved
+//   0x68 reserved                          reserved); break;                            // reserved
+//   0x69 reserved                          reserved); break;                            // reserved
+//   0x6A reserved                          reserved); break;                            // reserved
+//   0x6B reserved                          reserved); break;                            // reserved
+//   0x6C reserved                          reserved); break;                            // reserved
+//   0x6D reserved                          reserved); break;                            // reserved
+//   0x6E reserved                          reserved); break;                            // reserved
+//   0x6F reserved                          reserved); break;                            // reserved
