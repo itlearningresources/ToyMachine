@@ -347,13 +347,13 @@ public class TOY {
             // Execute
             switch (op) {
                 //
-                // Halt
+                // SUBSET:: Halt
                 //
                 case 0x00: II.add(op, "halt", "haltflag = true");
                            haltflag=true;    
                            break;                                                                // halt
                 //
-                // Math and Accumulator
+                // SUBSET:: Math and Accumulator
                 //
                 case 0x01: II.add(op, "add", "reg[d] = reg[s] + reg[t]");
                            reg[d] = reg[s] +  reg[t];         
@@ -375,7 +375,7 @@ public class TOY {
                            break;                                                                // deccumlate register
 
                 //
-                // Load and Store
+                // SUBSET:: Load and Store
                 //
                 case 0x10: II.add(op, "Load Addr Reg", "reg[ADRR] = addr");
                            reg[ADRR] = addr;
@@ -412,7 +412,7 @@ public class TOY {
 
 
                 //
-                //  Branch and Jump
+                //  SUBSET:: Branch and Jump
                 //
                 case 0x20: II.add(op, "jump", "pc = addr");
                            pc = addr;
@@ -442,7 +442,7 @@ public class TOY {
                 case 0x2F: II.add(op, "reserved", "reserved"); break;                            // reserved
 
                 // 
-                // Stack
+                // SUBSET:: Stack
                 //
                 case 0x30: II.add(op, "push address", "push addr");
                            //XX stkptr++;stk[stkptr] = mem[addr];
@@ -485,7 +485,7 @@ public class TOY {
                 case 0x3E: II.add(op, "reserved", "reserved"); break;                            // reserved
                 case 0x3F: II.add(op, "reserved", "reserved"); break;                            // reserved
                 //
-                // Bitwise and Shift
+                // SUBSET:: Bitwise and Shift
                 //
                 case 0x40: II.add(op, "bitwise and", "reg[d] = reg[s] & reg[t]");
                            reg[d] = reg[s] &  reg[t];
@@ -517,14 +517,14 @@ public class TOY {
                 case 0x0F: II.add(op, "reserved", "reserved"); break;                            // reserved
 
                 //
-                // NOP
+                // SUBSET:: NOP
                 //
                 case 0x50: II.add(op, "NOP", "NOP");
                            pc = pc;
                            break;                                                                // NOP
 
                 //
-                // I/O and String Instructions
+                // SUBSET:: I/O and String Instructions
                 //
                 case 0x61: II.add(op, "reg char out", "reg[d] char out");
                            StdOut.print(reg[d]);

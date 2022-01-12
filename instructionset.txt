@@ -1,38 +1,54 @@
-//   0x00 halt                              haltflag = true                         
-//   0x01 add                               reg[d] = reg[s] + reg[t]                
-//   0x02 subtract                          reg[d] = reg[s] - reg[t]                
-//   0x03 increment register                reg[d]++                                
-//   0x04 decrement register                reg[d]--                                
-//   0x05 accumulate                        reg[d] = reg[d] + reg[s]                
-//   0x06 deccumulate                       reg[d] = reg[d] + reg[s]                
-//   0x10 Load Addr Reg                     reg[ADRR] = addr                        
-//   0x12 Inc Addr Reg                      reg[ADRR]++                             
-//   0x13 Store Reg indirect Addr Reg       mem[reg[d]]= reg[ADRR]                  
-//   0x14 load register with addr           reg[d] = addr                           
-//   0x15 load register with memory         reg[d] = mem[addr]                      
-//   0x16 store reg to mem                  mem[addr] = reg[s]                      
-//   0x17 store reg to mem indirect         mem[reg[d] & 0x0FFFF] = reg[s]          
-//   0x18 load indirect                     reg[d] = mem[reg[t] & 0xFFFF]           
-//   0x20 jump                              pc = addr                               
-//   0x21 branch if zero                    if ((short) reg[d] == 0) pc = addr      
-//   0x22 branch if pos                     if ((short) reg[d] >  0) pc = addr      
-//   0x23 jump indirect                     pc = reg[d]                             
-//   0x24 jump and link                     reg[d] = pc; pc = addr                  
-//   0x30 push address                      push addr                               
-//   0x31 push register                     push reg[d]                             
-//   0x32 pop to register                   pop to reg[d]                           
-//   0x33 pop and link                      return                                  
-//   0x34 Push This                         push this addr                          
-//   0x35 push pc and link                  push pc and pc = addr                   
-//   0x40 bitwise and                       reg[d] = reg[s] & reg[t]                
-//   0x41 bitwise or                        reg[d] = reg[s] ^ reg[t]                
-//   0x42 shift left                        reg[d] = reg[s] << reg[t]               
-//   0x43 shift right                       reg[d] = reg[s] >> reg[t]               
-//   0x44 shift reg left                    reg[d] = reg[d] << 1                    
-//   0x45 shift reg right                   reg[d] = reg[d] >> 1                    
-//   0x50 NOP                               NOP                                     
-//   0x61 reg char out                      reg[d] char out                         
-//   0x62 mem char out                      mem[addr] char out                      
-//   0x63 string 10 16b                     string out 16b                          
-//   0x64 string out 8b                     string out 8b                           
-//   0x65 int to ascii                      int to ascii                            
+
+   Halt
+   0x00 halt                              haltflag = true                         
+
+   Math and Accumulator
+   0x01 add                               reg[d] = reg[s] + reg[t]                
+   0x02 subtract                          reg[d] = reg[s] - reg[t]                
+   0x03 increment register                reg[d]++                                
+   0x04 decrement register                reg[d]--                                
+   0x05 accumulate                        reg[d] = reg[d] + reg[s]                
+   0x06 deccumulate                       reg[d] = reg[d] + reg[s]                
+
+   Load and Store
+   0x10 Load Addr Reg                     reg[ADRR] = addr                        
+   0x12 Inc Addr Reg                      reg[ADRR]++                             
+   0x13 Store Reg indirect Addr Reg       mem[reg[d]]= reg[ADRR]                  
+   0x14 load register with addr           reg[d] = addr                           
+   0x15 load register with memory         reg[d] = mem[addr]                      
+   0x16 store reg to mem                  mem[addr] = reg[s]                      
+   0x17 store reg to mem indirect         mem[reg[d] & 0x0FFFF] = reg[s]          
+   0x18 load indirect                     reg[d] = mem[reg[t] & 0xFFFF]           
+
+   Branch and Jump
+   0x20 jump                              pc = addr                               
+   0x21 branch if zero                    if ((short) reg[d] == 0) pc = addr      
+   0x22 branch if pos                     if ((short) reg[d] >  0) pc = addr      
+   0x23 jump indirect                     pc = reg[d]                             
+   0x24 jump and link                     reg[d] = pc; pc = addr                  
+
+   Stack
+   0x30 push address                      push addr                               
+   0x31 push register                     push reg[d]                             
+   0x32 pop to register                   pop to reg[d]                           
+   0x33 pop and link                      return                                  
+   0x34 Push This                         push this addr                          
+   0x35 push pc and link                  push pc and pc = addr                   
+
+   Bitwise and Shift
+   0x40 bitwise and                       reg[d] = reg[s] & reg[t]                
+   0x41 bitwise or                        reg[d] = reg[s] ^ reg[t]                
+   0x42 shift left                        reg[d] = reg[s] << reg[t]               
+   0x43 shift right                       reg[d] = reg[s] >> reg[t]               
+   0x44 shift reg left                    reg[d] = reg[d] << 1                    
+   0x45 shift reg right                   reg[d] = reg[d] >> 1                    
+
+   NOP
+   0x50 NOP                               NOP                                     
+
+   I/O and String Instructions
+   0x61 reg char out                      reg[d] char out                         
+   0x62 mem char out                      mem[addr] char out                      
+   0x63 string 10 16b                     string out 16b                          
+   0x64 string out 8b                     string out 8b                           
+   0x65 int to ascii                      int to ascii                            
