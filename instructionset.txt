@@ -13,18 +13,21 @@
    Load and Store
    0x10 load register with addr           reg[d] = addr                           
    0x11 load register with memory         reg[d] = mem[addr]                      
-   0x12 Inc Addr Reg                      reg[ADRR]++                             
-   0x13 Store Reg indirect Addr Reg       mem[reg[d]]= reg[ADRR]                  
+   0x12 Inc Addr Reg                      reg[addr]++                             
+   0x13 Store Reg indirect Addr Reg       mem[reg[d]]= reg[addr]                  
    0x14 store reg to mem                  mem[addr] = reg[s]                      
    0x15 store reg to mem indirect         mem[reg[d] & 0x0FFFF] = reg[s]          
-   0x16 load indirect                     reg[d] = mem[reg[t] & 0xFFFF]           
+   0x16 load indirect                     reg[d] = mem[reg[s] & 0xFFFF]           
 
    Branch and Jump
    0x20 jump                              pc = addr                               
-   0x21 branch if zero                    if ((short) reg[d] == 0) pc = addr      
-   0x22 branch if pos                     if ((short) reg[d] >  0) pc = addr      
-   0x23 jump indirect                     pc = reg[d]                             
-   0x24 jump and link                     reg[d] = pc; pc = addr                  
+   0x21 branch if zero                    if (reg[d] == 0) pc = addr              
+   0x22 branch if not zero                if (reg[d] != 0) pc = addr              
+   0x23 pop and link if zero              if (reg[d] == 0) pc = popstk            
+   0x24 pop and link if not zero          if (reg[d] != 0) pc = popstk            
+   0x25 branch if pos                     if (reg[d] >  0) pc = addr              
+   0x26 jump indirect                     pc = reg[d]                             
+   0x27 jump and link                     reg[d] = pc; pc = addr                  
 
    Stack
    0x30 push address                      push addr                               

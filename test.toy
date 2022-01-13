@@ -1,9 +1,27 @@
 PAGE 00 $BOOTSTRAP
 0100
 MEM 0100 $CODEPAGE
-1001 1000 load R1 with ADDR
-1002 EEEE load R2 with ADDR
+1010 1000 load R1 with ADDR
+1020 EEEE load R2 with ADDR
+1030 EEEE load R3 with ADDR
+1040 EEEE load R3 with ADDR
+1050 EEEE load R3 with ADDR
+1060 EEEE load R3 with ADDR
+
+1070 0AAA
+
+3400 0000
+0410 0000
+0420 0000
+0430 0000
+0440 0000
+0450 0000
+0460 0000
+
+0470 0000
+2470 0000
 0000 0000
+
 0A01 0200
 1301 0000
 0A01 0200
@@ -33,37 +51,3 @@ MEM 0100 $CODEPAGE
 0701 1000 load R1 with ADDR
 0701 1000 load R1 with ADDR
 
-//   0x00 halt                              haltflag = true                         
-//   0x01 add                               reg[d] = reg[s] + reg[t]                
-//   0x02 subtract                          reg[d] = reg[s] - reg[t]                
-//   0x03 bitwise and                       reg[d] = reg[s] & reg[t]                
-//   0x04 bitwise or                        reg[d] = reg[s] ^ reg[t]                
-//   0x05 shift left                        reg[d] = reg[s] << reg[t]               
-//   0x06 shift right                       reg[d] = reg[s] >> reg[t]               
-//   0x07 load address                      reg[d] = addr                           
-//   0x08 load                              reg[d] = mem[addr]                      
-//   0x09 store                             mem[addr] = reg[d]                      
-//   0x0A load indirect                     reg[d] = mem[reg[t] & 0xFFFF]           
-//   0x0B store indirect                    mem[reg[t] & 255] = reg[d]              
-//   0x0C branch if zero                    if ((short) reg[d] == 0) pc = addr      
-//   0x0D branch if pos                     if ((short) reg[d] >  0) pc = addr      
-//   0x0E jump indirect                     pc = reg[d]                             
-//   0x0F jump and link                     reg[d] = pc; pc = addr                  
-//   0x10 push address                      push addr                               
-//   0x11 push register                     push reg[d]                             
-//   0x12 pop to register                   pop to reg[d]                           
-//   0x13 increment register                reg[d]++                                
-//   0x14 decrement register                reg[d]--                                
-//   0x15 shift reg left                    reg[d] = reg[d] << 1                    
-//   0x16 shift reg right                   reg[d] = reg[d] >> 1                    
-//   0x17 push pc and link                  push pc and pc = addr                   
-//   0x18 jump                              pc = addr                               
-//   0x19 pop and link                      return                                  
-//   0x20 NOP                               NOP                                     
-//   0x21 Load Addr Reg                     reg[ADRR] = addr                        
-//   0x22 Inc Addr Reg                      reg[ADRR]++                             
-//   0x23 Store Reg indirect Addr Reg       mem[reg[d]]= reg[ADRR]                  
-//   0x24 Push This                         push this addr                          
-//   0x50 reg char out                      reg[d] char out                         
-//   0x51 mem char out                      mem[addr] char out                      
-//   0x52 string 10 16b                     string out 16b                          

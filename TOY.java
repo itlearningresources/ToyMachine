@@ -294,7 +294,7 @@ public class TOY {
 //          StdOut.printf("%s\n", "key: " + i + " value: " + H.toHex(label.get(i)));
 //      }
 
-    public void run(Pane p1, int programCounter, String mode) throws Exception {
+    public void run(Pane[] panes, int programCounter, String mode) throws Exception {
         int idx = 0;
         int ict = 0;
         boolean bRun = true;
@@ -383,10 +383,10 @@ public class TOY {
                 case 0x11: II.add(op, "load register with memory", "reg[d] = mem[addr]");   
                            reg[d] = mem[addr];
                            break;                                                                // load
-                case 0x12: II.add(op, "Inc Addr Reg", "reg[ADRR]++");
+                case 0x12: II.add(op, "Inc Addr Reg", "reg[addr]++");
                            reg[ADRR] = reg[ADRR] + 1;
                            break;                                                                // Inc Address register
-                case 0x13: II.add(op, "Store Reg indirect Addr Reg", "mem[reg[d]]= reg[ADRR]");
+                case 0x13: II.add(op, "Store Reg indirect Addr Reg", "mem[reg[d]]= reg[addr]");
                            mem[reg[ADRR]] = reg[d];
                            break;                                                                // sore indirect Address register
                 case 0x14: II.add(op, "store reg to mem", "mem[addr] = reg[s]");
@@ -395,8 +395,8 @@ public class TOY {
                 case 0x15: II.add(op, "store reg to mem indirect", "mem[reg[d] & 0x0FFFF] = reg[s]"); 
                            mem[reg[d] & 0xFFFF] = reg[s];
                            break;                                                                // store indirect
-                case 0x16: II.add(op, "load indirect", "reg[d] = mem[reg[t] & 0xFFFF]");
-                           reg[d] = mem[reg[t] & 0xFFFF];
+                case 0x16: II.add(op, "load indirect", "reg[d] = mem[reg[s] & 0xFFFF]");
+                           reg[d] = mem[reg[s] & 0xFFFF];
                            break;                                                                // load indirect
                 case 0x17: II.add(op, "reserved", "reserved"); break;                            // reserved
                 case 0x18: II.add(op, "reserved", "reserved"); break;                            // reserved
@@ -415,21 +415,30 @@ public class TOY {
                 case 0x20: II.add(op, "jump", "pc = addr");
                            pc = addr;
                            break;                                                                // jump
-                case 0x21: II.add(op, "branch if zero", "if ((short) reg[d] == 0) pc = addr");  
-                           if ((short) reg[d] == 0) pc = addr;
+                case 0x21: II.add(op, "branch if zero", "if (reg[d] == 0) pc = addr");  
+                           if (reg[d] == 0) pc = addr;
                            break;                                                                // branch if zero
-                case 0x22: II.add(op, "branch if pos", "if ((short) reg[d] >  0) pc = addr");
-                           if ((short) reg[d] >  0) pc = addr;
+                case 0x22: II.add(op, "branch if not zero", "if (reg[d] != 0) pc = addr");  
+                           if (reg[d] != 0) pc = addr;
+                           break;                                                                // branch if not zero
+
+                case 0x23: II.add(op, "pop and link if zero", "if (reg[d] == 0) pc = popstk");  
+                           if (reg[d] == 0) pc = hw.stkPop();
+                           break;                                                                // pop and link if zero
+                case 0x24: II.add(op, "pop and link if not zero", "if (reg[d] != 0) pc = popstk");  
+                           if (reg[d] != 0) pc = hw.stkPop();
+                           break;                                                                // pop and link if not zero
+
+
+                case 0x25: II.add(op, "branch if pos", "if (reg[d] >  0) pc = addr");
+                           if (reg[d] >  0) pc = addr;
                            break;                                                                // branch if positive
-                case 0x23: II.add(op, "jump indirect", "pc = reg[d]");
+                case 0x26: II.add(op, "jump indirect", "pc = reg[d]");
                            pc = reg[d];
                            break;                                                                // jump indirect
-                case 0x24: II.add(op, "jump and link", "reg[d] = pc; pc = addr");
+                case 0x27: II.add(op, "jump and link", "reg[d] = pc; pc = addr");
                            reg[d] = pc; pc = addr;
                            break;                                                                // jump and link
-                case 0x25: II.add(op, "reserved", "reserved"); break;                            // reserved
-                case 0x26: II.add(op, "reserved", "reserved"); break;                            // reserved
-                case 0x27: II.add(op, "reserved", "reserved"); break;                            // reserved
                 case 0x28: II.add(op, "reserved", "reserved"); break;                            // reserved
                 case 0x29: II.add(op, "reserved", "reserved"); break;                            // reserved
                 case 0x2A: II.add(op, "reserved", "reserved"); break;                            // reserved
@@ -465,7 +474,6 @@ public class TOY {
                            //XX if (stkptr<0) stkptr=0;
                            break;                                                                // pop and link
                 case 0x34: II.add(op, "Push This", "push this addr");
-                           //XX stk[++stkptr] = pc-2; 
                            hw.stkPush(pc-2); 
                            break;                                                                // push PC
                 case 0x35: II.add(op, "push pc and link", "push pc and pc = addr");
@@ -548,10 +556,10 @@ public class TOY {
                            }
                            break;                                                                // string out 8 bit
                 case 0x65: II.add(op, "int to ascii", "int to ascii");
-                           char[] ca = H.convertIntegerToCharArray(reg[d]);
+                           char[] ca = H.convertIntegerToCharArray(reg[s]);
                            for (int i = 0;i<ca.length;i++) {
-                               mem[reg[t]] = ca[i];
-                               reg[t]++;
+                               mem[reg[d]] = ca[i];
+                               reg[d]++;
                            }
                            break;                                                                // int to ascii
                 case 0x66: II.add(op, "reserved", "reserved"); break;                            // reserved
@@ -571,14 +579,14 @@ public class TOY {
        //         StdOut.println(H.toHex(mem[255]));
                                                      // ANSI.PURPLE +H.toHex(I.getPc()) + ":" + ANSI.RESET,
             //sb.append(I.toString() + "\n");
-            String result = String.format("%s %s %s %-2s %-2s %-2s %-2s  %-25s %-32s -- %s %s %s %s %s %s %s %s %s %s\n",
+            String result = String.format("%s %s %s %-2s %-1s %-1s %-1s  %-25s %-32s -- %s %s %s %s %s %s %s %s %s %s\n",
                                                      H.toHex(I.getPc()) + ":",
                                                      H.toHex(I.getHighword()),
                                                      H.toHex(I.getLowword()),
                                                      H.toHexShort(I.getOp()),
-                                                     H.toHexShort(I.getD()),
-                                                     H.toHexShort(I.getS()),
-                                                     H.toHexShort(I.getT()),
+                                                     H.toHexNibble(I.getD()),
+                                                     H.toHexNibble(I.getS()),
+                                                     ((I.getLowword() >> 4) > 0) ? "-" : H.toHexNibble(I.getT()),
                                                      H.shorten(II.get(op).getName(),25),
                                                      "(" + H.shorten(II.get(op).getDescription(),30) + ")",
                                                      H.toHex(pc),
@@ -592,11 +600,11 @@ public class TOY {
                                                      H.toHex(reg[6]),
                                                      H.toHex(reg[7])
                                                      );
-            p1.put(result);
+            panes[1].put(result);
 
             // halt
             if (haltflag) {
-                p1.put("HALT");
+                panes[1].put("HALT");
                 pc = 0;
                 break;
             }
@@ -630,7 +638,7 @@ public class TOY {
                     if (H.xmatch(name,"S","STEP","STE")) {  // HELP:: S,Single Step
                         try {
                             p.buffer1();
-                            this.run(p, pc, "STEP");
+                            this.run(panes, pc, "STEP");
                             this.showstate(panes[2]);
                             //panes[3].buffer1();
                             panes[3].buffer1clear();
@@ -646,7 +654,7 @@ public class TOY {
                     if (H.xmatch(name,"G0","G")) {          // HELP:: G,Run Program
                         try {
                             p.buffer1();
-                            this.run(p, pc, "");
+                            this.run(panes, pc, "");
                             this.showstate(panes[2]);
                             panes[3].buffer1clear();
                             this.showhexp(this.hw.getMem(), this.memory_monitor, PAGESIZE,panes[3]);
@@ -735,7 +743,7 @@ public class TOY {
                         hw.initStk();
                         this.showstate(panes[2]);
                         try {
-                            this.run(panes[1], pc, "");
+                            this.run(panes, pc, "");
                             this.showstate(panes[2]);
                         } catch (Exception e) {
                              System.exit(1);
@@ -787,7 +795,7 @@ public class TOY {
 
         try {
             panes[1].put("READY");
-            toy.run(p1, -1, "READY");
+            toy.run(panes, -1, "READY");
             toy.memoryPane(p1);
             toy.showstate(p2);
             toy.showhexp(toy.hw.getMem(), toy.memory_monitor, PAGESIZE,p3);
@@ -819,7 +827,10 @@ final class Instruction {
     private int t;
     private int d;
     private int addr;
-        
+    public String toString() {
+        String szRet = String.format("\n%d %d %d %d\n",op,d,s,t);
+        return  szRet;
+    }
     public void setPc(int n) {
         this.pc = n;
     }
@@ -881,8 +892,10 @@ final class Instruction {
             setInst(highword); 
             setOp( (highword >> 8)  & 0x00FF);        // get opcode (bits 12-15)
             setD(  (highword >>  0) & 0x00FF);        // get dest  
+              setD(  (highword >>  4) & 0x000F);        // get dest  
             setLowword(mem[pc++]);                    // fetch next word
             this.s    = (lowword  >>  8) & 0x00FF;    // get s    
+              this.s    = (highword >>  0) & 0x000F;    // get s    
             this.t    = lowword          & 0x00FF;    // get t   
             this.addr = lowword          & 0xFFFF;    // get addr
     }
