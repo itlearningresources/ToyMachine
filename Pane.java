@@ -273,28 +273,33 @@ public class Pane {
         }
     }
 
-    public void putquiet(String sz) {
+    public Pane putquiet(String sz) {
         buffer.add(sz);
+        return this;
     }
-    public void reset() {
+    public Pane reset() {
         buffer.clear();
+        return this;
     }
-    public void put(String ... a) {
+    public Pane put(String ... a) {
         StringBuffer sb = new StringBuffer();
         for (int i=0;i<a.length;i++) sb.append(a[i]);
         buffer.add(sb.toString());
         refresh(buffer.size()-1);
+        return this;
     }
-    public void putln(String sz) {
+    public Pane putln(String sz) {
         buffer.add(sz);
         buffer.add("");
         refresh(buffer.size()-1);
+        return this;
     }
-    public void putlight(String sz) {
+    public Pane putlight(String sz) {
         //buffer.add(sz.substring(0, Math.min(sz.length(), w)));
         buffer.add(sz);
         refresh(buffer.size()-1);
         buffer.clear();
+        return this;
     }
     public String prompt(String sz, String szDefault) {
         String t = "";
@@ -362,8 +367,31 @@ public class Pane {
             }
      }
 
-}
+     public Pane showHex(int[] a, int offset) {
+        StringBuffer sb = new StringBuffer();
+        final int C = 16;
+        final int PAGESIZE = 32;
+        int i = offset;
+        int count = (PAGESIZE < a.length) ? PAGESIZE : a.length;
+        sb.append(ANSI.RESET);
+        sb.append(H.toHex(0+offset) + ": ");
+        while (i < (count+offset) ) {
+             sb.append(H.toHex(a[i]) + " ");
+             if ( (i+1) % 16 == 0 ) {
+                 sb.append("   ||   ");
+                 for (int j=(i-15);j<=i;j++) sb.append( (a[j] < 127 && a[j] > 31) ? Character.toString((char) a[j]) : ".");
+                 this.put(sb.toString());
+                 sb.delete(0, sb.length());
+                 sb.append(H.toHex(i+1) + ": ");
+             }
+            i++;
+        }
+        this.put(sb.toString());
+        sb.delete(0, sb.length());
+        return this;
+    }
 
+}
 class Test {
      static int r = 5;
      static int c = 2;

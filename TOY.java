@@ -38,20 +38,6 @@ public class TOY {
     public static final boolean DUMP = true;
     public static final boolean NOHALT = false;
     public static final boolean NODUMP = false;
-    public TOY coreDump(boolean dump, boolean halt) { 
-        if (dump) {
-            showhex(hw.getMem(),0,256);
-            for (String i : pages.keySet()) {
-                StdOut.printf("%s\n", "" + i + " @ " + H.toHex(pages.get(i)));
-                showhex(hw.getMem(), pages.get(i), PAGESIZE);
-            }
-
-            StdOut.println();
-            StdOut.println(TOY.programAsRead.toString());
-            if (halt) System.exit(1);
-        }
-        return this;
-    }
 
     // create a new TOY VM and load with program from specified file
     public TOY(String filename) {
@@ -80,7 +66,6 @@ public class TOY {
         *  Read Program File
         *  Read in memory location and instruction.         
         ****************************************************************/
-        coreDump(NODUMP,HALT);
         Finder empty_line      = new Finder("^[ \t]*$");
         Finder comment_line    = new Finder("^([#]|[/][/])");
         Finder label_line      = new Finder("^(LAB)[ \t]*([0-9A-Za-z]{4})");
@@ -164,7 +149,6 @@ public class TOY {
 
         }
 
-        coreDump(NODUMP,HALT);
     }
 
     public void memoryPane(Pane p) {
@@ -211,57 +195,6 @@ public class TOY {
         }
         p.refresh(0);
    }
-    public void showhexp(int[] a, int offset, int override,Pane p) {
-        final int C = 16;
-        int i = offset;
-        StringBuffer sb = new StringBuffer();
-        int count = (PAGESIZE < a.length) ? PAGESIZE : a.length;
-        count =0;
-        if ( override > 0) count = (override < a.length) ? override : a.length;
-
-        sb.append(ANSI.PURPLE + H.toHex(0+offset) + ": " + ANSI.RESET);
-        while (i < (count+offset) ) {
-            if ( a[i] == 0 )
-                sb.append(H.toHex(a[i]) + " ");
-            else
-                sb.append(ANSI.DATA + H.toHex(a[i]) + ANSI.RESET + " ");
-
-             if ( (i+1) % 16 == 0 ) {
-                 sb.append("   ||   ");
-                 for (int j=(i-15);j<=i;j++) sb.append( (a[j] < 127 && a[j] > 31) ? Character.toString((char) a[j]) : ".");
-                 p.put(sb.toString());
-                 sb.delete(0, sb.length());
-                 sb.append(ANSI.PURPLE + H.toHex(i+1) + ": " + ANSI.RESET);
-             }
-            i++;
-        }
-                p.put(sb.toString());
-                sb.delete(0, sb.length());
-   }
-    // write to an array of hex integers
-    public static void showhex(int[] a, int offset, int override) {
-        final int C = 16;
-        int i = offset;
-        int count = (PAGESIZE < a.length) ? PAGESIZE : a.length;
-        if ( override > 0) count = (override < a.length) ? override : a.length;
-
-        StdOut.print(ANSI.PURPLE + H.toHex(0+offset) + ": " + ANSI.RESET);
-        while (i < (count+offset) ) {
-            if ( a[i] == 0 )
-                StdOut.print(H.toHex(a[i]) + " ");
-            else
-                StdOut.print(ANSI.DATA + H.toHex(a[i]) + ANSI.RESET + " ");
-
-             if ( (i+1) % 16 == 0 ) {
-                 StdOut.print("  ");
-                 for (int j=(i-15);j<=i;j++) StdOut.print( (a[j] < 127 && a[j] > 31) ? Character.toString((char) a[j]) : ".");
-                 StdOut.println("");
-                 if ( i+1 < (count+offset) ) StdOut.print(ANSI.PURPLE + H.toHex(i+1) + ": " + ANSI.RESET);
-             }
-            i++;
-        }
-        StdOut.println();
-    }
 
     public  void showstate(Pane p2) {
         String sz = "";
@@ -311,7 +244,6 @@ public class TOY {
             original_pc = pc;
         }
 
-        coreDump(NODUMP,HALT);
 
         sb.append(String.format("%26s %6s %2s %2s  %4s\n","Instruction", "D", "S", "T", "ADDR"));
         //p1.put(String.format("%91s%s\n", "", "      PC   STK  0    1    2    3    4    5    6    7"));
@@ -322,7 +254,6 @@ public class TOY {
             // Fetch and parse
                try {
                    I = new Instruction(hw.getMem(),pc); 
-                   coreDump(NODUMP,HALT);
                } catch (Exception e) {
                     System.out.println("Caught Exception: "+ e.getMessage());
                     System.out.println(TOY.programAsRead.toString());
@@ -635,8 +566,7 @@ public class TOY {
                     }
 
                     if (name.equals("MM")) {  // HELP:: MM,Show Memory Monitor
-                        panes[3].buffer1clear();
-                        this.showhexp(this.hw.getMem(), this.memory_monitor, PAGESIZE,panes[3]);
+                        panes[3].buffer1clear().showHex(this.hw.getMem(), this.memory_monitor);
                         this.showstate(panes[2]);
                     }
                     if (H.xmatch(name,"S","STEP","STE")) {  // HELP:: S,Single Step
@@ -644,8 +574,7 @@ public class TOY {
                             p.buffer1();
                             this.run(Pane.getPanes(), pc, "STEP").showstate(panes[2]);
                             //panes[3].buffer1();
-                            panes[3].buffer1clear();
-                            this.showhexp(this.hw.getMem(), this.memory_monitor, PAGESIZE,panes[3]);
+                            panes[3].buffer1clear().showHex(this.hw.getMem(), this.memory_monitor);
                         } catch (Exception e) {
                              StdOut.printf("%s\n", sb.toString());
                              StdOut.println(lastInstruction.toString() + "\n");
@@ -654,12 +583,11 @@ public class TOY {
                              System.exit(1);
                         }
                     }
-                    if (H.xmatch(name,"G0","G")) {          // HELP:: G,Run Program
+                    if (H.xmatch(name,"GO","G")) {          // HELP:: G,Run Program
                         try {
                             p.buffer1();
                             this.run(panes, pc, "").showstate(panes[2]);
-                            panes[3].buffer1clear();
-                            this.showhexp(this.hw.getMem(), this.memory_monitor, PAGESIZE,panes[3]);
+                            panes[3].buffer1clear().showHex(this.hw.getMem(), this.memory_monitor);
                         } catch (Exception e) {
                              StdOut.printf("%s\n", sb.toString());
                              StdOut.println(lastInstruction.toString() + "\n");
@@ -711,9 +639,9 @@ public class TOY {
                         p.find(f.get2());
                     }
                     if (H.xmatch(name,"MONITOR","MON")) {      // HELP:: E,Edit Memory <Address>
-                        int[] x = hw.getMem();
+                        int[] mem = hw.getMem();
                         this.memory_monitor = H.fromHex( p.prompt(">monitor address (" + f.get2() + ")> ", H.toHex(this.memory_monitor)));
-                        this.showhexp(this.hw.getMem(), this.memory_monitor, PAGESIZE,panes[3].bufferclear());
+                        panes[3].buffer3clear().showHex(mem, this.memory_monitor);
                         this.showstate(panes[2]);
                     }
                     if (H.xmatch(name,"E", "EDIT","EDI")) {      // HELP:: E,Edit Memory <Address>
@@ -763,7 +691,7 @@ public class TOY {
         new Pane(24,  5,                   1,                    148);
         panes = Pane.getPanes();
         new Pane(24,  5,                   panes[1].gapcolumn(),  10);
-        new Pane(10,  panes[1].gaplap(),   1,                    148);
+        new Pane(12,  panes[1].gaplap(),   1,                    148);
 
         Pane.setMsgPane(new Pane(1,50,1,148));
 
@@ -784,22 +712,19 @@ public class TOY {
 
         String filename = args[0];
 
-        TOY toy = new TOY(filename, pc).coreDump(NODUMP,HALT);
+        TOY toy = new TOY(filename, pc);
         ui[1].loadPane(filename,             ui[1].getBuffer2() );
         ui[1].loadPane("instructionset.txt", ui[1].getBuffer4() );
         ui[1].loadPane("help.txt",           ui[1].getBufferHelp() );
 
         try {
+            int[] mem = toy.hw.getMem();
             ui[1].put("READY");
             Pane.getMsgPane().putlight("READY!!!");
             toy.run(ui, -1, "READY");
             toy.memoryPane(ui[1]);
             toy.showstate(ui[2]);
-            toy.showhexp(toy.hw.getMem(), toy.memory_monitor, PAGESIZE,ui[3]);
-            ui[3].put("");
-            toy.showhexp(toy.hw.getMem(), 0x0000, PAGESIZE,ui[3]);
-            ui[3].put("");
-            toy.showhexp(toy.hw.getMem(), 0x0100, PAGESIZE,ui[3]);
+            ui[3].showHex(mem, toy.memory_monitor).put("").showHex(mem, 0x0000).put("").showHex(mem, 0x0100);
             toy.commandline(ui);
         } catch (Exception e) {
              StdOut.printf("%s\n", sb.toString());
