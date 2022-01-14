@@ -5,6 +5,19 @@ import java.io.UnsupportedEncodingException;
 import java.util.Locale;
 import java.util.ArrayList;
 
+class MyOut {
+    private java.io.PrintStream out;
+    public MyOut (java.io.PrintStream out) {
+        super();
+        this.out = out;
+    }
+    public void print(String ... a) {
+        StringBuffer sb = new StringBuffer();
+        for (int i=0;i<a.length;i++) sb.append(a[i]);
+        this.out.print(sb.toString());
+    }
+}
+
 public class Pane {
     private ArrayList<String> buffer = null;
     private ArrayList<String> b1 = new ArrayList<String>();
@@ -27,22 +40,20 @@ public class Pane {
     private static final String CHARSET_NAME = "UTF-8";
     // assume language = English, country = US for consistency with StdIn
     private static final Locale LOCALE = Locale.US;
-    // send output here
-    private static java.io.PrintStream out;
 
     public static int setCOMMAND_ROW(int n)    { Pane.COMMAND_ROW    = n; return n;}
     public static int setCOMMAND_COLUMN(int n) { Pane.COMMAND_COLUMN = n; return n;}
     public static int getCOMMAND_ROW() { return Pane.COMMAND_ROW;}
     public static int getCOMMAND_COLUMN() { return Pane.COMMAND_COLUMN;}
-    public void buffer1(int n) { this.buffer = b1; if (n>-1) this.refresh(n);}
-    public void buffer2(int n) { this.buffer = b2; if (n>-1) this.refresh(n);}
-    public void buffer3(int n) { this.buffer = b3; if (n>-1) this.refresh(n);}
-    public void buffer4(int n) { this.buffer = b4; if (n>-1) this.refresh(n);}
+    public Pane buffer1(int n) { this.buffer = b1; if (n>-1) this.refresh(n); return this;}
+    public Pane buffer2(int n) { this.buffer = b2; if (n>-1) this.refresh(n); return this;}
+    public Pane buffer3(int n) { this.buffer = b3; if (n>-1) this.refresh(n); return this;}
+    public Pane buffer4(int n) { this.buffer = b4; if (n>-1) this.refresh(n); return this;}
     public void bufferHelp(int n) { this.buffer = help; if (n>-1) this.refresh(n);}
-    public void buffer1() { this.buffer = b1;}
-    public void buffer2() { this.buffer = b2;}
-    public void buffer3() { this.buffer = b3;}
-    public void buffer4() { this.buffer = b4;}
+    public Pane buffer1() { this.buffer = b1; return this;}
+    public Pane buffer2() { this.buffer = b2; return this;}
+    public Pane buffer3() { this.buffer = b3; return this;}
+    public Pane buffer4() { this.buffer = b4; return this;}
     public void bufferHelp() { this.buffer = help;}
     public void buffertemp() { this.buffer = temp;}
     public ArrayList<String>  getBuffer1() { return  b1;}
@@ -56,22 +67,39 @@ public class Pane {
     public Pane buffer3clear() { b3.clear(); return this;}
     public Pane buffer4clear() { b4.clear(); return this;}
 
+    private static Pane[] panes = {null};
+    public static Pane[] getPanes() { return panes; }
+
+    private static Pane msgPane = null;
+    public  static Pane setMsgPane(Pane p) { msgPane = p; return p;}
+    public  static Pane getMsgPane() { return msgPane; }
+
+    // send output here
+    private static java.io.PrintStream out;
+    private static MyOut myout;
+
     public Pane(int lines, int r, int c, int w) {
         this.buffer = b1;
         int rr;
         int cc;
  
     // this is called before invoking any methods
-            try {
-                out = System.out;
-                //out = new PrintWriter(new OutputStreamWriter(System.out, CHARSET_NAME), true);
-            }
-            catch (Exception e) {
-                System.out.println(e);
-            }
+        try {
+            out = System.out;
+            myout = new MyOut(System.out);
+
+            //out = new PrintWriter(new OutputStreamWriter(System.out, CHARSET_NAME), true);
+        }
+        catch (Exception e) {
+            System.out.println(e);
+        }
+
+        Pane[] ps = new Pane[panes.length+1];
+        for (int i=0;i<panes.length;i++) ps[i] = panes[i];
+        ps[ps.length-1] = this; 
+        panes = ps;
 
         this.w = w;
-
         this.r = r;
         this.c = c;
         String dashes = new String(new char[w]).replace("\0", "-");
@@ -79,6 +107,9 @@ public class Pane {
         this.count = 1;
         this.out.print("\033[" + (r-1) + ";" + c + "H" + "+ " + dashes + " +");
         clear();
+
+
+
     }
     public void loadPane(String filename, ArrayList<String> b) {
             ArrayList<String> temp = this.buffer;
@@ -248,10 +279,22 @@ public class Pane {
     public void reset() {
         buffer.clear();
     }
-    public void put(String sz) {
+    public void put(String ... a) {
+        StringBuffer sb = new StringBuffer();
+        for (int i=0;i<a.length;i++) sb.append(a[i]);
+        buffer.add(sb.toString());
+        refresh(buffer.size()-1);
+    }
+    public void putln(String sz) {
+        buffer.add(sz);
+        buffer.add("");
+        refresh(buffer.size()-1);
+    }
+    public void putlight(String sz) {
         //buffer.add(sz.substring(0, Math.min(sz.length(), w)));
         buffer.add(sz);
         refresh(buffer.size()-1);
+        buffer.clear();
     }
     public String prompt(String sz, String szDefault) {
         String t = "";

@@ -8,17 +8,19 @@
 
     private final int REGSIZE = 0x0010;          // stack size in memory locations
     private int[] reg   = new int[REGSIZE];      // 16 registers
-    public void initRegs() {
+    public HW initRegs() {
         for(int i=0;i<REGSIZE;i++) reg[i] = 0;
+        return this;
     }
     private final int MEMSIZE = 0xFFFF;          // stack size in memory locations
     private int[] mem   = new int[MEMSIZE];      // main memory locations
     
     private final int STACKSIZE = 32;            // stack size in memory locations
     private int[] stk   = new int[STACKSIZE];    // stack memory locations
-    public void initStk() {
+    public HW initStk() {
         for (int i=0;i<STACKSIZE;i++) stk[i] = 0;
         stkptr = 0;
+        return this;
     }
 
     public int getPC() {

@@ -4,6 +4,11 @@ public final class H {
         n = (n<=sz.length()) ? n : sz.length();
         return sz.substring(0,n);
     }
+    public final static String concat(String ... a) {
+        StringBuffer sb = new StringBuffer();
+        for (int i=0;i<a.length;i++) sb.append(a[i]);
+        return sb.toString();
+    }
     public final static boolean xmatch(String sz, String ... a) {
         boolean bRet = false;
         for (String item : a)
