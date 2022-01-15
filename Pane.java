@@ -228,7 +228,7 @@ public class Pane {
         cpos = c;
         int j = 0;
         int s = 0;
-        this.pos(46,1);
+        this.pos(1,1);
         if (n <= 0) {
             j = 0;
             s = Math.min(buffer.size()-1, lines-1);

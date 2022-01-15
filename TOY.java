@@ -539,19 +539,18 @@ public class TOY {
 
     }
     public void commandline(Pane[] panes) {
-            Pane p = panes[1];
             String szIn = "";
-            p.pos(Pane.getCOMMAND_ROW(),Pane.getCOMMAND_COLUMN());
+            panes[1].pos(Pane.getCOMMAND_ROW(),Pane.getCOMMAND_COLUMN());
             Finder f   = new Finder("^([/0-9A-Za-z]*)[ \t]*([0-9A-Za-z]*)");
             Finder f2   = new Finder("^([/])([0-9A-Za-z]*)");
             while (true) {
-                String sz = p.prompt(">> ");
+                String sz = panes[1].prompt(">> ");
                 Pane.getMsgPane().putlight(sz);
                 if (f.matches(sz)) {
                     String name = f.get1().toString().toUpperCase();
 
                     if (H.xmatch(name,"I","ISET")) {  // HELP:: I,List Instruction Set
-                        p.buffer4().refresh(0);
+                        panes[1].buffer4().refresh(0);
                     }
 
                     if (name.equals("MM")) {  // HELP:: MM,Show Memory Monitor
@@ -560,9 +559,8 @@ public class TOY {
                     }
                     if (H.xmatch(name,"S","STEP","STE")) {  // HELP:: S,Single Step
                         try {
-                            p.buffer1();
-                            this.run(Pane.getPanes(), pc, "STEP").showstate(panes[2]);
-                            //panes[3].buffer1();
+                            panes[1].buffer1();
+                            this.run(panes, pc, "STEP").showstate(panes[2]);
                             panes[3].buffer1clear().showHex(this.hw.getMem(), this.memory_monitor);
                         } catch (Exception e) {
                              StdOut.printf("%s\n", sb.toString());
@@ -574,7 +572,7 @@ public class TOY {
                     }
                     if (H.xmatch(name,"GO","G")) {          // HELP:: G,Run Program
                         try {
-                            p.buffer1();
+                            panes[1].buffer1();
                             this.run(panes, pc, "").showstate(panes[2]);
                             panes[3].buffer1clear().showHex(this.hw.getMem(), this.memory_monitor);
                         } catch (Exception e) {
@@ -586,59 +584,59 @@ public class TOY {
                         }
                     }
                     if (name.equals("R")) {  // HELP:: R,Show Program Trace
-                        p.buffer1(0);
+                        panes[1].buffer1(0);
                     }
                     if (name.equals("P")) {  // HELP:: P,Show Program as read in
-                        p.buffer2(0);
+                        panes[1].buffer2(0);
                     }
                     if (name.equals("M")) {  // HELP:: M,Show Memory
-                        p.buffer3clear();
-                        szIn = p.prompt(">memory address > ");
+                        panes[1].buffer3clear();
+                        szIn = panes[1].prompt(">memory address > ");
 
                         switch (szIn) {
-                            case "": this.memoryPane(p, 0x0000); break;
-                            case "R0": this.memoryPane(p, hw.getReg()[0]); break;
-                            case "R1": this.memoryPane(p, hw.getReg()[1]); break;
-                            case "R2": this.memoryPane(p, hw.getReg()[2]); break;
-                            case "R3": this.memoryPane(p, hw.getReg()[3]); break;
-                            case "R4": this.memoryPane(p, hw.getReg()[4]); break;
-                            case "R5": this.memoryPane(p, hw.getReg()[5]); break;
-                            case "R6": this.memoryPane(p, hw.getReg()[6]); break;
-                            case "R7": this.memoryPane(p, hw.getReg()[7]); break;
-                            default: this.memoryPane(p, H.fromHex(szIn));
+                            case "": this.memoryPane(panes[1], 0x0000); break;
+                            case "R0": this.memoryPane(panes[1], hw.getReg()[0]); break;
+                            case "R1": this.memoryPane(panes[1], hw.getReg()[1]); break;
+                            case "R2": this.memoryPane(panes[1], hw.getReg()[2]); break;
+                            case "R3": this.memoryPane(panes[1], hw.getReg()[3]); break;
+                            case "R4": this.memoryPane(panes[1], hw.getReg()[4]); break;
+                            case "R5": this.memoryPane(panes[1], hw.getReg()[5]); break;
+                            case "R6": this.memoryPane(panes[1], hw.getReg()[6]); break;
+                            case "R7": this.memoryPane(panes[1], hw.getReg()[7]); break;
+                            default: this.memoryPane(panes[1], H.fromHex(szIn));
                          }
-                         p.buffer3(0);
+                         panes[1].buffer3(0);
                     }
                     if (name.equals("T")) {      // HELP:: T,Move to Top
-                        p.top();
+                        panes[1].top();
                     }
                     if (name.equals("B")) {      // HELP:: B,Move to Bottom
-                        p.bottom();
+                        panes[1].bottom();
                     }
                     if (H.xmatch(name,"U")) {      // HELP:: U,Move Up
-                        p.up();
+                        panes[1].up();
                     }
                     if (name.equals("D")) {      // HELP:: D,Move Down
-                        p.down();
+                        panes[1].down();
                     }
                     if (name.equals("F")) {      // HELP:: F,Find
-                        p.find(f.get2());
+                        panes[1].find(f.get2());
                     }
                     if (name.equals("/")) {      // HELP:: /,Find
-                        p.find(f.get2());
+                        panes[1].find(f.get2());
                     }
                     if (H.xmatch(name,"MONITOR","MON")) {      // HELP:: E,Edit Memory <Address>
                         int[] mem = hw.getMem();
-                        this.memory_monitor = H.fromHex( p.prompt(">monitor address (" + f.get2() + ")> ", H.toHex(this.memory_monitor)));
+                        this.memory_monitor = H.fromHex( panes[1].prompt(">monitor address (" + f.get2() + ")> ", H.toHex(this.memory_monitor)));
                         panes[3].buffer3clear().showHex(mem, this.memory_monitor);
                         this.showstate(panes[2]);
                     }
                     if (H.xmatch(name,"E", "EDIT","EDI")) {      // HELP:: E,Edit Memory <Address>
                         int[] x = hw.getMem();
-                        x[H.fromHex(f.get2())] = H.fromHex( p.prompt(">edit (" + f.get2() + ")> ") );
+                        x[H.fromHex(f.get2())] = H.fromHex( panes[1].prompt(">edit (" + f.get2() + ")> ") );
                     }
                     if (H.xmatch(name, "H","HELP","HEL")) {      // HELP:: H,Help
-                        p.bufferHelp(0);
+                        panes[1].bufferHelp(0);
                     }
                     if (H.xmatch(name,"RESET","RES")) {      // HELP:: RESET,Resets PC
                         panes[1].put("RESET");
@@ -800,12 +798,10 @@ final class Instruction {
             setPc(pc);
             setHighword(mem[pc++]);                   // fetch next word
             setInst(highword); 
-            setOp( (highword >> 8)  & 0x00FF);        // get opcode (bits 12-15)
-            setD(  (highword >>  0) & 0x00FF);        // get dest  
-              setD(  (highword >>  4) & 0x000F);        // get dest  
+            setOp( (highword >> 8)  & 0x00FF);        // get opcode
+            setD(  (highword >>  4) & 0x000F);        // get dest  
             setLowword(mem[pc++]);                    // fetch next word
-            this.s    = (lowword  >>  8) & 0x00FF;    // get s    
-              this.s    = (highword >>  0) & 0x000F;    // get s    
+            this.s    = (highword >>  0) & 0x000F;    // get s    
             this.t    = lowword          & 0x00FF;    // get t   
             this.addr = lowword          & 0xFFFF;    // get addr
     }
