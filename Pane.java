@@ -106,7 +106,7 @@ public class Pane {
         this.lines = lines;
         this.count = 1;
         this.out.print("\033[" + (r-1) + ";" + c + "H" + "+ " + dashes + " +");
-        clear();
+        clearPane();
 
 
 
@@ -120,7 +120,7 @@ public class Pane {
             }
             this.buffer = temp;
     };
-    public void clear() {
+    private void clearPane() {
         String dashes = new String(new char[w]).replace("\0", "-");
         String blanks = new String(new char[w]).replace("\0", " ");
         this.out.print(ANSI.RESET);
@@ -203,7 +203,7 @@ public class Pane {
 //      if (n >= buffer.size()) n = buffer.size()-1;
 //      if (n < lines) n = Math.min(lines-1, buffer.size()-1);
         refreshpoint = n;
-        clear();
+        clearPane();
         count =1;
         rpos = r;
         cpos = c;
@@ -222,7 +222,7 @@ public class Pane {
         if (n >= buffer.size()) n = buffer.size()-1;
         if (n < lines) n = Math.min(lines-1, buffer.size()-1);
         refreshpoint = n;
-        clear();
+        // Clear is no long required clear();
         count =1;
         rpos = r;
         cpos = c;
@@ -260,14 +260,9 @@ public class Pane {
 //      o.print("\ns             "  +  s);
 
         for (int i = j; i <= s; i++) {
-            H.assertion(  (i>=0),              "i >= 0"  );
-            H.assertion(  (i<buffer.size()),   "i < buffer.size()", n + ""  );
-
-            this.out.print("\033[K");
-            this.out.print("\033[" + rpos + ";" + (cpos) + "H" + "| ");
-            this.out.print(buffer.get(i));
-            //this.out.print(buffer.get(i).substring(0, Math.min(buffer.get(i).length(), w)));
-            this.out.print("\033[" + rpos + ";" + (cpos+w+3) + "H" + "|");
+//          H.assertion(  (i>=0),              "i >= 0"  );
+//          H.assertion(  (i<buffer.size()),   "i < buffer.size()", n + ""  );
+            this.out.print("\033[K\033[" +rpos+ ";" +cpos+ "H| " +buffer.get(i)+ "\033[" +rpos+ ";" +(cpos+w+3)+ "H|");
             rpos++;
             this.pos(COMMAND_ROW,COMMAND_COLUMN);
         }
@@ -278,6 +273,19 @@ public class Pane {
         return this;
     }
     public Pane reset() {
+        buffer.clear();
+        return this;
+    }
+
+    public Pane putf(String format, Object... args) {
+        buffer.add(String.format(format, args));
+        refresh(buffer.size()-1);
+        return this;
+    }
+    public Pane putlightf(String format, Object... args) {
+        clearPane();
+        buffer.add(String.format(format, args));
+        refresh(buffer.size()-1);
         buffer.clear();
         return this;
     }
@@ -296,6 +304,7 @@ public class Pane {
     }
     public Pane putlight(String sz) {
         //buffer.add(sz.substring(0, Math.min(sz.length(), w)));
+        clearPane();
         buffer.add(sz);
         refresh(buffer.size()-1);
         buffer.clear();

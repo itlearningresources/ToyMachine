@@ -205,7 +205,8 @@ public class TOY {
         p2.put("");
         for (int i = 0; i < count; i++) {
             sz = (a[i] == 0) ? ANSI.RESET + H.toHex(a[i]) : ANSI.DATA + H.toHex(a[i]) + ANSI.RESET;
-            p2.put("R", H.toHexShort(i), ": ", sz);
+            //p2.put("R", H.toHexShort(i), ": ", sz);
+            p2.putf("%s%s%s%s","R", H.toHexShort(i), ": ", sz);
         }
         p2.put("");
             p2.put("SP : ", hw.getStkPtrHex());
@@ -383,32 +384,21 @@ public class TOY {
                 // SUBSET:: Stack
                 //
                 case 0x30: II.add(op, "push address", "push addr");
-                           //XX stkptr++;stk[stkptr] = mem[addr];
                            hw.stkPush(mem[addr]);
                            break;                                                                // push address
                 case 0x31: II.add(op, "push register", "push reg[d]");
-                           //XX stkptr++;stk[stkptr] = reg[d];
                            hw.stkPush(reg[d]);
                            break;                                                                // push register
                 case 0x32: II.add(op, "pop to register", "pop to reg[d]");
-                           //XX reg[d] = stk[stkptr];
                            reg[d] = hw.stkPop();
-                           //XX stk[stkptr] = 0xFFFF;
-                           //XX stkptr--; 
-                           //XX if (stkptr<0) stkptr=0;
                            break;                                                                // pop to register
                 case 0x33: II.add(op, "pop and link", "return");
-                           //XX pc = stk[stkptr];
                            pc = hw.stkPop();
-                           //XX stk[stkptr] = 0xFFFF;
-                           //XX stkptr--; 
-                           //XX if (stkptr<0) stkptr=0;
                            break;                                                                // pop and link
                 case 0x34: II.add(op, "Push This", "push this addr");
                            hw.stkPush(pc-2); 
                            break;                                                                // push PC
                 case 0x35: II.add(op, "push pc and link", "push pc and pc = addr");
-                           //XX stk[++stkptr] = pc; pc = addr;
                            hw.stkPush(pc); pc = addr;
                            break;                                                                // push pc and link
                 case 0x36: II.add(op, "reserved", "reserved"); break;                            // reserved
@@ -506,12 +496,11 @@ public class TOY {
             }
 
             // stdout
-       //  if ((addr == 255 && op == 9) || (reg[t] == 255 && op == 11))
-       //         StdOut.println(H.toHex(mem[255]));
-                                                     // ANSI.PURPLE +H.toHex(I.getPc()) + ":" + ANSI.RESET,
-            //sb.append(I.toString() + "\n");
-            String result = String.format("%s %s %s %-2s %-1s %-1s %-1s  %-25s %-32s -- %s %s %s %s %s %s %s %s %s %s\n",
-                                                     H.toHex(I.getPc()) + ":",
+            //  if ((addr == 255 && op == 9) || (reg[t] == 255 && op == 11))
+            //         StdOut.println(H.toHex(mem[255]));
+
+            panes[1].putf("%s: %s %s %-2s %-1s %-1s %-1s  %-25s %-32s -- %s %s %s %s %s %s %s %s %s %s",
+                                                     H.toHex(I.getPc()),
                                                      H.toHex(I.getHighword()),
                                                      H.toHex(I.getLowword()),
                                                      H.toHexShort(I.getOp()),
@@ -519,7 +508,7 @@ public class TOY {
                                                      H.toHexNibble(I.getS()),
                                                      ((I.getLowword() >> 4) > 0) ? "-" : H.toHexNibble(I.getT()),
                                                      H.shorten(II.get(op).getName(),25),
-                                                     "(" + H.shorten(II.get(op).getDescription(),30) + ")",
+                                                     H.shorten(II.get(op).getDescription(),30),
                                                      H.toHex(pc),
                                                      H.toHex(hw.stkTop()),
                                                      H.toHex(reg[0]),
@@ -531,11 +520,11 @@ public class TOY {
                                                      H.toHex(reg[6]),
                                                      H.toHex(reg[7])
                                                      );
-            panes[1].put(result);
 
             // halt
             if (haltflag) {
                 panes[1].put("HALT");
+                Pane.getMsgPane().putlight("HALT");
                 pc = 0;
                 break;
             }
