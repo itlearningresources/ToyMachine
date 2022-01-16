@@ -66,6 +66,7 @@ public class Pane {
     public Pane buffer2clear() { b2.clear(); return this;}
     public Pane buffer3clear() { b3.clear(); return this;}
     public Pane buffer4clear() { b4.clear(); return this;}
+    public Pane clear() { this.clearPane(); return this;}
 
     private static Pane[] panes = {null};
     public static Pane[] getPanes() { return panes; }

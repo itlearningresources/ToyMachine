@@ -216,6 +216,8 @@ public class TOY {
         }
         p2.put("");
         p2.put("MM : ", H.toHex(memory_monitor));
+        p2.put("");
+        for (int i =0;i<hw.getBrk().length;i++) if (hw.getBrk()[i]) p2.put("BP ",H.toHex(i));
     }
 
 //      StdOut.println("Pages:");
@@ -254,6 +256,11 @@ public class TOY {
            if (mode.equals("STEP")) bRun = false;
             // Fetch and parse
                try {
+                   if (programCounter != pc) 
+                       if (hw.getBrk()[pc]) {
+                           Pane.getMsgPane().putlight("BREAK @ " + H.toHex(pc) );
+                           break;
+                       }
                    I = new Instruction(hw.getMem(),pc); 
                } catch (Exception e) {
                     System.out.println("Caught Exception: "+ e.getMessage());
@@ -557,7 +564,7 @@ public class TOY {
                         panes[3].buffer1clear().showHex(this.hw.getMem(), this.memory_monitor);
                         this.showstate(panes[2]);
                     }
-                    if (H.xmatch(name,"S","STEP","STE")) {  // HELP:: S,Single Step
+                    if (H.xmatch(name,"S","SS","STEP","STE")) {  // HELP:: S,Single Step
                         try {
                             panes[1].buffer1();
                             this.run(panes, pc, "STEP").showstate(panes[2]);
@@ -644,6 +651,13 @@ public class TOY {
                         pc = original_pc;
                         this.showstate(panes[2]);
                     }
+                    if (H.xmatch(name,"BREAK","BRK")) {      // HELP:: BREAK, Set/Clear Breakpoint
+                        panes[1].put("BREAK");
+                        int bp = H.fromHex( panes[1].prompt(">break > ") );
+                        hw.getBrk()[bp] = !(hw.getBrk()[bp]);
+                        panes[2].clear();
+                        this.showstate(panes[2]);
+                    }
                     if (name.equals("IPL")) {               // HELP:: IPL,Initial Program Load
                         panes[1].put("IPL");
                         pc = hw.getMem()[0x0000];
@@ -677,7 +691,7 @@ public class TOY {
         Pane[] ui = {};
         new Pane(24,  5,                   1,                    148);
         panes = Pane.getPanes();
-        new Pane(24,  5,                   panes[1].gapcolumn(),  10);
+        new Pane(39,  5,                   panes[1].gapcolumn(),  10);
         new Pane(12,  panes[1].gaplap(),   1,                    148);
 
         Pane.setMsgPane(new Pane(1,50,1,148));

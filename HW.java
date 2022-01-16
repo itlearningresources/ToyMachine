@@ -12,8 +12,9 @@
         for(int i=0;i<REGSIZE;i++) reg[i] = 0;
         return this;
     }
-    private final int MEMSIZE = 0xFFFF;          // stack size in memory locations
-    private int[] mem   = new int[MEMSIZE];      // main memory locations
+    private final int MEMSIZE = 0xFFFF;                     // stack size in memory locations
+    private int[] mem   = new int[MEMSIZE];                 // main memory locations
+    private boolean[] breakpoint   = new boolean[MEMSIZE];  // breakpoint boolean
     
     private final int STACKSIZE = 32;            // stack size in memory locations
     private int[] stk   = new int[STACKSIZE];    // stack memory locations
@@ -31,6 +32,9 @@
     }
     public int[] getMem() {
         return this.mem;
+    }
+    public boolean[] getBrk() {
+        return this.breakpoint;
     }
     public int[] getStk() {
         return this.stk;
@@ -89,10 +93,23 @@
     public String stkGetHex(int index) {
         return H.toHex(this.stk[index]);
     }
+    public boolean setBreakPoint(int n) {
+        breakpoint[n] = true;
+        return breakpoint[n];
+    }
+    public boolean clearBreakPoint(int n) {
+        breakpoint[n] = false;
+        return breakpoint[n];
+    }
+    public boolean flipBreakPoint(int n) {
+        breakpoint[n] = !breakpoint[n];
+        return breakpoint[n];
+    }
  
      public HW() {
          super();
          stkptr=0;
+         for (int i=0;i<MEMSIZE;i++) breakpoint[i] = false;
      }
  
  
