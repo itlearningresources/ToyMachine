@@ -377,6 +377,33 @@ public class Pane {
             }
      }
 
+     public Pane showHex2(int[] a, int offset) {
+        StringBuffer sb = new StringBuffer();
+        final int C = 16;
+        final int PAGESIZE = 32;
+
+        // Put offset on a 16 word boundary
+        offset = offset - (offset % 16);
+
+        int i = offset;
+        int count = (PAGESIZE < a.length) ? PAGESIZE : a.length;
+        sb.append(ANSI.RESET);
+        sb.append(H.toHex(0+offset) + ": ");
+        while (i < (count+offset) ) {
+             sb.append(H.toHexBlank(a[i]) + " ");
+             if ( (i+1) % 16 == 0 ) {
+                 sb.append("   ||   ");
+                 for (int j=(i-15);j<=i;j++) sb.append( (a[j] < 127 && a[j] > 31) ? Character.toString((char) a[j]) : ".");
+                 this.put(sb.toString());
+                 sb.delete(0, sb.length());
+                 if  ( (i+1) < (count+offset) ) sb.append(H.toHex(i+1) + ": ");
+             }
+            i++;
+        }
+        this.put(sb.toString());
+        sb.delete(0, sb.length());
+        return this;
+    }
      public Pane showHex(int[] a, int offset) {
         StringBuffer sb = new StringBuffer();
         final int C = 16;

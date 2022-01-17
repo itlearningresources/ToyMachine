@@ -1,7 +1,19 @@
 PAGE 00 $BOOTSTRAP
 0100
 MEM 0100 $CODEPAGE
-1010 1000 load R1 with ADDR
+1010 1007 load R1 with ADDR
+1410 1007 load R1 with ADDR
+1010 1F06 load R1 with ADDR
+1410 1F06 load R1 with ADDR
+
+
+1010 1D04 load R1 with ADDR
+1410 1D04 load R1 with ADDR
+
+
+1010 1F07 load R1 with ADDR
+1410 1F07 load R1 with ADDR
+
 1020 EEEE load R2 with ADDR
 1030 EEEE load R3 with ADDR
 1040 EEEE load R3 with ADDR

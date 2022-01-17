@@ -30,6 +30,7 @@ public class TOY {
     final int ADRR = 0x01;
     private Registers R = null;
     private HW hw = null;
+    private boolean trackmemory = true;
 
     // return a 4-digit hex string corresponding to 16-bit integer n
     // return a 2-digit hex string corresponding to 8-bit integer n
@@ -328,8 +329,11 @@ public class TOY {
                 case 0x13: II.add(op, "Store Reg indirect Addr Reg", "mem[reg[d]]= reg[addr]");
                            mem[reg[ADRR]] = reg[d];
                            break;                                                                // sore indirect Address register
-                case 0x14: II.add(op, "store reg to mem", "mem[addr] = reg[s]");
-                           mem[addr] = reg[s];
+                case 0x14: II.add(op, "store reg to mem", "mem[addr] = reg[d]");
+                           mem[addr] = reg[d];
+                           if (trackmemory) {
+                               panes[3].buffer1().clear().showHex2(this.hw.getMem(), addr);
+                           }
                            break;                                                                // store
                 case 0x15: II.add(op, "store reg to mem indirect", "mem[reg[d] & 0x0FFFF] = reg[s]"); 
                            mem[reg[d] & 0xFFFF] = reg[s];
@@ -557,18 +561,21 @@ public class TOY {
                     String name = f.get1().toString().toUpperCase();
 
                     if (H.xmatch(name,"I","ISET")) {  // HELP:: I,List Instruction Set
-                        panes[1].buffer4().refresh(0);
+                        panes[1].clear().buffer4().refresh(0);
                     }
 
                     if (name.equals("MM")) {  // HELP:: MM,Show Memory Monitor
                         panes[3].buffer1clear().showHex(this.hw.getMem(), this.memory_monitor);
                         this.showstate(panes[2]);
                     }
+                    if (H.xmatch(name,"V")) {  // HELP:: V, View Memory
+                        panes[3].buffer1clear().showHex2(this.hw.getMem(), 0x0000);
+                    }
                     if (H.xmatch(name,"S","SS","STEP","STE")) {  // HELP:: S,Single Step
                         try {
                             panes[1].buffer1();
                             this.run(panes, pc, "STEP").showstate(panes[2]);
-                            panes[3].buffer1clear().showHex(this.hw.getMem(), this.memory_monitor);
+                            // panes[3].clear().buffer1clear().showHex2(this.hw.getMem(), this.memory_monitor);
                         } catch (Exception e) {
                              StdOut.printf("%s\n", sb.toString());
                              StdOut.println(lastInstruction.toString() + "\n");
@@ -725,7 +732,7 @@ public class TOY {
             toy.run(ui, -1, "READY");
             toy.memoryPane(ui[1]);
             toy.showstate(ui[2]);
-            ui[3].showHex(mem, toy.memory_monitor).put("").showHex(mem, 0x0000).put("").showHex(mem, 0x0100);
+            // ui[3].showHex(mem, toy.memory_monitor).put("").showHex(mem, 0x0000).put("").showHex(mem, 0x0100);
             toy.commandline(ui);
         } catch (Exception e) {
              StdOut.printf("%s\n", sb.toString());

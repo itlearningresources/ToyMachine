@@ -18,6 +18,9 @@ public final class H {
             }
         return bRet;
     }
+    public final static void halt() {
+        System.exit(0);
+    }
     public final static void assertion(boolean b, String sz) {
             final String c = "\n\033[K";
         if (!b) {
@@ -69,6 +72,7 @@ public final class H {
     }
     public final static String toHex2D(int n)    { return String.format("%02X", n & 0x00FF); }
     public final static String toHex(int n)      { return String.format("%04X", n & 0xFFFF); }
+    public final static String toHexBlank(int n) { return (n>0) ? String.format("%04X", n & 0xFFFF) : "----";  }
     public final static String toHexShort(int n) { return String.format("%02X", n & 0xFFFF); }
     public final static String toHexNibble(int n) { return String.format("%1X", n & 0x000F); }
 
