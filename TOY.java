@@ -568,7 +568,7 @@ public class TOY {
                         panes[3].buffer1clear().showHex(this.hw.getMem(), this.memory_monitor);
                         this.showstate(panes[2]);
                     }
-                    if (H.xmatch(name,"V")) {  // HELP:: V, View Memory
+                    if (H.xmatch(name,"V")) {  // HELP:: V,View Memory
                         panes[3].buffer1clear().showHex2(this.hw.getMem(), 0x0000);
                     }
                     if (H.xmatch(name,"S","SS","STEP","STE")) {  // HELP:: S,Single Step

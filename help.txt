@@ -19,4 +19,4 @@
   P            Show Program as read in
   R            Show Program Trace
   S            Single Step
-  V             View Memory
+  V            View Memory
