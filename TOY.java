@@ -639,7 +639,7 @@ public class TOY {
                     if (name.equals("/")) {      // HELP:: /,Find
                         panes[1].find(f.get2());
                     }
-                    if (H.xmatch(name,"MONITOR","MON")) {      // HELP:: E,Edit Memory <Address>
+                    if (H.xmatch(name,"MONITOR","MON")) {      // HELP:: MONITOR,Track Memory
                         int[] mem = hw.getMem();
                         this.memory_monitor = H.fromHex( panes[1].prompt(">monitor address (" + f.get2() + ")> ", H.toHex(this.memory_monitor)));
                         panes[3].buffer3clear().showHex(mem, this.memory_monitor);
@@ -650,7 +650,7 @@ public class TOY {
                         x[H.fromHex(f.get2())] = H.fromHex( panes[1].prompt(">edit (" + f.get2() + ")> ") );
                     }
                     if (H.xmatch(name, "H","HELP","HEL")) {      // HELP:: H,Help
-                        panes[1].bufferHelp(0);
+                        panes[1].clear().bufferHelp(0);
                     }
                     if (H.xmatch(name,"RESET","RES")) {      // HELP:: RESET,Resets PC
                         panes[1].put("RESET");

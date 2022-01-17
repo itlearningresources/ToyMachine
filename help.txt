@@ -1,5 +1,4 @@
   E            Edit Memory <Address>
-  E            Edit Memory <Address>
   F            Find
   /            Find
   H            Help
@@ -19,4 +18,5 @@
   P            Show Program as read in
   R            Show Program Trace
   S            Single Step
+  MONITOR      Track Memory
   V            View Memory
