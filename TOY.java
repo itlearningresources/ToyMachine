@@ -658,7 +658,7 @@ public class TOY {
                         pc = original_pc;
                         this.showstate(panes[2]);
                     }
-                    if (H.xmatch(name,"BREAK","BRK")) {      // HELP:: BREAK, Set/Clear Breakpoint
+                    if (H.xmatch(name,"BREAK","BRK")) {      // HELP:: BREAK,Set/Clear Breakpoint
                         panes[1].put("BREAK");
                         int bp = H.fromHex( panes[1].prompt(">break > ") );
                         hw.getBrk()[bp] = !(hw.getBrk()[bp]);
