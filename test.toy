@@ -2,8 +2,16 @@ PAGE 00 $BOOTSTRAP
 0100
 MEM 0100 $CODEPAGE
 
-1070 0020 load R1 with WORD
-3400 0000 Push This
+1700 0400 load index register
+1010 0156 load reg wth word
+1410 0200 load reg wth word
+1010 0157 load reg wth word
+1410 0201 load reg wth word
+1010 0400 load reg wth word
+6610 0200 
+0000 0000
+
+1020 0200 load reg wth word
 1010 1100 load R1 with WORD
 1410 1007 load R1 with ADDR
 1010 1F06 load R1 with ADDR
@@ -13,6 +21,7 @@ MEM 0100 $CODEPAGE
 
 0000 0000
 
+MEM 0400
 
 1010 1D04 load R1 with ADDR
 1410 1D04 load R1 with ADDR

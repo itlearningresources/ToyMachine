@@ -1,4 +1,5 @@
 public final class H {
+    final static String BAR = " | ";
 
     public final static String shorten(String sz, int n) { 
         n = (n<=sz.length()) ? n : sz.length();

@@ -429,9 +429,9 @@ public class Pane {
         while (i < (count+offset) ) {
              sb.append(H.toHexBlank(a[i]) + " ");
              if ( (i+1) % 16 == 0 ) {
-                 sb.append(" || ");
+                 sb.append(H.BAR);
                  for (int j=(i-15);j<=i;j++) sb.append( (a[j] < 127 && a[j] > 31) ? Character.toString((char) a[j]) : ".");
-                 sb.append("  ||  ");
+                 sb.append(H.BAR);
                  this.putquiet(sb.toString() + " " + sbComments.toString());
                  sb.delete(0, sb.length());
                  if  ( (i+1) < (count+offset) ) sb.append(H.toHex(i+1) + ": ");
@@ -463,9 +463,9 @@ public class Pane {
         while (i < (count+offset) ) {
              sb.append(H.toHexBlank(a[i]) + " ");
              if ( (i+1) % 16 == 0 ) {
-                 sb.append(" || ");
+                 sb.append(H.BAR);
                  for (int j=(i-15);j<=i;j++) sb.append( (a[j] < 127 && a[j] > 31) ? Character.toString((char) a[j]) : ".");
-                 sb.append("  ||  ");
+                 sb.append(H.BAR);
                  this.put(sb.toString() + " " + sbComments.toString());
                  sb.delete(0, sb.length());
                  if  ( (i+1) < (count+offset) ) sb.append(H.toHex(i+1) + ": ");
@@ -487,7 +487,7 @@ public class Pane {
         while (i < (count+offset) ) {
              sb.append(H.toHex(a[i]) + " ");
              if ( (i+1) % 16 == 0 ) {
-                 sb.append("   ||   ");
+                 sb.append(H.BAR);
                  for (int j=(i-15);j<=i;j++) sb.append( (a[j] < 127 && a[j] > 31) ? Character.toString((char) a[j]) : ".");
                  this.putquiet(sb.toString());
                  sb.delete(0, sb.length());
@@ -510,7 +510,7 @@ public class Pane {
         while (i < (count+offset) ) {
              sb.append(H.toHex(a[i]) + " ");
              if ( (i+1) % 16 == 0 ) {
-                 sb.append("   ||   ");
+                 sb.append(H.BAR);
                  for (int j=(i-15);j<=i;j++) sb.append( (a[j] < 127 && a[j] > 31) ? Character.toString((char) a[j]) : ".");
                  this.put(sb.toString());
                  sb.delete(0, sb.length());

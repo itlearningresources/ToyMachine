@@ -174,7 +174,7 @@ public class TOY {
                 sb.append(H.toHex(a[i]) + " ");
 
              if ( (i+1) % 16 == 0 ) {
-                 sb.append("   ||   ");
+                 sb.append(H.BAR);
                  for (int j=(i-15);j<=i;j++) sb.append( (a[j] < 127 && a[j] > 31) ? Character.toString((char) a[j]) : ".");
                  p.putquiet(sb.toString());
                  sb.delete(0, sb.length());
@@ -217,7 +217,7 @@ public class TOY {
         }
         p2.put("");
         p2.put("MM : ", H.toHex(memory_monitor));
-        p2.put("");
+        p2.put("IR : ", H.toHex(hw.getIndexRegister()));
         for (int i =0;i<hw.getBrk().length;i++) if (hw.getBrk()[i]) p2.put("BP ",H.toHex(i));
     }
 
@@ -236,6 +236,7 @@ public class TOY {
         int ict = 0;
         boolean bRun = true;
         int n = 0;
+        int a = 0;
         Instruction I = null;
         boolean haltflag = false;
 
@@ -323,33 +324,28 @@ public class TOY {
                 case 0x11: II.add(op, "load register with memory", "reg[d] = mem[word]");   
                            reg[d] = mem[addr];
                            break;                                                                // load
-                case 0x12: II.add(op, "Inc Addr Reg", "reg[addr]++");
-                           reg[ADRR] = reg[ADRR] + 1;
-                           break;                                                                // Inc Address register
-                case 0x13: II.add(op, "Store Reg indirect Addr Reg", "mem[reg[d]]= reg[addr]");
-                           mem[reg[ADRR]] = reg[d];
-                           break;                                                                // sore indirect Address register
+                case 0x12: II.add(op, "reserved", "reserved"); break;                            // reserved
+                case 0x13: II.add(op, "reserved", "reserved"); break;                            // reserved
                 case 0x14: II.add(op, "store reg to mem", "mem[addr] = reg[d]");
                            mem[addr] = reg[d];
-                           if (trackmemory) {
-                               panes[3].buffer1().clear().showHex2(this.hw.getMem(), addr,
-                                                   H.toHex(I.getPc()-2), " ",
-                                                   H.shorten(II.get(op).getDescription(),30)
-                               );
-                               //panes[1].buffer5().showHex2Quiet(this.hw.getMem(), addr);
-                               panes[1].buffer5().showHex2Quiet(this.hw.getMem(), addr,
-                                                   H.toHex(I.getPc()-2), " ",
-                                                   H.shorten(II.get(op).getDescription(),30));
-                               panes[1].buffer1();
-                           }
+                           a = addr;
+                           if (trackmemory) memoryTracker(panes, a, H.toHex(I.getPc()), " ", H.shorten(II.get(op).getDesc(),30));
                            break;                                                                // store
+
                 case 0x15: II.add(op, "store reg to mem indirect", "mem[reg[d] & 0x0FFFF] = reg[s]"); 
+                           a = reg[d] & 0xFFFF;
                            mem[reg[d] & 0xFFFF] = reg[s];
+                           if (trackmemory) memoryTracker(panes, a, H.toHex(I.getPc()), " ", H.shorten(II.get(op).getDesc(),30));
                            break;                                                                // store indirect
+
                 case 0x16: II.add(op, "load indirect", "reg[d] = mem[reg[s] & 0xFFFF]");
                            reg[d] = mem[reg[s] & 0xFFFF];
                            break;                                                                // load indirect
-                case 0x17: II.add(op, "reserved", "reserved"); break;                            // reserved
+
+                case 0x17: II.add(op, "load the index register", "indexregister = word");
+                           hw.setIndexRegister(addr);
+                           break;                                                                // load index register
+
                 case 0x18: II.add(op, "reserved", "reserved"); break;                            // reserved
                 case 0x19: II.add(op, "reserved", "reserved"); break;                            // reserved
                 case 0x1A: II.add(op, "reserved", "reserved"); break;                            // reserved
@@ -499,10 +495,23 @@ public class TOY {
                            char[] ca = H.convertIntegerToCharArray(reg[s]);
                            for (int i = 0;i<ca.length;i++) {
                                mem[reg[d]] = ca[i];
+                               a = reg[d];
+                               if (trackmemory) memoryTracker(panes, a, H.toHex(I.getPc()), " ", H.shorten(II.get(op).getDesc(),30));
                                reg[d]++;
                            }
                            break;                                                                // int to ascii
-                case 0x66: II.add(op, "reserved", "reserved"); break;                            // reserved
+                case 0x66: II.add(op, "mem int to ascii", "mem int to ascii");
+                for (int jj=0;jj<1024;jj++) {
+                               ca = H.convertIntegerToCharArray(mem[addr]);
+                               for (int i = 0;i<ca.length;i++) {
+                                   mem[reg[d]] = ca[i];
+                                   a = reg[d];
+                                   if (trackmemory) memoryTracker(panes, a, H.toHex(I.getPc()), " ", H.shorten(II.get(op).getDesc(),30));
+                                   reg[d]++;
+                               }
+                               addr++;
+                }
+                           break;                                                                // int to ascii
                 case 0x67: II.add(op, "reserved", "reserved"); break;                            // reserved
                 case 0x68: II.add(op, "reserved", "reserved"); break;                            // reserved
                 case 0x69: II.add(op, "reserved", "reserved"); break;                            // reserved
@@ -557,6 +566,14 @@ public class TOY {
         return this;
 
     }
+    public void memoryTracker(Pane[] panes, int addr, String ... comments) {
+        StringBuffer sb = new StringBuffer();
+        for (int i=0;i<comments.length;i++) sb.append(comments[i] );
+        panes[3].buffer1().clear().showHex2(this.hw.getMem(), addr,sb.toString());
+        panes[1].buffer5().showHex2Quiet(this.hw.getMem(), addr, sb.toString());
+        panes[1].buffer1();
+    }
+
     public void commandline(Pane[] panes) {
             String szIn = "";
             panes[1].pos(Pane.getCOMMAND_ROW(),Pane.getCOMMAND_COLUMN());

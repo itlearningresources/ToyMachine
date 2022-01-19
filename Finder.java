@@ -1,10 +1,12 @@
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
+import java.util.Iterator;
 
 public class Finder {
     private String  r = "";
     private Pattern p = null;
     private Matcher m = null;
+    private int cursor = 0;
 
     public Finder(String r) {
         this.r = r;
@@ -20,9 +22,20 @@ public class Finder {
         boolean bRet = false;
         this.m = this.p.matcher(sz);
         if (m.find()) {
+            this.cursor = 0;
             bRet = true;
         }
         return bRet;
+    }
+
+    public boolean hasNext() {
+        boolean bRet = false;
+        if ((this.cursor + 1) <= this.m.groupCount()) bRet = true;
+        return bRet;
+    }
+    public String next() {
+        this.cursor++;
+        return new String(this.m.group(this.cursor));
     }
 
     public int getGroupCount() {

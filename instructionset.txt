@@ -13,11 +13,10 @@
    Load and Store
    0x10 load register with addr           reg[d] = word                           
    0x11 load register with memory         reg[d] = mem[word]                      
-   0x12 Inc Addr Reg                      reg[addr]++                             
-   0x13 Store Reg indirect Addr Reg       mem[reg[d]]= reg[addr]                  
    0x14 store reg to mem                  mem[addr] = reg[d]                      
    0x15 store reg to mem indirect         mem[reg[d] & 0x0FFFF] = reg[s]          
    0x16 load indirect                     reg[d] = mem[reg[s] & 0xFFFF]           
+   0x17 load the index register           indexregister = word                    
 
    Branch and Jump
    0x20 jump                              pc = addr                               
@@ -54,3 +53,4 @@
    0x63 string 10 16b                     string out 16b                          
    0x64 string out 8b                     string out 8b                           
    0x65 int to ascii                      int to ascii                            
+   0x66 mem int to ascii                  mem int to ascii                        

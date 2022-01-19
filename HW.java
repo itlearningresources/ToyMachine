@@ -1,8 +1,9 @@
  
  public class HW {
  
-    private int pc;                              // program counter
-    private int stkptr;                          // stack pointer
+    private int pc;                             // program counter
+    private int indexregister;                  // index register
+    private int stkptr;                         // stack pointer
     final int ADRR = 0x01;
     // private Registers R = new Registers(reg);
 
@@ -27,6 +28,14 @@
     public int getPC() {
         return this.pc;
     }
+    public int getIndexRegister() {
+        return this.indexregister;
+    }
+    public int setIndexRegister(int n) {
+        this.indexregister = n;
+        return this.indexregister;
+    }
+
     public int[] getReg() {
         return this.reg;
     }
