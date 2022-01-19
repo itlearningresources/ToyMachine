@@ -317,10 +317,10 @@ public class TOY {
                 //
                 // SUBSET:: Load and Store
                 //
-                case 0x10: II.add(op, "load register with addr", "reg[d] = addr");
+                case 0x10: II.add(op, "load register with addr", "reg[d] = word");
                            reg[d] = addr;
-                           break;                                                                // load address
-                case 0x11: II.add(op, "load register with memory", "reg[d] = mem[addr]");   
+                           break;                                                                // load word
+                case 0x11: II.add(op, "load register with memory", "reg[d] = mem[word]");   
                            reg[d] = mem[addr];
                            break;                                                                // load
                 case 0x12: II.add(op, "Inc Addr Reg", "reg[addr]++");
@@ -332,7 +332,15 @@ public class TOY {
                 case 0x14: II.add(op, "store reg to mem", "mem[addr] = reg[d]");
                            mem[addr] = reg[d];
                            if (trackmemory) {
-                               panes[3].buffer1().clear().showHex2(this.hw.getMem(), addr);
+                               panes[3].buffer1().clear().showHex2(this.hw.getMem(), addr,
+                                                   H.toHex(I.getPc()-2), " ",
+                                                   H.shorten(II.get(op).getDescription(),30)
+                               );
+                               //panes[1].buffer5().showHex2Quiet(this.hw.getMem(), addr);
+                               panes[1].buffer5().showHex2Quiet(this.hw.getMem(), addr,
+                                                   H.toHex(I.getPc()-2), " ",
+                                                   H.shorten(II.get(op).getDescription(),30));
+                               panes[1].buffer1();
                            }
                            break;                                                                // store
                 case 0x15: II.add(op, "store reg to mem indirect", "mem[reg[d] & 0x0FFFF] = reg[s]"); 
@@ -573,7 +581,7 @@ public class TOY {
                     }
                     if (H.xmatch(name,"S","SS","STEP","STE")) {  // HELP:: S,Single Step
                         try {
-                            panes[1].buffer1();
+                            panes[1].buffer1().clear();
                             this.run(panes, pc, "STEP").showstate(panes[2]);
                             // panes[3].clear().buffer1clear().showHex2(this.hw.getMem(), this.memory_monitor);
                         } catch (Exception e) {
@@ -598,10 +606,10 @@ public class TOY {
                         }
                     }
                     if (name.equals("R")) {  // HELP:: R,Show Program Trace
-                        panes[1].buffer1(0);
+                        panes[1].clear().buffer1(0);
                     }
                     if (name.equals("P")) {  // HELP:: P,Show Program as read in
-                        panes[1].buffer2(0);
+                        panes[1].clear().buffer2(0);
                     }
                     if (name.equals("M")) {  // HELP:: M,Show Memory
                         panes[1].buffer3clear();
@@ -620,6 +628,12 @@ public class TOY {
                             default: this.memoryPane(panes[1], H.fromHex(szIn));
                          }
                          panes[1].buffer3(0);
+                    }
+                    if (name.equals("STATUS")) {      // HELP:: STATUS,Show Status
+                        for ( int i=1;i<5;i++) panes[3].put( i + " " + ((panes[1].getBuffer(i).size() == 0) ? "NULL" : "NOT NULL"));
+                        for ( int i=1;i<5;i++) panes[3].put( i + " " + ((panes[2].getBuffer(i).size() == 0) ? "NULL" : "NOT NULL"));
+                        for ( int i=1;i<5;i++) panes[3].put( i + " " + ((panes[3].getBuffer(i).size() == 0) ? "NULL" : "NOT NULL"));
+                        for ( int i=1;i<5;i++) panes[3].put( i + " " + ((panes[4].getBuffer(i).size() == 0) ? "NULL" : "NOT NULL"));
                     }
                     if (name.equals("T")) {      // HELP:: T,Move to Top
                         panes[1].top();
@@ -652,6 +666,11 @@ public class TOY {
                     if (H.xmatch(name, "H","HELP","HEL")) {      // HELP:: H,Help
                         panes[1].clear().bufferHelp(0);
                     }
+
+                    if (H.xmatch(name,"LOG")) {      // HELP:: LOG,Show Log Buffer
+                        panes[1].buffer5().clear().refresh(0).buffer1();
+                    }
+
                     if (H.xmatch(name,"RESET","RES")) {      // HELP:: RESET,Resets PC
                         panes[1].put("RESET");
                         hw.initRegs();
@@ -710,7 +729,7 @@ public class TOY {
 
         int pc = 0x0010;
 
-        StdOut.print(ANSI.RESET);
+        StdOut.print(ANSI.RESET + ANSI.BLACK_BACKGROUND + ANSI.WHITE);
         // no command-line arguments
         if (args.length == 0) {
             System.err.println("TOY:   invalid command-line options");

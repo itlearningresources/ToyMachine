@@ -13,10 +13,12 @@
   RESET        Resets PC
   G            Run Program
   BREAK        Set/Clear Breakpoint
+  LOG          Show Log Buffer
   M            Show Memory
   MM           Show Memory Monitor
   P            Show Program as read in
   R            Show Program Trace
+  STATUS       Show Status
   S            Single Step
   MONITOR      Track Memory
   V            View Memory

@@ -24,6 +24,7 @@ public class Pane {
     private ArrayList<String> b2 = new ArrayList<String>();
     private ArrayList<String> b3 = new ArrayList<String>();
     private ArrayList<String> b4 = new ArrayList<String>();
+    private ArrayList<String> b5 = new ArrayList<String>();
     private ArrayList<String> temp = new ArrayList<String>();
     private ArrayList<String> help = new ArrayList<String>();
     private int r;
@@ -45,28 +46,53 @@ public class Pane {
     public static int setCOMMAND_COLUMN(int n) { Pane.COMMAND_COLUMN = n; return n;}
     public static int getCOMMAND_ROW() { return Pane.COMMAND_ROW;}
     public static int getCOMMAND_COLUMN() { return Pane.COMMAND_COLUMN;}
+
     public Pane buffer1(int n) { this.buffer = b1; if (n>-1) this.refresh(n); return this;}
     public Pane buffer2(int n) { this.buffer = b2; if (n>-1) this.refresh(n); return this;}
     public Pane buffer3(int n) { this.buffer = b3; if (n>-1) this.refresh(n); return this;}
     public Pane buffer4(int n) { this.buffer = b4; if (n>-1) this.refresh(n); return this;}
+    public Pane buffer5(int n) { this.buffer = b5; if (n>-1) this.refresh(n); return this;}
     public void bufferHelp(int n) { this.buffer = help; if (n>-1) this.refresh(n);}
+
     public Pane buffer1() { this.buffer = b1; return this;}
     public Pane buffer2() { this.buffer = b2; return this;}
     public Pane buffer3() { this.buffer = b3; return this;}
     public Pane buffer4() { this.buffer = b4; return this;}
+    public Pane buffer5() { this.buffer = b5; return this;}
     public void bufferHelp() { this.buffer = help;}
     public void buffertemp() { this.buffer = temp;}
     public ArrayList<String>  getBuffer1() { return  b1;}
     public ArrayList<String>  getBuffer2() { return  b2;}
     public ArrayList<String>  getBuffer3() { return  b3;}
     public ArrayList<String>  getBuffer4() { return  b4;}
+    public ArrayList<String>  getBuffer5() { return  b5;}
     public ArrayList<String>  getBufferHelp() { return help;}
-    public Pane bufferclear() { buffer.clear(); return this;}
-    public Pane buffer1clear() { b1.clear(); return this;}
-    public Pane buffer2clear() { b2.clear(); return this;}
-    public Pane buffer3clear() { b3.clear(); return this;}
-    public Pane buffer4clear() { b4.clear(); return this;}
-    public Pane clear() { this.clearPane(); return this;}
+    public Pane buffer1clear() { this.buffer=b1; b1.clear(); return this;}
+    public Pane buffer2clear() { this.buffer=b2; b2.clear(); return this;}
+    public Pane buffer3clear() { this.buffer=b3; b3.clear(); return this;}
+    public Pane buffer4clear() { this.buffer=b4; b4.clear(); return this;}
+    public Pane buffer5clear() { this.buffer=b5; b5.clear(); return this;}
+
+    public ArrayList<String> getBuffer() { return buffer; }
+    public ArrayList<String> setBuffer(int n, ArrayList<String> b) { 
+        switch (n) {
+            case 1: this.b1 = b;
+            case 2: this.b2 = b;
+            case 3: this.b3 = b;
+            case 4: this.b4 = b;
+         }
+         return b;
+    }
+    public ArrayList<String> getBuffer(int n) { 
+        ArrayList<String> Ret = null;
+        switch (n) {
+            case 1: Ret = this.b1;
+            case 2: Ret = this.b2;
+            case 3: Ret = this.b3;
+            case 4: Ret = this.b4;
+         }
+         return Ret;
+    }
 
     private static Pane[] panes = {null};
     public static Pane[] getPanes() { return panes; }
@@ -121,6 +147,10 @@ public class Pane {
             }
             this.buffer = temp;
     };
+    public Pane clear() {
+        this.clearPane();
+        return this;
+    }
     private void clearPane() {
         String dashes = new String(new char[w]).replace("\0", "-");
         String blanks = new String(new char[w]).replace("\0", " ");
@@ -218,7 +248,7 @@ public class Pane {
             this.pos(COMMAND_ROW,COMMAND_COLUMN);
         }
     }
-    public void refresh(int n) {
+    public Pane refresh(int n) {
         if (n <0) n = 0;
         if (n >= buffer.size()) n = buffer.size()-1;
         if (n < lines) n = Math.min(lines-1, buffer.size()-1);
@@ -267,6 +297,7 @@ public class Pane {
             rpos++;
             this.pos(COMMAND_ROW,COMMAND_COLUMN);
         }
+        return this;
     }
 
     public Pane putquiet(String sz) {
@@ -377,10 +408,16 @@ public class Pane {
             }
      }
 
-     public Pane showHex2(int[] a, int offset) {
+     public Pane showHex2Quiet(int[] a, int offset, String ... comments) {
+        StringBuffer sbComments = new StringBuffer();
         StringBuffer sb = new StringBuffer();
         final int C = 16;
-        final int PAGESIZE = 32;
+        final int PAGESIZE = 16;
+
+        for (int i=0;i<comments.length;i++) {
+            sbComments.append((i>0) ? "" : "");
+            sbComments.append(comments[i]);
+        }
 
         // Put offset on a 16 word boundary
         offset = offset - (offset % 16);
@@ -392,15 +429,73 @@ public class Pane {
         while (i < (count+offset) ) {
              sb.append(H.toHexBlank(a[i]) + " ");
              if ( (i+1) % 16 == 0 ) {
-                 sb.append("   ||   ");
+                 sb.append(" || ");
                  for (int j=(i-15);j<=i;j++) sb.append( (a[j] < 127 && a[j] > 31) ? Character.toString((char) a[j]) : ".");
-                 this.put(sb.toString());
+                 sb.append("  ||  ");
+                 this.putquiet(sb.toString() + " " + sbComments.toString());
+                 sb.delete(0, sb.length());
+                 if  ( (i+1) < (count+offset) ) sb.append(H.toHex(i+1) + ": ");
+             }
+            i++;
+        }
+        this.putquiet(sb.toString());
+        sb.delete(0, sb.length());
+        return this;
+    }
+     public Pane showHex2(int[] a, int offset, String ... comments) {
+        StringBuffer sbComments = new StringBuffer();
+        StringBuffer sb = new StringBuffer();
+        final int C = 16;
+        final int PAGESIZE = 16;
+
+        for (int i=0;i<comments.length;i++) {
+            sbComments.append((i>0) ? "" : "");
+            sbComments.append(comments[i]);
+        }
+
+        // Put offset on a 16 word boundary
+        offset = offset - (offset % 16);
+
+        int i = offset;
+        int count = (PAGESIZE < a.length) ? PAGESIZE : a.length;
+        sb.append(ANSI.RESET);
+        sb.append(H.toHex(0+offset) + ": ");
+        while (i < (count+offset) ) {
+             sb.append(H.toHexBlank(a[i]) + " ");
+             if ( (i+1) % 16 == 0 ) {
+                 sb.append(" || ");
+                 for (int j=(i-15);j<=i;j++) sb.append( (a[j] < 127 && a[j] > 31) ? Character.toString((char) a[j]) : ".");
+                 sb.append("  ||  ");
+                 this.put(sb.toString() + " " + sbComments.toString());
                  sb.delete(0, sb.length());
                  if  ( (i+1) < (count+offset) ) sb.append(H.toHex(i+1) + ": ");
              }
             i++;
         }
         this.put(sb.toString());
+        sb.delete(0, sb.length());
+        return this;
+    }
+     public Pane showHexQuiet(int[] a, int offset) {
+        StringBuffer sb = new StringBuffer();
+        final int C = 16;
+        final int PAGESIZE = 32;
+        int i = offset;
+        int count = (PAGESIZE < a.length) ? PAGESIZE : a.length;
+        sb.append(ANSI.RESET);
+        sb.append(H.toHex(0+offset) + ": ");
+        while (i < (count+offset) ) {
+             sb.append(H.toHex(a[i]) + " ");
+             if ( (i+1) % 16 == 0 ) {
+                 sb.append("   ||   ");
+                 for (int j=(i-15);j<=i;j++) sb.append( (a[j] < 127 && a[j] > 31) ? Character.toString((char) a[j]) : ".");
+                 this.putquiet(sb.toString());
+                 sb.delete(0, sb.length());
+                 sb.append(H.toHex(i+1) + ": ");
+             }
+            i++;
+        }
+        this.putquiet(sb.toString());
         sb.delete(0, sb.length());
         return this;
     }
