@@ -22,7 +22,23 @@ public final class H {
     public final static void halt() {
         System.exit(0);
     }
+
+    public final static String argumentsToString(String[] args) {
+        StringBuilder sb = new StringBuilder();
+        for (int i=0;i<args.length;i++) 
+            sb.append((i==0) ? "" : " ").append("arg[").append(i).append("]=").append(args[i]);
+        return sb.toString();
+    }
+
+
     public final static void assertion(boolean b, String sz) {
+        if (!b) {
+            System.out.println();
+            System.out.println(sz);
+            System.exit(1);
+        }
+    }
+    public final static void xassertion(boolean b, String sz) {
             final String c = "\n\033[K";
         if (!b) {
             System.out.print(c + "ASSERTION FAILED");

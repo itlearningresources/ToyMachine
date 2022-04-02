@@ -10,6 +10,7 @@
  *
  *************************************************************************/
 
+import java.io.*;
 import java.util.Scanner;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
@@ -573,7 +574,54 @@ public class TOY {
         panes[1].buffer5().showHex2Quiet(this.hw.getMem(), addr, sb.toString());
         panes[1].buffer1();
     }
+    public static String execCmd(String cmd, String x) {
+        String result = null;
+        try (java.io.InputStream inputStream = Runtime.getRuntime().exec(cmd).getInputStream();
+                java.util.Scanner s = new java.util.Scanner(inputStream).useDelimiter("\\A")) {
+            result = s.hasNext() ? s.next() : null;
+        } catch (java.io.IOException e) {
+            e.printStackTrace();
+        }
+        return result;
+    }
+    public static String execCmd(String cmd) {
+		StringBuilder output = new StringBuilder();
+        System.out.println(">>  >  " + "READY");
+        try {
 
+		// -- Linux --
+		// Run a shell command
+		// Process process = Runtime.getRuntime().exec("ls /home/mkyong/");
+		// Run a shell script
+		// Process process = Runtime.getRuntime().exec("path/to/hello.sh");
+
+		// Process process = Runtime.getRuntime().exec( "cmd /c hello.bat", null, new File("C:\\Users\\mkyong\\"));
+
+		Process process = Runtime.getRuntime().exec(cmd);
+		BufferedReader reader = new BufferedReader( new InputStreamReader(process.getInputStream()));
+		String line = "";
+		while ((line = reader.readLine()) != null) {
+            System.out.println(">>  >  " + line);
+			output.append(line + "\n");
+		}
+
+		int exitVal = process.waitFor();
+		if (exitVal == 0) {
+			System.out.println("Success!");
+			System.out.println(output);
+			System.exit(0);
+		} else {
+			//abnormal...
+		}
+
+	} catch (IOException e) {
+		e.printStackTrace();
+	} catch (InterruptedException e) {
+		e.printStackTrace();
+	}
+
+    return output.toString();
+}
     public void commandline(Pane[] panes) {
             String szIn = "";
             panes[1].pos(Pane.getCOMMAND_ROW(),Pane.getCOMMAND_COLUMN());
@@ -729,6 +777,17 @@ public class TOY {
 
     // run the TOY simulator with specified file
     public static void main(String[] args) { 
+
+        // H.argumentsToString(args)
+        H.assertion(args.length == 3, "invalid command-line options\nusage: java TOY filename.toy screen-height screen-width");
+        int screenHeight = Integer.parseInt(args[1]);
+        int screenWidth  = Integer.parseInt(args[2]);
+        H.assertion(screenWidth  > 175, "screen is too narrow");
+        H.assertion(screenHeight > 41,  "Screen height is too low");
+        
+        StdOut.print(ANSI.RESET);
+
+        String filename = args[0];
         //Pane[] panes = new Pane[4];
         Pane[] panes = {};
         Pane[] ui = {};
@@ -746,15 +805,7 @@ public class TOY {
 
         int pc = 0x0010;
 
-        StdOut.print(ANSI.RESET + ANSI.BLACK_BACKGROUND + ANSI.WHITE);
-        // no command-line arguments
-        if (args.length == 0) {
-            System.err.println("TOY:   invalid command-line options");
-            System.err.println("usage: java TOY filename.toy");
-            return;
-        }
 
-        String filename = args[0];
 
         TOY toy = new TOY(filename, pc);
         ui[1].loadPane(filename,             ui[1].getBuffer2() );
