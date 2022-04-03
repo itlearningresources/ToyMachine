@@ -20,6 +20,7 @@ class MyOut {
 
 public class Pane {
     private ArrayList<String> buffer = null;
+    private ArrayList<String> b0 = new ArrayList<String>();  // decoded memory
     private ArrayList<String> b1 = new ArrayList<String>();
     private ArrayList<String> b2 = new ArrayList<String>();
     private ArrayList<String> b3 = new ArrayList<String>();
@@ -46,7 +47,8 @@ public class Pane {
     public static int setCOMMAND_COLUMN(int n) { Pane.COMMAND_COLUMN = n; return n;}
     public static int getCOMMAND_ROW() { return Pane.COMMAND_ROW;}
     public static int getCOMMAND_COLUMN() { return Pane.COMMAND_COLUMN;}
-
+ 
+    public Pane buffer0(int n) { this.buffer = b0; if (n>-1) this.refresh(n); return this;}
     public Pane buffer1(int n) { this.buffer = b1; if (n>-1) this.refresh(n); return this;}
     public Pane buffer2(int n) { this.buffer = b2; if (n>-1) this.refresh(n); return this;}
     public Pane buffer3(int n) { this.buffer = b3; if (n>-1) this.refresh(n); return this;}
@@ -54,6 +56,7 @@ public class Pane {
     public Pane buffer5(int n) { this.buffer = b5; if (n>-1) this.refresh(n); return this;}
     public void bufferHelp(int n) { this.buffer = help; if (n>-1) this.refresh(n);}
 
+    public Pane buffer0() { this.buffer = b0; return this;}
     public Pane buffer1() { this.buffer = b1; return this;}
     public Pane buffer2() { this.buffer = b2; return this;}
     public Pane buffer3() { this.buffer = b3; return this;}
@@ -61,12 +64,14 @@ public class Pane {
     public Pane buffer5() { this.buffer = b5; return this;}
     public void bufferHelp() { this.buffer = help;}
     public void buffertemp() { this.buffer = temp;}
+    public ArrayList<String>  getBuffer0() { return  b0;}
     public ArrayList<String>  getBuffer1() { return  b1;}
     public ArrayList<String>  getBuffer2() { return  b2;}
     public ArrayList<String>  getBuffer3() { return  b3;}
     public ArrayList<String>  getBuffer4() { return  b4;}
     public ArrayList<String>  getBuffer5() { return  b5;}
     public ArrayList<String>  getBufferHelp() { return help;}
+    public Pane buffer0clear() { this.buffer=b0; b0.clear(); return this;}
     public Pane buffer1clear() { this.buffer=b1; b1.clear(); return this;}
     public Pane buffer2clear() { this.buffer=b2; b2.clear(); return this;}
     public Pane buffer3clear() { this.buffer=b3; b3.clear(); return this;}
@@ -138,6 +143,13 @@ public class Pane {
 
 
     }
+    public Pane decodeMemoryIntoBuffer(int pc) {
+            ArrayList<String> temp = this.buffer;
+            this.buffer = b0;
+            this.putquiet("MOX");
+            this.buffer = temp;
+            return this;
+    };
     public void loadPane(String filename, ArrayList<String> b) {
             ArrayList<String> temp = this.buffer;
             this.buffer = b;
@@ -499,6 +511,28 @@ public class Pane {
         sb.delete(0, sb.length());
         return this;
     }
+     public Pane showMemoryDecoded(int[] a, int offset) {
+        StringBuffer sb = new StringBuffer();
+        final int C = 18;
+        int i = offset;
+        sb.append(ANSI.RESET);
+        while (i < (offset+C)) {
+
+            Decode d = InstructionSet.decodeInstruction(a[i], a[i+1]);
+            sb.append(H.toHex(i) + ": ");
+            sb.append(H.toHex(a[i]) + " ");
+            sb.append(H.toHex(a[i+1]));
+            sb.append(" " + d);
+            this.put(sb.toString());
+            sb.delete(0, sb.length());
+            i++;
+            i++;
+        }
+        this.put(sb.toString());
+        sb.delete(0, sb.length());
+        return this;
+    }
+
      public Pane showHex(int[] a, int offset) {
         StringBuffer sb = new StringBuffer();
         final int C = 16;

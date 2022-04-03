@@ -1,3 +1,4 @@
+  DECODE       Decode Memory
   E            Edit Memory <Address>
   F            Find
   /            Find

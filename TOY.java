@@ -676,6 +676,11 @@ public class TOY {
                     if (name.equals("P")) {  // HELP:: P,Show Program as read in
                         panes[1].clear().buffer2(0);
                     }
+                    if (name.equals("DECODE")) {  // HELP:: DECODE,Decode Memory
+                        //panes[1].clear().decodeMemoryIntoBuffer(0).buffer0(0);
+                        //panes[1].clear().decodeMemoryIntoBuffer(0).buffer0(0);
+                        panes[1].clear().showMemoryDecoded(hw.getMem(), 0x0100);
+                    }
                     if (name.equals("M")) {  // HELP:: M,Show Memory
                         panes[1].buffer3clear();
                         szIn = panes[1].prompt(">memory address > ");
