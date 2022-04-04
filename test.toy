@@ -1,7 +1,7 @@
 PAGE 00 $BOOTSTRAP
 0100
 MEM 0100 $CODEPAGE
-
+0112 2345
 1700 0400 load index register
 1010 0156 load reg wth word
 1410 0200 load reg wth word

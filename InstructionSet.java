@@ -23,27 +23,56 @@ private static String[] initDecodeArray(String sz1, String sz2) {
     arr[1]=sz2;
     return arr;
 }
+    public final static String DF(String format, String ... args) {
+    //String.format("load register %s with %s", H.toHexShort(register), H.toHex(address)) ;
+      return new java.util.Formatter().format(format, args).toString();
+    }
 public static Decode decodeInstruction(int lowword, int highword) {
+//          setPc(pc);
+//          setHighword(mem[pc++]);                   // fetch next word
+//          setInst(highword); 
+//          setOp( (highword >> 8)  & 0x00FF);        // get opcode
+//          setD(  (highword >>  4) & 0x000F);        // get dest  
+//          setLowword(mem[pc++]);                    // fetch next word
+//          this.s    = (highword >>  0) & 0x000F;    // get s    
+//          this.t    = lowword          & 0x00FF;    // get t   
+//          this.addr = lowword          & 0xFFFF;    // get addr
     int lowbyte = 0;
     int highbyte = 0;
     Decode decode= null;
-    int opCode = ((lowword >> 8) & 0x00FF);         // high byte of the lowword is the opcode
+    int opCode = ((lowword >> 8) & 0x00FF);        // high byte of the lowword is the opcode
+    int register = ((lowword) >> 4  & 0x000F);     // high nibble of low byte of the lowword is a register d
+    int address = ((highword)   & 0xFFFF);         // high word can be an address
+    int wordValue = ((highword)   & 0xFFFF);       // high word can be a 16 bit value
+
+    String rD = H.toHexNibble(((lowword >>    4) & 0x000F));   // get register d (dest)
+    String rS = H.toHexNibble(((lowword >>    0) & 0x000F));   // get register s (source)
+    String rT = H.toHexNibble(((highword >>  12) & 0x000F));   // get register t (other)
+    String rW = H.toHex(((highword)   & 0xFFFF));              // high word
+
+//  int[] reg = hw.getReg();
+//  int[] mem = hw.getMem();
+    String sz = "";
     switch ( opCode ) {
-        case 0x00: decode=new Decode("halt", "haltflag = true");break;
-        case 0x01: decode=new Decode("add", "reg[d] = reg[s] + reg[t]");break;
-        case 0x02: decode=new Decode("subtract", "reg[d] = reg[s] - reg[t]");break;
-        case 0x03: decode=new Decode("increment register", "reg[d]++"); break;
-        case 0x04: decode=new Decode("decrement register", "reg[d]--"); break;
-        case 0x05: decode=new Decode("accumulate", "reg[d] = reg[d] + reg[s]"); break;
-        case 0x06: decode=new Decode("deccumulate", "reg[d] = reg[d] + reg[s]"); break;
-        case 0x10: decode=new Decode("load register with addr", "reg[d] = word");break;
+        case 0x00: decode=new Decode(DF("halt"),                                 "halt",        "haltflag = true");break;
+        case 0x01: decode=new Decode(DF("reg[%s] = reg[%s] + reg[%s]",rD,rS,rW), "add",         "reg[d] = reg[s] + reg[t]");break;
+        case 0x02: decode=new Decode(DF("reg[%s] = reg[%s] - reg[%s]",rD,rS,rW), "subtract",    "reg[d] = reg[s] - reg[t]");break;
+        case 0x03: decode=new Decode(DF("reg[%s]++", rD),                                       "increment register", "reg[d]++"); break;
+        case 0x04: decode=new Decode(DF("reg[%s]--", rD),                                       "decrement register", "reg[d]--"); break;
+        case 0x05: decode=new Decode(DF("reg[%s] = reg[%s] + reg[%s]",rD,rD,rS),"accumulate",   "reg[d] = reg[d] + reg[s]"); break;
+        case 0x06: decode=new Decode(DF("reg[%s] = reg[%s] - reg[%s]",rD,rD,rS),"de-accumulate","reg[d] = reg[d] - reg[s]"); break;
+        case 0x10: 
+                   sz = String.format("load register %s with %s", H.toHexShort(register), H.toHex(address)) ;
+                   decode=new Decode(sz, "load register with addr", "reg[d] = word");break;
         case 0x11: decode=new Decode("load register with memory", "reg[d] = mem[word]");   break;
         case 0x12: decode=new Decode("reserved", "reserved"); break;                            // reserved
         case 0x13: decode=new Decode("reserved", "reserved"); break;                            // reserved
         case 0x14: decode=new Decode("store reg to mem", "mem[addr] = reg[d]");break;
         case 0x15: decode=new Decode("store reg to mem indirect", "mem[reg[d] & 0x0FFFF] = reg[s]"); break;
         case 0x16: decode=new Decode("load indirect", "reg[d] = mem[reg[s] & 0xFFFF]");break;
-        case 0x17: decode=new Decode("load the index register", "indexregister = word");break;
+        case 0x17: 
+                   sz = String.format("load the index register with %s", H.toHex(address)) ;
+                   decode=new Decode(sz,"load the index register", "indexregister = word");break;
         case 0x18: decode=new Decode("reserved", "reserved"); break;                            // reserved
         case 0x19: decode=new Decode("reserved", "reserved"); break;                            // reserved
         case 0x1A: decode=new Decode("reserved", "reserved"); break;                            // reserved
