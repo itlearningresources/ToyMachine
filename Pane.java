@@ -28,6 +28,7 @@ public class Pane {
     private ArrayList<String> b5 = new ArrayList<String>();
     private ArrayList<String> temp = new ArrayList<String>();
     private ArrayList<String> help = new ArrayList<String>();
+    private String title;
     private int r;
     private int c;
     private int w = 80;
@@ -110,7 +111,8 @@ public class Pane {
     private static java.io.PrintStream out;
     private static MyOut myout;
 
-    public Pane(int lines, int r, int c, int w) {
+    public Pane(String title, int lines, int r, int c, int w) {
+        this.title = title;
         this.buffer = b1;
         int rr;
         int cc;
@@ -134,7 +136,7 @@ public class Pane {
         this.w = w;
         this.r = r;
         this.c = c;
-        String dashes = new String(new char[w]).replace("\0", "-");
+        String dashes = (new String(new char[w]).replace("\0", "-"));
         this.lines = lines;
         this.count = 1;
         this.out.print("\033[" + (r-1) + ";" + c + "H" + "+ " + dashes + " +");
@@ -167,7 +169,10 @@ public class Pane {
         String dashes = new String(new char[w]).replace("\0", "-");
         String blanks = new String(new char[w]).replace("\0", " ");
         this.out.print(ANSI.RESET);
-        this.out.print("\033[" + (r-1) + ";" + c + "H" + "+ " + dashes + " +");
+
+        // H.Log(dashes.replaceFirst( (new String(new char[title.length()])).replace("\0","-"), title));
+        String mdashes = dashes.replaceFirst( (new String(new char[title.length()])).replace("\0","-"), title);
+        this.out.print("\033[" + (r-1) + ";" + c + "H" + "+ " + mdashes + " +");
         int rr = r;
         int cc = c;
         for (int i=0;i<this.lines;i++) {
@@ -387,7 +392,7 @@ public class Pane {
      public static void main(String[] args) {
      System.out.print("\033[2J");
 
-            Pane p =  new Pane(16,  3,     1,    66);
+            Pane p =  new Pane("THISONE", 16,  3,     1,    66);
             int i = 0;
             for ( i=0;i<24;i++) {
                          p.put("Hello World " + i + "");
@@ -511,9 +516,9 @@ public class Pane {
         sb.delete(0, sb.length());
         return this;
     }
-     public Pane showMemoryDecoded(int[] a, int offset) {
+     public Pane showMemoryDecoded(HW hw, int[] a, int offset) {
         StringBuffer sb = new StringBuffer();
-        final int C = 18;
+        final int C = 64;
         int i = offset;
         sb.append(ANSI.RESET);
         while (i < (offset+C)) {
@@ -522,7 +527,11 @@ public class Pane {
             sb.append(H.toHex(i) + ": ");
             sb.append(H.toHex(a[i]) + " ");
             sb.append(H.toHex(a[i+1]));
-            sb.append(" " + d);
+            sb.append(" ");
+            sb.append(H.LPad32(d.toString()));
+            sb.append(" ");
+            sb.append(H.LPad32(hw.getProgramLines()[i]));
+            H.Log(d.toString());
             this.put(sb.toString());
             sb.delete(0, sb.length());
             i++;

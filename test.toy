@@ -1,81 +1,86 @@
-PAGE 00 $BOOTSTRAP
-0100
-MEM 0100 $CODEPAGE
-0112 2345
-1700 0400 load index register
-1010 0156 load reg wth word
-1410 0200 load reg wth word
-1010 0157 load reg wth word
-1410 0201 load reg wth word
-1010 0400 load reg wth word
-6610 0200 
-0000 0000
-
-1020 0200 load reg wth word
-1010 1100 load R1 with WORD
-1410 1007 load R1 with ADDR
-1010 1F06 load R1 with ADDR
-1410 1F06 load R1 with ADDR
-0470 0000
-2470 0000 pop and link if not zero
-
-0000 0000
-
-MEM 0400
-
-1010 1D04 load R1 with ADDR
-1410 1D04 load R1 with ADDR
+MEM 0100 $PROGRAM
+1011 0010
+0310 0000 
+0310 0000 
+0310 0000 
+0310 0000 
+HALT 0000
+ADD 33 1122 
+ADD33  8899
+HALT 0000
+HALT 0000
+2000 0202
+ADD66  8899
+SUB22  5555 
+HLT 0000
+JMP 0101
+JMP 2200
+ADD44 4444
 
 
-1010 1F07 load R1 with ADDR
-1410 1F07 load R1 with ADDR
+//
+//   Halt
+//   0x00 halt                              haltflag = true                         
+//
+//   Math and Accumulator
+//   0x01 add                               reg[d] = reg[s] + reg[t]                
+//   0x02 subtract                          reg[d] = reg[s] - reg[t]                
+//   0x03 increment register                reg[d]++                                
+//   0x04 decrement register                reg[d]--                                
+//   0x05 accumulate                        reg[d] = reg[d] + reg[s]                
+//   0x06 deccumulate                       reg[d] = reg[d] + reg[s]                
+//
+//   Load and Store
+//   0x10 load register with addr           reg[d] = word                           
+//   0x11 load register with memory         reg[d] = mem[word]                      
+//   0x14 store reg to mem                  mem[addr] = reg[d]                      
+//   0x15 store reg to mem indirect         mem[reg[d] & 0x0FFFF] = reg[s]          
+//   0x16 load indirect                     reg[d] = mem[reg[s] & 0xFFFF]           
+//   0x17 load the index register           indexregister = word                    
+//
+//   Branch and Jump
+//   0x20 jump                              pc = addr                               
+//   0x21 branch if zero                    if (reg[d] == 0) pc = addr              
+//   0x22 branch if not zero                if (reg[d] != 0) pc = addr              
+//   0x23 pop and link if zero              if (reg[d] == 0) pc = popstk            
+//   0x24 pop and link if not zero          if (reg[d] != 0) pc = popstk            
+//   0x25 branch if pos                     if (reg[d] >  0) pc = addr              
+//   0x26 jump indirect                     pc = reg[d]                             
+//   0x27 jump and link                     reg[d] = pc; pc = addr                  
+//
+//   Stack
+//   0x30 push address                      push addr                               
+//   0x31 push register                     push reg[d]                             
+//   0x32 pop to register                   pop to reg[d]                           
+//   0x33 pop and link                      return                                  
+//   0x34 Push This                         push this addr                          
+//   0x35 push pc and link                  push pc and pc = addr                   
+//
+//   Bitwise and Shift
+//   0x40 bitwise and                       reg[d] = reg[s] & reg[t]                
+//   0x41 bitwise or                        reg[d] = reg[s] ^ reg[t]                
+//   0x42 shift left                        reg[d] = reg[s] << reg[t]               
+//   0x43 shift right                       reg[d] = reg[s] >> reg[t]               
+//   0x44 shift reg left                    reg[d] = reg[d] << 1                    
+//   0x45 shift reg right                   reg[d] = reg[d] >> 1                    
+//
+//   NOP
+//   0x50 NOP                               NOP                                     
+//
+//   I/O and String
+//   0x61 reg char out                      reg[d] char out                         
+//   0x62 mem char out                      mem[addr] char out                      
+//   0x63 string 10 16b                     string out 16b                          
+//   0x64 string out 8b                     string out 8b                           
+//   0x65 int to ascii                      int to ascii                            
+//   0x66 mem int to ascii                  mem int to ascii                        
 
-1020 EEEE load R2 with ADDR
-1030 EEEE load R3 with ADDR
-1040 EEEE load R3 with ADDR
-1050 EEEE load R3 with ADDR
-1060 EEEE load R3 with ADDR
-
-1070 0400
-
-3400 0000
-0410 0000
-0420 0000
-0430 0000
-0440 0000
-0450 0000
-0460 0000
-
-0470 0000
-2470 0000
-0000 0000
-
-0A01 0200
-1301 0000
-0A01 0200
-1301 0000
-0A01 0200
-1301 0000
-0A01 0200
-1301 0000
-0A01 0200
-1301 0000
-0A01 0200
-1301 0000
-0A01 0200
-1301 0000
-0A01 0200
-1301 0000
-0A01 0200
-1301 0000
-0A01 0200
-1301 0000
-0A01 0200
-1301 0000
-0A01 0200
-1301 0000
-0A01 0200
-0000 0000
-0701 1000 load R1 with ADDR
-0701 1000 load R1 with ADDR
-
+// comment
+# 0C0C 0044   if (RC == 0) pc goto 44      while (a != 0) {
+# 010A 0A0B   RA <- RA - RB                   a = a - b;
+# 020C 0C0B   RC <- RC + RB                   c = c + b;
+# 0022 0000
+# 1800 0018   pc <- 0018                     }
+# 090C 000C   mem[0C] <- RC
+# 2000 0000   NOP
+# 1900 0000   pop and link

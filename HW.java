@@ -14,7 +14,9 @@
         return this;
     }
     private final int MEMSIZE = 0xFFFF;                     // stack size in memory locations
-    private int[] mem   = new int[MEMSIZE];                 // main memory locations
+    private int[] mem        = new int[MEMSIZE];            // main memory locations
+    private int[] memflags   = new int[MEMSIZE];            // main memory flags
+    private String[] programlines   = new String[MEMSIZE];  // program lines (text) as read)
     private boolean[] breakpoint   = new boolean[MEMSIZE];  // breakpoint boolean
     
     private final int STACKSIZE = 32;            // stack size in memory locations
@@ -39,8 +41,14 @@
     public int[] getReg() {
         return this.reg;
     }
+    public String[] getProgramLines() {
+        return this.programlines;
+    }
     public int[] getMem() {
         return this.mem;
+    }
+    public int[] getMemFlags() {
+        return this.memflags;
     }
     public boolean[] getBrk() {
         return this.breakpoint;
@@ -119,6 +127,8 @@
          super();
          stkptr=0;
          for (int i=0;i<MEMSIZE;i++) breakpoint[i] = false;
+         for (int i=0;i<MEMSIZE;i++) memflags[i] = 0;
+         for (int i=0;i<MEMSIZE;i++) memflags[i] = 0x9999;
      }
  
  

@@ -17,8 +17,11 @@ public class Decode {
     public int getOpCode() {
         return this.opCode;
     }    
+    public String getDecodeString() {
+        return this.decodeArray[0];
+    }    
     public String toString() {
-        return "("+H.toHexShort(this.opCode)+") " + this.decodeArray[0];
+        return "("+H.toHexShort(this.opCode)+") " + this.decodeArray[0] + "";
     }
 }
 

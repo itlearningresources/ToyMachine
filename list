@@ -16,12 +16,12 @@ gawk -F, '
 /SUBSET/ {
     sz = $0
     gsub(/^.*[:]/, "  " ,sz)
-    print ""
-    print sz 
+    print "//"
+    print "//" sz 
     next
 }
 {
-    printf("   %4s %-33s %-40s\n", $1,$2,$3) 
+    printf("//   %4s %-33s %-40s\n", $1,$2,$3) 
 
 }' | grep -v reserved | tee instructionset.txt
 

@@ -1,5 +1,52 @@
+
+import java.io.FileWriter;   // Import the FileWriter class
+import java.io.IOException;  // Import the IOException class to handle errors
+import java.time.format.DateTimeFormatter;  
+import java.time.LocalDateTime;    
+
 public final class H {
     final static String BAR = " | ";
+
+
+    public static void Log(int n) {
+        Log(String.valueOf(n));
+    }
+
+    public static String LPad6(String sz)  { return String.format("%-6s", sz).replace(' ', ' ');}
+    public static String LPad8(String sz)  { return String.format("%-8s", sz).replace(' ', ' ');}
+    public static String LPad12(String sz) { return String.format("%-12s", sz).replace(' ', ' ');}
+    public static String LPad24(String sz) { return String.format("%-24s", sz).replace(' ', ' ');}
+    public static String LPad32(String sz) { return String.format("%-32s", sz).replace(' ', ' ');}
+    public static String LPad36(String sz) { return String.format("%-36s", sz).replace(' ', ' ');}
+    public static String LPad44(String sz) { return String.format("%-44s", sz).replace(' ', ' ');}
+    public static String LPad48(String sz) { return String.format("%-48s", sz).replace(' ', ' ');}
+    public static String LPad64(String sz) { return String.format("%-64s", sz).replace(' ', ' ');}
+    public static String Pad6(String sz)   { return String.format("%6s", sz).replace(' ', ' ');}
+    public static String Pad8(String sz)   { return String.format("%8s", sz).replace(' ', ' ');}
+    public static String Pad12(String sz)  { return String.format("%12s", sz).replace(' ', ' ');}
+    public static String Pad24(String sz)  { return String.format("%24s", sz).replace(' ', ' ');}
+    public static String Pad32(String sz)  { return String.format("%32s", sz).replace(' ', ' ');}
+    public static String Pad36(String sz)  { return String.format("%36s", sz).replace(' ', ' ');}
+    public static String Pad48(String sz)  { return String.format("%48s", sz).replace(' ', ' ');}
+    public static String Pad44(String sz)  { return String.format("%44s", sz).replace(' ', ' ');}
+    public static String Pad64(String sz)  { return String.format("%64s", sz).replace(' ', ' ');}
+
+    public static void LogFlag(String sz) { Log("*** " + sz); }
+    public static void FlagLog(String sz) { Log("*** " + sz); }
+
+    public static void Log(String sz) {
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");  
+        LocalDateTime now = LocalDateTime.now();  
+        try {
+          FileWriter myWriter = new FileWriter("/tmp/applog",true);
+          myWriter.write(dtf.format(now) + " " + sz + "\n");
+          myWriter.close();
+        } catch (IOException e) {
+          System.out.println("An error occurred.");
+          e.printStackTrace();
+        }
+    }
+
 
     public final static String shorten(String sz, int n) { 
         n = (n<=sz.length()) ? n : sz.length();
@@ -122,5 +169,6 @@ class HException extends Exception {
      public HException(String sz) {
          super(sz);
      }
+
 }
 
