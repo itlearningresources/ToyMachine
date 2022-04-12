@@ -49,22 +49,12 @@ public class Pane {
     public static int getCOMMAND_ROW() { return Pane.COMMAND_ROW;}
     public static int getCOMMAND_COLUMN() { return Pane.COMMAND_COLUMN;}
  
-    public Pane buffer0(int n) { this.buffer = b0; if (n>-1) this.refresh(n); return this;}
-    public Pane buffer1(int n) { this.buffer = b1; if (n>-1) this.refresh(n); return this;}
-    public Pane buffer2(int n) { this.buffer = b2; if (n>-1) this.refresh(n); return this;}
-    public Pane buffer3(int n) { this.buffer = b3; if (n>-1) this.refresh(n); return this;}
-    public Pane buffer4(int n) { this.buffer = b4; if (n>-1) this.refresh(n); return this;}
-    public Pane buffer5(int n) { this.buffer = b5; if (n>-1) this.refresh(n); return this;}
     public void bufferHelp(int n) { this.buffer = help; if (n>-1) this.refresh(n);}
 
-    public Pane buffer0() { this.buffer = b0; return this;}
-    public Pane buffer1() { this.buffer = b1; return this;}
-    public Pane buffer2() { this.buffer = b2; return this;}
-    public Pane buffer3() { this.buffer = b3; return this;}
-    public Pane buffer4() { this.buffer = b4; return this;}
-    public Pane buffer5() { this.buffer = b5; return this;}
+
     public void bufferHelp() { this.buffer = help;}
     public void buffertemp() { this.buffer = temp;}
+    public ArrayList<String>  getCurrentBuffer() { return  buffer;}
     public ArrayList<String>  getBuffer0() { return  b0;}
     public ArrayList<String>  getBuffer1() { return  b1;}
     public ArrayList<String>  getBuffer2() { return  b2;}
@@ -72,12 +62,20 @@ public class Pane {
     public ArrayList<String>  getBuffer4() { return  b4;}
     public ArrayList<String>  getBuffer5() { return  b5;}
     public ArrayList<String>  getBufferHelp() { return help;}
-    public Pane buffer0clear() { this.buffer=b0; b0.clear(); return this;}
-    public Pane buffer1clear() { this.buffer=b1; b1.clear(); return this;}
-    public Pane buffer2clear() { this.buffer=b2; b2.clear(); return this;}
-    public Pane buffer3clear() { this.buffer=b3; b3.clear(); return this;}
-    public Pane buffer4clear() { this.buffer=b4; b4.clear(); return this;}
-    public Pane buffer5clear() { this.buffer=b5; b5.clear(); return this;}
+
+    public Pane selectBuffer0() { this.buffer = b0; return this; }
+    public Pane selectBuffer1() { this.buffer = b1; return this; }
+    public Pane selectBuffer2() { this.buffer = b2; return this; }
+    public Pane selectBuffer3() { this.buffer = b3; return this; }
+    public Pane selectBuffer4() { this.buffer = b4; return this; }
+    public Pane selectBuffer5() { this.buffer = b5; return this; }
+
+    public Pane selectAndClearBuffer0() { this.buffer=b0; b0.clear(); return this; }
+    public Pane selectAndClearBuffer1() { this.buffer=b1; b1.clear(); return this; }
+    public Pane selectAndClearBuffer2() { this.buffer=b2; b2.clear(); return this; }
+    public Pane selectAndClearBuffer3() { this.buffer=b3; b3.clear(); return this; }
+    public Pane selectAndClearBuffer4() { this.buffer=b4; b4.clear(); return this; }
+    public Pane selectAndClearBuffer5() { this.buffer=b5; b5.clear(); return this; }
 
     public ArrayList<String> getBuffer() { return buffer; }
     public ArrayList<String> setBuffer(int n, ArrayList<String> b) { 
@@ -111,6 +109,10 @@ public class Pane {
     private static java.io.PrintStream out;
     private static MyOut myout;
 
+    public static Pane paneFactory(String title, int lines, int r, int c, int w) {
+        return new Pane(title, lines, r, c, w);
+    }
+
     public Pane(String title, int lines, int r, int c, int w) {
         this.title = title;
         this.buffer = b1;
@@ -140,7 +142,7 @@ public class Pane {
         this.lines = lines;
         this.count = 1;
         this.out.print("\033[" + (r-1) + ";" + c + "H" + "+ " + dashes + " +");
-        clearPane();
+        clear();
 
 
 
@@ -152,7 +154,7 @@ public class Pane {
             this.buffer = temp;
             return this;
     };
-    public void loadPane(String filename, ArrayList<String> b) {
+    public void loadPaneBuffer(String filename, ArrayList<String> b) {
             ArrayList<String> temp = this.buffer;
             this.buffer = b;
             In in = new In(filename);
@@ -162,10 +164,6 @@ public class Pane {
             this.buffer = temp;
     };
     public Pane clear() {
-        this.clearPane();
-        return this;
-    }
-    private void clearPane() {
         String dashes = new String(new char[w]).replace("\0", "-");
         String blanks = new String(new char[w]).replace("\0", " ");
         this.out.print(ANSI.RESET);
@@ -182,6 +180,7 @@ public class Pane {
             this.out.print("\033[" + (rr++) + ";" + (cc+w+3) + "H" + "|");
         }
         this.out.print("\033[" + (r+lines) + ";" + c + "H" + "+ " + dashes + " +");
+        return this;
     }
     public static void printf(String format, Object... args) {
 
@@ -251,7 +250,7 @@ public class Pane {
 //      if (n >= buffer.size()) n = buffer.size()-1;
 //      if (n < lines) n = Math.min(lines-1, buffer.size()-1);
         refreshpoint = n;
-        clearPane();
+        clear();
         count =1;
         rpos = r;
         cpos = c;
@@ -264,6 +263,10 @@ public class Pane {
             rpos++;
             this.pos(COMMAND_ROW,COMMAND_COLUMN);
         }
+    }
+    public Pane paint() {
+        this.refresh(buffer.size()-1);
+        return this;
     }
     public Pane refresh(int n) {
         if (n <0) n = 0;
@@ -332,7 +335,7 @@ public class Pane {
         return this;
     }
     public Pane putlightf(String format, Object... args) {
-        clearPane();
+        clear();
         buffer.add(String.format(format, args));
         refresh(buffer.size()-1);
         buffer.clear();
@@ -340,7 +343,9 @@ public class Pane {
     }
     public Pane put(String ... a) {
         StringBuffer sb = new StringBuffer();
-        for (int i=0;i<a.length;i++) sb.append(a[i]);
+        for (int i=0;i<a.length;i++) {
+            sb.append(a[i]);
+        }
         buffer.add(sb.toString());
         refresh(buffer.size()-1);
         return this;
@@ -353,7 +358,7 @@ public class Pane {
     }
     public Pane putlight(String sz) {
         //buffer.add(sz.substring(0, Math.min(sz.length(), w)));
-        clearPane();
+        clear();
         buffer.add(sz);
         refresh(buffer.size()-1);
         buffer.clear();
@@ -516,12 +521,19 @@ public class Pane {
         sb.delete(0, sb.length());
         return this;
     }
-     public Pane showMemoryDecoded(HW hw, int[] a, int offset) {
+
+
+     public Pane showMemoryDecoded(int offset) {
+        final int count = 32;
+        showMemoryDecoded(offset, count);
+        return this;
+     }
+     public Pane showMemoryDecoded(int offset, int count) {
+        int[] a = TOY.HW.getMem();
         StringBuffer sb = new StringBuffer();
-        final int C = 64;
         int i = offset;
         sb.append(ANSI.RESET);
-        while (i < (offset+C)) {
+        while (i < (offset+count)) {
 
             Decode d = InstructionSet.decodeInstruction(a[i], a[i+1]);
             sb.append(H.toHex(i) + ": ");
@@ -530,7 +542,7 @@ public class Pane {
             sb.append(" ");
             sb.append(H.LPad32(d.toString()));
             sb.append(" ");
-            sb.append(H.LPad32(hw.getProgramLines()[i]));
+            sb.append(H.LPad32(TOY.HW.getProgramLines()[i]));
             H.Log(d.toString());
             this.put(sb.toString());
             sb.delete(0, sb.length());
@@ -540,6 +552,61 @@ public class Pane {
         this.put(sb.toString());
         sb.delete(0, sb.length());
         return this;
+    }
+
+    public  void state() {
+        String sz = "";
+        this.reset();
+        int[] a = TOY.HW.getMem();
+        int pc = TOY.HW.getPC();
+        int count = 8;
+        this.put("PC : ", ANSI.RESET, H.toHex(pc));
+        this.put("");
+        for (int i = 0; i < count; i++) {
+            sz = (a[i] == 0) ? ANSI.RESET + H.toHex(a[i]) : ANSI.DATA + H.toHex(a[i]) + ANSI.RESET;
+            this.putf("%s%s%s%s","R", H.toHexShort(i), ": ", sz);
+        }
+        this.put("");
+        this.put("SP : ", TOY.HW.getStkPtrHex());
+        for (int i = 0; i < count; i++) {
+            sz = (TOY.HW.stkGet(i) == 0) ? ANSI.RESET + TOY.HW.stkGetHex(i) : ANSI.DATA + TOY.HW.stkGetHex(i) + ANSI.RESET;
+            this.put(H.toHex2D(i), " : ", sz);
+        }
+        this.put("");
+        // this.put("MM : ", H.toHex(memory_monitor));
+        this.put("IR : ", H.toHex(TOY.HW.getIndexRegister()));
+        for (int i =0;i<TOY.HW.getBrk().length;i++) if (TOY.HW.getBrk()[i]) this.put("BP ",H.toHex(i));
+    }
+
+
+    public Pane memory(int offset, int rows) {
+        final int PAGESIZE=62;
+        final int C = 16;
+        int[] a = TOY.HW.getMem();
+        int i = offset;
+        StringBuffer sb = new StringBuffer();
+        int count = (PAGESIZE < a.length) ? PAGESIZE : a.length;
+        count = (rows>0 ? rows : 1) * C;
+
+        sb.append(H.toHex(0+offset) + ": ");
+        while (i < (count+offset) ) {
+            if ( a[i] == 0 )
+                sb.append(H.toHex(a[i]) + " ");
+            else
+                sb.append(H.toHex(a[i]) + " ");
+
+             if ( (i+1) % 16 == 0 ) {
+                 sb.append(H.BAR);
+                 for (int j=(i-15);j<=i;j++) sb.append( (a[j] < 127 && a[j] > 31) ? Character.toString((char) a[j]) : ".");
+                 this.putquiet(sb.toString());
+                 sb.delete(0, sb.length());
+                 sb.append(H.toHex(i+1) + ": ");
+             }
+            i++;
+        }
+                this.putquiet(sb.toString());
+                sb.delete(0, sb.length());
+                return this;
     }
 
      public Pane showHex(int[] a, int offset) {

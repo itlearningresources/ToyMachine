@@ -5,7 +5,6 @@
   /            Find
   H            Help
   IPL          Initial Program Load
-  BOOT         IPL from 0x0000
   I            List Instruction Set
   D            Move Down
   B            Move to Bottom
@@ -20,6 +19,7 @@
   MM           Show Memory Monitor
   P            Show Program as read in
   R            Show Program Trace
+  MRO          Show Register 0 Indirect Memory
   STATUS       Show Status
   S            Single Step
   MONITOR      Track Memory
