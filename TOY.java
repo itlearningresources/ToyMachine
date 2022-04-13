@@ -26,6 +26,7 @@ public class TOY {
     static Pane ProgramAndMemoryPane;
     static Pane MainPane;
     static Pane StatePane;
+    static Pane ScreenPane;
     static Pane InteractivePane;
     static Pane StatusAndMessages;
     static HW   HW;
@@ -46,6 +47,9 @@ public class TOY {
     public static final boolean DUMP = true;
     public static final boolean NOHALT = false;
     public static final boolean NODUMP = false;
+    private static int dataRows = 16;
+    public static void setDataRows(int n) { dataRows = (n>0) ? n : 16; }
+    public static int getDataRows() { return dataRows; }
 
     // create a new TOY VM and load with program from specified file
     public TOY(String filename) {
@@ -218,7 +222,6 @@ public class TOY {
 
     }
 
-
     public TOY run(int programCounter, String mode) throws Exception {
         int idx = 0;
         int ict = 0;
@@ -236,7 +239,6 @@ public class TOY {
             pc = mem[0x0000];
             original_pc = pc;
         }
-
 
         sb.append(String.format("%26s %6s %2s %2s  %4s\n","Instruction", "D", "S", "T", "ADDR"));
         //p1.put(String.format("%91s%s\n", "", "      PC   STK  0    1    2    3    4    5    6    7"));
@@ -561,54 +563,7 @@ public class TOY {
         TOY.MainPane.selectBuffer5().showHex2Quiet(this.hw.getMem(), addr, sb.toString());
         TOY.MainPane.selectBuffer1();
     }
-    public static String execCmd(String cmd, String x) {
-        String result = null;
-        try (java.io.InputStream inputStream = Runtime.getRuntime().exec(cmd).getInputStream();
-                java.util.Scanner s = new java.util.Scanner(inputStream).useDelimiter("\\A")) {
-            result = s.hasNext() ? s.next() : null;
-        } catch (java.io.IOException e) {
-            e.printStackTrace();
-        }
-        return result;
-    }
-    public static String execCmd(String cmd) {
-		StringBuilder output = new StringBuilder();
-        System.out.println(">>  >  " + "READY");
-        try {
 
-		// -- Linux --
-		// Run a shell command
-		// Process process = Runtime.getRuntime().exec("ls /home/mkyong/");
-		// Run a shell script
-		// Process process = Runtime.getRuntime().exec("path/to/hello.sh");
-
-		// Process process = Runtime.getRuntime().exec( "cmd /c hello.bat", null, new File("C:\\Users\\mkyong\\"));
-
-		Process process = Runtime.getRuntime().exec(cmd);
-		BufferedReader reader = new BufferedReader( new InputStreamReader(process.getInputStream()));
-		String line = "";
-		while ((line = reader.readLine()) != null) {
-            System.out.println(">>  >  " + line);
-			output.append(line + "\n");
-		}
-
-		int exitVal = process.waitFor();
-		if (exitVal == 0) {
-			System.out.println("Success!");
-			System.out.println(output);
-			System.exit(0);
-		} else {
-			//abnormal...
-		}
-
-	} catch (IOException e) {
-		e.printStackTrace();
-	} catch (InterruptedException e) {
-		e.printStackTrace();
-	}
-
-    return output.toString();
-}
     public void commandline() {
             String szIn = "";
             TOY.MainPane.pos(Pane.getCOMMAND_ROW(),Pane.getCOMMAND_COLUMN());
@@ -669,14 +624,18 @@ public class TOY {
                         TOY.MainPane.clear().selectBuffer2().refresh(0);
                     }
                     if (name.equals("DECODE")) {  // HELP:: DECODE,Decode Memory
-                        TOY.MainPane.clear().selectAndClearBuffer1().showMemoryDecoded(0x0100);
+                        TOY.MainPane.clear().selectAndClearBuffer1().showMemoryDecoded(0x0100, dataRows * 2);
                         TOY.MainPane.top();
+                    }
+                    if (name.equals("ROWS")) {        // HELP:: ROWS, Set Disopplay Rows
+                        int n = Pane.nPrompt(">Enter number of rows to display > ");
+                        TOY.setDataRows(n);
                     }
                     if (name.equals("MPC")) {        // HELP:: MRO,Show Register 0 Indirect Memory
                         TOY.InteractivePane.put("MPC: Display memory contents of mem[PC] " + pc);
                         TOY.InteractivePane.selectBuffer1();
                         TOY.InteractivePane.clear().selectAndClearBuffer1();
-                        TOY.InteractivePane.memory(0x0000, 0x04);
+                        TOY.InteractivePane.memory(0x0000, TOY.dataRows);
                         TOY.InteractivePane.paint();
 
                     }
@@ -748,20 +707,13 @@ public class TOY {
                     if (name.equals("IPL")) {               // HELP:: IPL,Initial Program Load
                         pc = hw.getMem()[0x0000];
                         original_pc = pc;
-                        hw.initRegs().initStk();
+                        TOY.HW.initRegs().initStk();
                         TOY.StatePane.state();
-
-                        TOY.MainPane.clear().selectAndClearBuffer1().showMemoryDecoded(pc);
-                        TOY.MainPane.top();
-
-                        TOY.InteractivePane.clear().selectAndClearBuffer1();
-
-
-                        TOY.InteractivePane.put("IPL:  PC set to the contents of mem[0x0000]");
-                        //this.memoryDisplay(TOY.InteractivePane, 0x0000, 0x01);
-                        TOY.InteractivePane.memory(0x0000, 0x01);
-                        TOY.InteractivePane.putln("ZIPL:  PC set to the contents of mem[0x0000]");
-                        TOY.StatePane.state();
+                        TOY.MainPane.clear().selectAndClearBuffer1().showMemoryDecoded(pc).top();
+                        TOY.InteractivePane.clearPaneAndBuffer1().put("IPL:  PC set to the contents of mem[0x0000]").memory(0x0000, 0x01).paint();
+                    }
+                    if (name.equals("COLOR")) {               // HELP:: COLOR,Initial Program Load
+                        TOY.StatePane.clear(ANSI.GREEN).paint();
                     }
                     if (H.xmatch(name,"CLEAR", "CLR", "C")) {  // HELP:: CLEAR,Clear Trace Window
                         TOY.InteractivePane.clear().selectAndClearBuffer3();
@@ -776,7 +728,6 @@ public class TOY {
     // run the TOY simulator with specified file
     public static void main(String[] args) { 
 
-        // H.argumentsToString(args)
         H.assertion(args.length == 3, "invalid command-line options\nusage: java TOY filename.toy screen-height screen-width");
         int screenHeight = Integer.parseInt(args[1]);
         int screenWidth  = Integer.parseInt(args[2]);
@@ -785,11 +736,13 @@ public class TOY {
         StdOut.print(ANSI.RESET);
 
         String filename = args[0];
-        ProgramAndMemoryPane = Pane.paneFactory("Program and Memory", 24,  5, 1, 148);
+        ProgramAndMemoryPane = Pane.paneFactory("Program and Memory", 24,  5, 1, 100, ANSI.CYAN);
         MainPane = ProgramAndMemoryPane;
-        StatePane            = new Pane("State", 39,  5,                   MainPane.gapcolumn(),  10);
-        InteractivePane      = new Pane("Interactive", 12,  MainPane.gaplap(),   1, 148);
-        StatusAndMessages    = new Pane("Status and Messages",1,48,1,148);
+        ScreenPane           = new Pane("Screen I/O", 24,  5,              MainPane.gapcolumn(),  43, ANSI.YELLOW);
+        //StatePane          = new Pane("State", 39,  5,                   MainPane.gapcolumn(),  10, ANSI.GREEN);
+        StatePane            = new Pane("State", 39,  5,                   155,  10, ANSI.RED);
+        InteractivePane      = new Pane("Interactive", 12,                 MainPane.gaplap(),   1, 148, ANSI.BLUE);
+        StatusAndMessages    = new Pane("Status and Messages",1,48,1,148, ANSI.PURPLE);
         Pane.setMsgPane(StatusAndMessages);
 
         Pane.setCOMMAND_ROW(46);
@@ -803,14 +756,11 @@ public class TOY {
         MainPane.loadPaneBuffer("help.txt",           MainPane.getBufferHelp() );
 
         try {
-            int[] mem = toy.hw.getMem();
             StatusAndMessages.putlight("READY TO RUN!!!");
             toy.run(-1, "READY");     // IPLs and returns, does not execute instructions
             TOY.StatePane.state();
             toy.commandline();
         } catch (Exception e) {
-             StdOut.printf("%s\n", sb.toString());
-             StdOut.println(lastInstruction.toString() + "\n");
              System.out.println("Caught Exception: "+ e.getMessage());
              e.printStackTrace();
              System.exit(1);

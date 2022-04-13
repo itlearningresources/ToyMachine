@@ -36,6 +36,8 @@ public class Pane {
     private int count;
     private int rpos;
     private int cpos;
+    private String bordercolor = ANSI.WHITE;
+    private final String initalbordercolor;
     private int refreshpoint;
     private static int COMMAND_ROW = 44;
     private static int COMMAND_COLUMN = 1;
@@ -70,12 +72,21 @@ public class Pane {
     public Pane selectBuffer4() { this.buffer = b4; return this; }
     public Pane selectBuffer5() { this.buffer = b5; return this; }
 
-    public Pane selectAndClearBuffer0() { this.buffer=b0; b0.clear(); return this; }
-    public Pane selectAndClearBuffer1() { this.buffer=b1; b1.clear(); return this; }
-    public Pane selectAndClearBuffer2() { this.buffer=b2; b2.clear(); return this; }
-    public Pane selectAndClearBuffer3() { this.buffer=b3; b3.clear(); return this; }
-    public Pane selectAndClearBuffer4() { this.buffer=b4; b4.clear(); return this; }
-    public Pane selectAndClearBuffer5() { this.buffer=b5; b5.clear(); return this; }
+    public Pane clearPaneAndBuffer()  { this.clear(); buffer.clear(); return this; }
+    public Pane clearPaneAndBuffer0() { this.buffer=b0; this.clear(); this.buffer.clear(); return this; }
+    public Pane clearPaneAndBuffer1() { this.buffer=b1; this.clear(); this.buffer.clear(); return this; }
+    public Pane clearPaneAndBuffer2() { this.buffer=b2; this.clear(); this.buffer.clear(); return this; }
+    public Pane clearPaneAndBuffer3() { this.buffer=b3; this.clear(); this.buffer.clear(); return this; }
+    public Pane clearPaneAndBuffer4() { this.buffer=b4; this.clear(); this.buffer.clear(); return this; }
+    public Pane clearPaneAndBuffer5() { this.buffer=b5; this.clear(); this.buffer.clear(); return this; }
+
+    public Pane selectAndClearBuffer()  { this.buffer.clear(); return this; }
+    public Pane selectAndClearBuffer0() { this.buffer=b0; this.buffer.clear(); return this; }
+    public Pane selectAndClearBuffer1() { this.buffer=b1; this.buffer.clear(); return this; }
+    public Pane selectAndClearBuffer2() { this.buffer=b2; this.buffer.clear(); return this; }
+    public Pane selectAndClearBuffer3() { this.buffer=b3; this.buffer.clear(); return this; }
+    public Pane selectAndClearBuffer4() { this.buffer=b4; this.buffer.clear(); return this; }
+    public Pane selectAndClearBuffer5() { this.buffer=b5; this.buffer.clear(); return this; }
 
     public ArrayList<String> getBuffer() { return buffer; }
     public ArrayList<String> setBuffer(int n, ArrayList<String> b) { 
@@ -109,13 +120,19 @@ public class Pane {
     private static java.io.PrintStream out;
     private static MyOut myout;
 
+    // Constructors and Factories
+    public static Pane paneFactory(String title, int lines, int r, int c, int w, String ansicolor) {
+        return new Pane(title, lines, r, c, w, ansicolor);
+    }
     public static Pane paneFactory(String title, int lines, int r, int c, int w) {
-        return new Pane(title, lines, r, c, w);
+        return new Pane(title, lines, r, c, w, ANSI.WHITE);
     }
 
-    public Pane(String title, int lines, int r, int c, int w) {
+    public Pane(String title, int lines, int r, int c, int w, String ansicolor) {
         this.title = title;
         this.buffer = b1;
+        this.bordercolor = ansicolor;
+        this.initalbordercolor = ansicolor;
         int rr;
         int cc;
  
@@ -138,10 +155,11 @@ public class Pane {
         this.w = w;
         this.r = r;
         this.c = c;
-        String dashes = (new String(new char[w]).replace("\0", "-"));
+        //String dashes = (new String(new char[w]).replace("\0", "-"));
         this.lines = lines;
         this.count = 1;
-        this.out.print("\033[" + (r-1) + ";" + c + "H" + "+ " + dashes + " +");
+        // this next line seems like it is old and should be deleted
+        // this.out.print("\033[" + (r-1) + ";" + c + "H" + "+ " + dashes + " +");
         clear();
 
 
@@ -163,23 +181,47 @@ public class Pane {
             }
             this.buffer = temp;
     };
+    public static String colorBlue(String sz) {
+        final String BLACK = "\u001B[30m";
+        final String RED = "\u001B[31m";
+        final String GREEN = "\u001B[32m";
+        final String YELLOW = "\u001B[33m";
+        final String BLUE = "\u001B[34m";
+        final String DATA = "\u001B[30m\u001B[47m";
+        final String PURPLE = "\u001B[35m";
+        final String CYAN = "\u001B[36m";
+        final String WHITE = "\u001B[37m";
+        return BLUE + sz + WHITE;
+    }
+    public Pane setBorderColor(String szColor) {
+        this.bordercolor = szColor;
+        return this;
+    }
+    public String colorText(String sz, String color) {
+        this.bordercolor = color;
+        return color + sz + ANSI.WHITE;
+    }
     public Pane clear() {
+        this.clear(this.bordercolor);
+        return this;
+    }
+    public Pane clear(String ansiColor) {
         String dashes = new String(new char[w]).replace("\0", "-");
         String blanks = new String(new char[w]).replace("\0", " ");
         this.out.print(ANSI.RESET);
 
         // H.Log(dashes.replaceFirst( (new String(new char[title.length()])).replace("\0","-"), title));
         String mdashes = dashes.replaceFirst( (new String(new char[title.length()])).replace("\0","-"), title);
-        this.out.print("\033[" + (r-1) + ";" + c + "H" + "+ " + mdashes + " +");
+        this.out.print("\033[" + (r-1) + ";" + c + "H" + colorText("+ " + mdashes + " +", ansiColor));
         int rr = r;
         int cc = c;
         for (int i=0;i<this.lines;i++) {
-            this.out.print("\033[" + (rr) + ";" + (cc) + "H" + "| ");
+            this.out.print("\033[" + (rr) + ";" + (cc) + "H" + colorText("| ", ansiColor));
             //this.out.print("\033[K");
             this.out.print(blanks);
-            this.out.print("\033[" + (rr++) + ";" + (cc+w+3) + "H" + "|");
+            this.out.print("\033[" + (rr++) + ";" + (cc+w+3) + "H" + colorText("|", ansiColor));
         }
-        this.out.print("\033[" + (r+lines) + ";" + c + "H" + "+ " + dashes + " +");
+        this.out.print("\033[" + (r+lines) + ";" + c + "H" + colorText("+ " + dashes + " + ", ansiColor));
         return this;
     }
     public static void printf(String format, Object... args) {
@@ -256,10 +298,10 @@ public class Pane {
         cpos = c;
         int end = Math.min(n+(lines-1),buffer.size()-1);
         for (int i = n; i <= end; i++) {
-            this.out.print("\033[" + rpos + ";" + (cpos) + "H" + "| ");
+            this.out.print("\033[" + rpos + ";" + (cpos) + "H" + colorText("| ", this.bordercolor));
 //            this.out.print("\033[K");
             this.out.print(buffer.get(i));
-            this.out.print("\033[" + rpos + ";" + (cpos+w+3) + "H" + "|");
+            this.out.print("\033[" + rpos + ";" + (cpos+w+3) + "H" + colorText("|", this.bordercolor));
             rpos++;
             this.pos(COMMAND_ROW,COMMAND_COLUMN);
         }
@@ -313,7 +355,7 @@ public class Pane {
         for (int i = j; i <= s; i++) {
 //          H.assertion(  (i>=0),              "i >= 0"  );
 //          H.assertion(  (i<buffer.size()),   "i < buffer.size()", n + ""  );
-            this.out.print("\033[K\033[" +rpos+ ";" +cpos+ "H| " +buffer.get(i)+ "\033[" +rpos+ ";" +(cpos+w+3)+ "H|");
+            this.out.print("\033[K\033[" +rpos+ ";" +cpos+ "H" + colorText("| ",bordercolor) +buffer.get(i)+ "\033[" +rpos+ ";" +(cpos+w+3)+ "H" + colorText("|",bordercolor));
             rpos++;
             this.pos(COMMAND_ROW,COMMAND_COLUMN);
         }
@@ -364,6 +406,15 @@ public class Pane {
         buffer.clear();
         return this;
     }
+    public static int nPrompt(String sz) {
+        int t = 0;
+        Scanner input = new Scanner(System.in);
+        Pane.pos(Pane.getCOMMAND_ROW(),Pane.getCOMMAND_COLUMN());
+        System.out.print(sz);
+        System.out.print("\033[K");
+        t = input.nextInt();
+        return t;
+    }
     public String prompt(String sz, String szDefault) {
         String t = "";
         Scanner input = new Scanner(System.in);
@@ -389,15 +440,15 @@ public class Pane {
              cpos = c;
          }
      }
-     public void pos(int r, int c) {
-         this.out.print("\033[" + r + ";" + c + "H");
+     public static void pos(int r, int c) {
+         Pane.out.print("\033[" + r + ";" + c + "H");
      }
 
 
      public static void main(String[] args) {
      System.out.print("\033[2J");
 
-            Pane p =  new Pane("THISONE", 16,  3,     1,    66);
+            Pane p =  new Pane("THISONE", 16,  3,     1,    66, ANSI.WHITE);
             int i = 0;
             for ( i=0;i<24;i++) {
                          p.put("Hello World " + i + "");

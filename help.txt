@@ -5,6 +5,7 @@
   /            Find
   H            Help
   IPL          Initial Program Load
+  COLOR        Initial Program Load
   I            List Instruction Set
   D            Move Down
   B            Move to Bottom
@@ -14,6 +15,7 @@
   RESET        Resets PC
   G            Run Program
   BREAK        Set/Clear Breakpoint
+  ROWS          Set Disopplay Rows
   LOG          Show Log Buffer
   M            Show Memory
   MM           Show Memory Monitor
