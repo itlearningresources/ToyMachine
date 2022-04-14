@@ -54,3 +54,7 @@
 //   0x64 string out 8b                     string out 8b                           
 //   0x65 int to ascii                      int to ascii                            
 //   0x66 mem int to ascii                  mem int to ascii                        
+//
+//   SystemsCalls
+//   0x70 system call                       system call                             
+//    0x1 system call                       system call                             

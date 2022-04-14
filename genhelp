@@ -1,8 +1,15 @@
-egrep HELP:: TOY.java |   
-sed 's/^.*HELP:: //'   |
-gawk -F, '
+egrep HELP:: TOY.java |   sed 's/^.*HELP:: //'   > /tmp/zed
+cat /tmp/zed | gawk -F, '
 {
-    printf("  %-12s %s\n",$1,$2);
-}
-' |
-cat | sort  -k2| tee help.txt
+    printf("\"| %-8s%-18s\"\n",$1,$2);
+} ' | sort > TMP/zed
+
+cd TMP
+rm -rf x*
+rm -rf help.txt
+split -l12 zed
+paste x* | sed 's/\t/+/g'  | sed 's/"//g' > help.txt
+cat help.txt
+cp help.txt ..
+cd ..
+

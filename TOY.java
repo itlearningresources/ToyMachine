@@ -32,7 +32,6 @@ public class TOY {
     static HW   HW;
     InstructionSet II = new InstructionSet();
     private int pc;                            // program counter
-    private int original_pc;                   // program counter
     private int memory_monitor;                // Memory monitor address
 
     final int ADRR = 0x01;
@@ -234,11 +233,11 @@ public class TOY {
         int[] reg = hw.getReg();
         int[] mem = hw.getMem();
         pc = programCounter;
-        original_pc = pc;
         if ( pc == -1 ) {
-            pc = mem[0x0000];
-            original_pc = pc;
+            TOY.ipl();
+            pc = TOY.HW.getPC();
         }
+        
 
         sb.append(String.format("%26s %6s %2s %2s  %4s\n","Instruction", "D", "S", "T", "ADDR"));
         //p1.put(String.format("%91s%s\n", "", "      PC   STK  0    1    2    3    4    5    6    7"));
@@ -511,7 +510,25 @@ public class TOY {
                 case 0x6D: II.add(op, "reserved", "reserved"); break;                            // reserved
                 case 0x6E: II.add(op, "reserved", "reserved"); break;                            // reserved
                 case 0x6F: II.add(op, "reserved", "reserved"); break;                            // reserved
-            }
+
+                // SUBSET:: SystemsCalls
+                //
+                case 0x70: II.add(op, "system call", "system call");
+                     switch (d) {
+                         case 0x1: II.add(op, "system call", "system call");
+                           idx=addr; 
+                           StringBuilder sb = new StringBuilder();
+                           while (mem[idx]!=0) {
+                               //iStdOut.print( String.valueOf((char) mem[idx]) );
+                               sb.append(String.valueOf((char) mem[idx]));
+                               idx++;
+                           }
+                           TOY.ScreenPane.put(sb.toString());
+                           break;
+                     }
+                     break;
+
+                }
 
             // stdout
             //  if ((addr == 255 && op == 9) || (reg[t] == 255 && op == 11))
@@ -569,9 +586,6 @@ public class TOY {
             TOY.MainPane.pos(Pane.getCOMMAND_ROW(),Pane.getCOMMAND_COLUMN());
             Finder f   = new Finder("^([/0-9A-Za-z]*)[ \t]*([0-9A-Za-z]*)");
             Finder f2   = new Finder("^([/])([0-9A-Za-z]*)");
-
-            TOY.MainPane.clear().showMemoryDecoded(0x0100);
-            TOY.MainPane.top();
             while (true) {
                 String sz = TOY.MainPane.prompt(">> ");
                 Pane.getMsgPane().putlight(sz);
@@ -627,11 +641,11 @@ public class TOY {
                         TOY.MainPane.clear().selectAndClearBuffer1().showMemoryDecoded(0x0100, dataRows * 2);
                         TOY.MainPane.top();
                     }
-                    if (name.equals("ROWS")) {        // HELP:: ROWS, Set Disopplay Rows
+                    if (name.equals("ROWS")) {        // HELP:: ROWS,Set Display Rows
                         int n = Pane.nPrompt(">Enter number of rows to display > ");
                         TOY.setDataRows(n);
                     }
-                    if (name.equals("MPC")) {        // HELP:: MRO,Show Register 0 Indirect Memory
+                    if (name.equals("MPC")) {        // HELP:: MRO,Show R0 Indirect Memory
                         TOY.InteractivePane.put("MPC: Display memory contents of mem[PC] " + pc);
                         TOY.InteractivePane.selectBuffer1();
                         TOY.InteractivePane.clear().selectAndClearBuffer1();
@@ -650,10 +664,11 @@ public class TOY {
                          }
                     }
                     if (name.equals("STATUS")) {      // HELP:: STATUS,Show Status
-                        for ( int i=1;i<5;i++) TOY.InteractivePane.put( i + " " + ((TOY.MainPane.getBuffer(i).size() == 0) ? "NULL" : "NOT NULL"));
-                        for ( int i=1;i<5;i++) TOY.InteractivePane.put( i + " " + ((TOY.StatePane.getBuffer(i).size() == 0) ? "NULL" : "NOT NULL"));
-                        for ( int i=1;i<5;i++) TOY.InteractivePane.put( i + " " + ((TOY.InteractivePane.getBuffer(i).size() == 0) ? "NULL" : "NOT NULL"));
-                        for ( int i=1;i<5;i++) TOY.InteractivePane.put( i + " " + ((TOY.StatusAndMessages.getBuffer(i).size() == 0) ? "NULL" : "NOT NULL"));
+//                      for ( int i=1;i<5;i++) TOY.InteractivePane.put( i + " " + ((TOY.MainPane.getBuffer(i).size() == 0) ? "NULL" : "NOT NULL"));
+//                      for ( int i=1;i<5;i++) TOY.InteractivePane.put( i + " " + ((TOY.StatePane.getBuffer(i).size() == 0) ? "NULL" : "NOT NULL"));
+//                      for ( int i=1;i<5;i++) TOY.InteractivePane.put( i + " " + ((TOY.InteractivePane.getBuffer(i).size() == 0) ? "NULL" : "NOT NULL"));
+//                      for ( int i=1;i<5;i++) TOY.InteractivePane.put( i + " " + ((TOY.StatusAndMessages.getBuffer(i).size() == 0) ? "NULL" : "NOT NULL"));
+                        TOY.InteractivePane.put( "" +TOY.HW.getPC());
                     }
                     if (name.equals("T")) {      // HELP:: T,Move to Top
                         TOY.MainPane.top();
@@ -691,12 +706,6 @@ public class TOY {
                         TOY.MainPane.selectBuffer5().clear().refresh(0).selectBuffer1();
                     }
 
-                    if (H.xmatch(name,"RESET","RES")) {      // HELP:: RESET,Resets PC
-                        TOY.MainPane.put("RESET");
-                        hw.initRegs();
-                        pc = original_pc;
-                        TOY.StatePane.state();
-                    }
                     if (H.xmatch(name,"BREAK","BRK")) {      // HELP:: BREAK,Set/Clear Breakpoint
                         TOY.MainPane.put("BREAK");
                         int bp = H.fromHex( TOY.MainPane.prompt(">break > ") );
@@ -705,12 +714,7 @@ public class TOY {
                         TOY.StatePane.state();
                     }
                     if (name.equals("IPL")) {               // HELP:: IPL,Initial Program Load
-                        pc = hw.getMem()[0x0000];
-                        original_pc = pc;
-                        TOY.HW.initRegs().initStk();
-                        TOY.StatePane.state();
-                        TOY.MainPane.clear().selectAndClearBuffer1().showMemoryDecoded(pc).top();
-                        TOY.InteractivePane.clearPaneAndBuffer1().put("IPL:  PC set to the contents of mem[0x0000]").memory(0x0000, 0x01).paint();
+                        TOY.ipl();
                     }
                     if (name.equals("COLOR")) {               // HELP:: COLOR,Initial Program Load
                         TOY.StatePane.clear(ANSI.GREEN).paint();
@@ -724,7 +728,13 @@ public class TOY {
                 }
             }
     }
-
+    private static void ipl() {
+         TOY.HW.setPC(TOY.HW.getMem()[0x0000]);
+         TOY.HW.initRegs().initStk();
+         TOY.StatePane.state();
+         TOY.MainPane.clear().selectAndClearBuffer1().showMemoryDecoded(TOY.HW.getPC()).top();
+         TOY.InteractivePane.clearPaneAndBuffer1().put("IPL:  PC set to the contents of mem[0x0000]").memory(0x0000, 0x01).paint();
+    }
     // run the TOY simulator with specified file
     public static void main(String[] args) { 
 
@@ -748,7 +758,7 @@ public class TOY {
         Pane.setCOMMAND_ROW(46);
         Pane.setCOMMAND_COLUMN(1);
 
-        int pc = 0x0010;
+        int pc = 0x0000;
 
         TOY toy = new TOY(filename, pc);
         MainPane.loadPaneBuffer(filename,             MainPane.getBuffer2() );
@@ -756,6 +766,7 @@ public class TOY {
         MainPane.loadPaneBuffer("help.txt",           MainPane.getBufferHelp() );
 
         try {
+            TOY.ipl();
             StatusAndMessages.putlight("READY TO RUN!!!");
             toy.run(-1, "READY");     // IPLs and returns, does not execute instructions
             TOY.StatePane.state();

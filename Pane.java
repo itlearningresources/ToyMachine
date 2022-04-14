@@ -181,18 +181,6 @@ public class Pane {
             }
             this.buffer = temp;
     };
-    public static String colorBlue(String sz) {
-        final String BLACK = "\u001B[30m";
-        final String RED = "\u001B[31m";
-        final String GREEN = "\u001B[32m";
-        final String YELLOW = "\u001B[33m";
-        final String BLUE = "\u001B[34m";
-        final String DATA = "\u001B[30m\u001B[47m";
-        final String PURPLE = "\u001B[35m";
-        final String CYAN = "\u001B[36m";
-        final String WHITE = "\u001B[37m";
-        return BLUE + sz + WHITE;
-    }
     public Pane setBorderColor(String szColor) {
         this.bordercolor = szColor;
         return this;
@@ -608,7 +596,7 @@ public class Pane {
     public  void state() {
         String sz = "";
         this.reset();
-        int[] a = TOY.HW.getMem();
+        int[] a = TOY.HW.getReg();
         int pc = TOY.HW.getPC();
         int count = 8;
         this.put("PC : ", ANSI.RESET, H.toHex(pc));

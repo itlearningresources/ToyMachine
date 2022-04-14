@@ -30,6 +30,10 @@
     public int getPC() {
         return this.pc;
     }
+    public int setPC(int n) {
+        this.pc = n;
+        return this.pc;
+    }
     public int getIndexRegister() {
         return this.indexregister;
     }

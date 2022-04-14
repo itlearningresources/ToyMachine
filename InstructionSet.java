@@ -150,6 +150,7 @@ public static Decode decodeInstruction(int lowword, int highword) {
         case 0x6C: decode=new Decode(DF("reserved"),                                   "reserved", "reserved"); break;                            // reserved
         case 0x6D: decode=new Decode(DF("reserved"),                                   "reserved", "reserved"); break;                            // reserved
         case 0x6E: decode=new Decode(DF("reserved"),                                   "reserved", "reserved"); break;                            // reserved
+        case 0x70: decode=new Decode(DF("system call %s @ 0x%s", d.D, d.W),            "reserved", "reserved"); break;                            // reserved
         default:   decode=new Decode(DF("undefined instruction"),                      "undefined instruction", "undefined instruction"); break; // reserved
     }
     decode.setOpCode(d.opCode);

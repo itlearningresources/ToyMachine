@@ -1,28 +1,12 @@
-  CLEAR        Clear Trace Window
-  DECODE       Decode Memory
-  E            Edit Memory <Address>
-  F            Find
-  /            Find
-  H            Help
-  IPL          Initial Program Load
-  COLOR        Initial Program Load
-  I            List Instruction Set
-  D            Move Down
-  B            Move to Bottom
-  T            Move to Top
-  U            Move Up
-  Q            Quit
-  RESET        Resets PC
-  G            Run Program
-  BREAK        Set/Clear Breakpoint
-  ROWS          Set Disopplay Rows
-  LOG          Show Log Buffer
-  M            Show Memory
-  MM           Show Memory Monitor
-  P            Show Program as read in
-  R            Show Program Trace
-  MRO          Show Register 0 Indirect Memory
-  STATUS       Show Status
-  S            Single Step
-  MONITOR      Track Memory
-  V            View Memory
+| B       Move to Bottom    +| IPL     Initial Program Load+| T       Move to Top       
+| BREAK   Set/Clear Breakpoint+| LOG     Show Log Buffer   +| U       Move Up           
+| CLEAR   Clear Trace Window+| MM      Show Memory Monitor+| V       View Memory       
+| COLOR   Initial Program Load+| MONITOR Track Memory      +
+| DECODE  Decode Memory     +| MRO     Show R0 Indirect Memory+
+| D       Move Down         +| M       Show Memory       +
+| E       Edit Memory <Address>+| P       Show Program as read in+
+| F       Find              +| Q       Quit              +
+| /       Find              +| ROWS    Set Display Rows  +
+| G       Run Program       +| R       Show Program Trace+
+| H       Help              +| S       Single Step       +
+| I       List Instruction Set+| STATUS  Show Status       +
