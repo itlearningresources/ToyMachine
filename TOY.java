@@ -592,17 +592,13 @@ public class TOY {
                 if (f.matches(sz)) {
                     String name = f.get1().toString().toUpperCase();
 
-                    if (H.xmatch(name,"I","ISET")) {  // HELP:: I,List Instruction Set
-                        TOY.MainPane.clear().selectBuffer4().refresh(0);
+                    if (H.xmatch(name, "H","HELP","HEL")) {      // HELP:: H,Help
+                        TOY.MainPane.clear().bufferHelp(0);
+                    }
+                    if (name.equals("IPL")) {               // HELP:: IPL,Initial Program Load
+                        TOY.ipl();
                     }
 
-                    if (name.equals("MM")) {  // HELP:: MM,Show Memory Monitor
-                        TOY.InteractivePane.selectAndClearBuffer1().showHex(this.hw.getMem(), this.memory_monitor);
-                        TOY.StatePane.state();
-                    }
-                    if (H.xmatch(name,"V")) {  // HELP:: V,View Memory
-                        TOY.InteractivePane.selectAndClearBuffer1().showHex2(this.hw.getMem(), 0x0000);
-                    }
                     if (H.xmatch(name,"S","SS","STEP","STE")) {  // HELP:: S,Single Step
                         try {
                             // TOY.MainPane.buffer1().clear();
@@ -631,14 +627,60 @@ public class TOY {
                              System.exit(1);
                         }
                     }
+
+                    if (H.xmatch(name,"BREAK","BRK")) {      // HELP:: BREAK,Set/Clear Breakpoint
+                        TOY.MainPane.put("BREAK");
+                        int bp = H.fromHex( TOY.MainPane.prompt(">break > ") );
+                        hw.getBrk()[bp] = !(hw.getBrk()[bp]);
+                        TOY.StatePane.clear();
+                        TOY.StatePane.state();
+                    }
+                    if (name.equals("COLOR")) {               // HELP:: COLOR,Initial Program Load
+                        TOY.StatePane.clear(ANSI.GREEN).paint();
+                    }
+                    if (H.xmatch(name,"CLEAR", "CLR", "C")) {  // HELP:: CLEAR,Clear Trace Window
+                        TOY.InteractivePane.clear().selectAndClearBuffer3();
+                    }
+                    if (H.xmatch(name,"Q","QUI","QUIT","EXIT","EXI")) {      // HELP:: Q,Quit
+                        System.exit(1);
+                    }
+                    if (name.equals("T")) {      // HELP:: T,Move to Top
+                        TOY.MainPane.top();
+                    }
+                    if (name.equals("B")) {      // HELP:: B,Move to Bottom
+                        TOY.MainPane.bottom();
+                    }
+                    if (H.xmatch(name,"U")) {      // HELP:: U,Move Up
+                        TOY.MainPane.up();
+                    }
+                    if (name.equals("D")) {      // HELP:: D,Move Down
+                        TOY.MainPane.down();
+                    }
+                    if (name.equals("F")) {      // HELP:: F,Find
+                        TOY.MainPane.find(f.get2());
+                    }
+                    if (name.equals("/")) {      // HELP:: /,Find
+                        TOY.MainPane.find(f.get2());
+                    }
+
+                    if (H.xmatch(name,"LOG")) {      // HELP:: LOG,Show Log Buffer
+                        TOY.MainPane.selectBuffer5().clear().refresh(0).selectBuffer1();
+                    }
+                    if (name.equals("MM")) {  // HELP:: MM,Show Memory Monitor
+                        TOY.InteractivePane.selectAndClearBuffer1().showHex(this.hw.getMem(), this.memory_monitor);
+                        TOY.StatePane.state();
+                    }
+                    if (H.xmatch(name,"V")) {  // HELP:: V,View Memory
+                        TOY.InteractivePane.selectAndClearBuffer1().showHex2(this.hw.getMem(), 0x0000);
+                    }
                     if (name.equals("R")) {  // HELP:: R,Show Program Trace
                         TOY.MainPane.clear().selectBuffer1().refresh(0);
                     }
                     if (name.equals("P")) {  // HELP:: P,Show Program as read in
                         TOY.MainPane.clear().selectBuffer2().refresh(0);
                     }
-                    if (name.equals("DECODE")) {  // HELP:: DECODE,Decode Memory
-                        TOY.MainPane.clear().selectAndClearBuffer1().showMemoryDecoded(0x0100, dataRows * 2);
+                    if (H.xmatch(name, "DECODE", "D")) {  // HELP:: DECODE,Decode Memory
+                        TOY.MainPane.clear().selectAndClearBuffer1().showMemoryDecoded(TOY.HW.getPC(), dataRows * 2);
                         TOY.MainPane.top();
                     }
                     if (name.equals("ROWS")) {        // HELP:: ROWS,Set Display Rows
@@ -670,24 +712,6 @@ public class TOY {
 //                      for ( int i=1;i<5;i++) TOY.InteractivePane.put( i + " " + ((TOY.StatusAndMessages.getBuffer(i).size() == 0) ? "NULL" : "NOT NULL"));
                         TOY.InteractivePane.put( "" +TOY.HW.getPC());
                     }
-                    if (name.equals("T")) {      // HELP:: T,Move to Top
-                        TOY.MainPane.top();
-                    }
-                    if (name.equals("B")) {      // HELP:: B,Move to Bottom
-                        TOY.MainPane.bottom();
-                    }
-                    if (H.xmatch(name,"U")) {      // HELP:: U,Move Up
-                        TOY.MainPane.up();
-                    }
-                    if (name.equals("D")) {      // HELP:: D,Move Down
-                        TOY.MainPane.down();
-                    }
-                    if (name.equals("F")) {      // HELP:: F,Find
-                        TOY.MainPane.find(f.get2());
-                    }
-                    if (name.equals("/")) {      // HELP:: /,Find
-                        TOY.MainPane.find(f.get2());
-                    }
                     if (H.xmatch(name,"MONITOR","MON")) {      // HELP:: MONITOR,Track Memory
                         int[] mem = hw.getMem();
                         this.memory_monitor = H.fromHex( TOY.MainPane.prompt(">monitor address (" + f.get2() + ")> ", H.toHex(this.memory_monitor)));
@@ -697,33 +721,6 @@ public class TOY {
                     if (H.xmatch(name,"E", "EDIT","EDI")) {      // HELP:: E,Edit Memory <Address>
                         int[] x = hw.getMem();
                         x[H.fromHex(f.get2())] = H.fromHex( TOY.MainPane.prompt(">edit (" + f.get2() + ")> ") );
-                    }
-                    if (H.xmatch(name, "H","HELP","HEL")) {      // HELP:: H,Help
-                        TOY.MainPane.clear().bufferHelp(0);
-                    }
-
-                    if (H.xmatch(name,"LOG")) {      // HELP:: LOG,Show Log Buffer
-                        TOY.MainPane.selectBuffer5().clear().refresh(0).selectBuffer1();
-                    }
-
-                    if (H.xmatch(name,"BREAK","BRK")) {      // HELP:: BREAK,Set/Clear Breakpoint
-                        TOY.MainPane.put("BREAK");
-                        int bp = H.fromHex( TOY.MainPane.prompt(">break > ") );
-                        hw.getBrk()[bp] = !(hw.getBrk()[bp]);
-                        TOY.StatePane.clear();
-                        TOY.StatePane.state();
-                    }
-                    if (name.equals("IPL")) {               // HELP:: IPL,Initial Program Load
-                        TOY.ipl();
-                    }
-                    if (name.equals("COLOR")) {               // HELP:: COLOR,Initial Program Load
-                        TOY.StatePane.clear(ANSI.GREEN).paint();
-                    }
-                    if (H.xmatch(name,"CLEAR", "CLR", "C")) {  // HELP:: CLEAR,Clear Trace Window
-                        TOY.InteractivePane.clear().selectAndClearBuffer3();
-                    }
-                    if (H.xmatch(name,"Q","QUI","QUIT","EXIT","EXI")) {      // HELP:: Q,Quit
-                        System.exit(1);
                     }
                 }
             }

@@ -1,15 +1,23 @@
-egrep HELP:: TOY.java |   sed 's/^.*HELP:: //'   > /tmp/zed
-cat /tmp/zed | gawk -F, '
-{
-    printf("\"| %-8s%-18s\"\n",$1,$2);
-} ' | sort > TMP/zed
+#!/usr/bin/bash
+Tmp="/tmp/$$"
+Tmp2="/tmp/$$_$$"
+trap 'rm -f "$Tmp" >/dev/null 2>&1' 0
+trap "exit 2" 1 2 3 13 15
+rm -f "$Tmp" >/dev/null 2>&1
 
+
+egrep HELP:: TOY.java |   sed 's/^.*HELP:: //'   > $Tmp
+
+cat $Tmp | gawk -F, ' {
+    printf("\"%-8s%-24s\"\n",$1,$2);
+} ' > $Tmp2
+
+L=`wc -l $Tmp2 | gawk '{print int(($1/2)+1)}'`
+cp $Tmp2 TMP
 cd TMP
 rm -rf x*
-rm -rf help.txt
-split -l12 zed
-paste x* | sed 's/\t/+/g'  | sed 's/"//g' > help.txt
-cat help.txt
-cp help.txt ..
+split -l $L $Tmp2
+paste xaa xab | sed 's/"//g' > ../help.txt
 cd ..
-
+cat instructionset.txt >> help.txt
+cat help.txt
