@@ -7,19 +7,19 @@
     final int ADRR = 0x01;
     // private Registers R = new Registers(reg);
 
-    private final int REGSIZE = 0x0010;          // stack size in memory locations
-    private int[] reg   = new int[REGSIZE];      // 16 registers
+    private final int REGSIZE = 0x0010;          // Number of registers
+    private int[] reg   = new int[REGSIZE];      //
     public HW initRegs() {
         for(int i=0;i<REGSIZE;i++) reg[i] = 0;
         return this;
     }
-    private final int MEMSIZE = 0xFFFF;                     // stack size in memory locations
+    private final int MEMSIZE = 0xFFFF;                     // memory size
     private int[] mem        = new int[MEMSIZE];            // main memory locations
     private int[] memflags   = new int[MEMSIZE];            // main memory flags
     private String[] programlines   = new String[MEMSIZE];  // program lines (text) as read)
     private boolean[] breakpoint   = new boolean[MEMSIZE];  // breakpoint boolean
     
-    private final int STACKSIZE = 32;            // stack size in memory locations
+    private final int STACKSIZE = 32;            // stack size
     private int[] stk   = new int[STACKSIZE];    // stack memory locations
     public HW initStk() {
         for (int i=0;i<STACKSIZE;i++) stk[i] = 0;
@@ -27,6 +27,9 @@
         return this;
     }
 
+    public int getRegisterCount() {
+        return REGSIZE;
+    }
     public int getPC() {
         return this.pc;
     }

@@ -83,9 +83,14 @@ public class TOY {
         ****************************************************************/
         Finder empty_line      = new Finder("^[ \t]*$");
         Finder comment_line    = new Finder("^([#]|[/][/])");
+        Finder here_line       = new Finder("^([A-Z]+$)");
         Finder label_line      = new Finder("^(LAB)[ \t]*([0-9A-Za-z]{4})");
         Finder memory_line     = new Finder("^(MEM)[ \t]*([0-9A-Fa-f]{4})[ \t]*([#$][0-9A-Za-z]*)");
-        Finder dword_line      = new Finder("^([0-9A-Fa-f]{4})[ \t]*([0-9A-Fa-f]{4})");
+       
+        Finder dword_line      = new Finder("^([0-9A-Fa-f]{4})[ \t]*([0-9A-Fa-f]{4}$)");
+        Finder dwordlabel_line = new Finder("^([0-9A-Fa-f]{4})[ \t]*([0-9A-Fa-f]{4})[ \t]([A-Z]+$)");
+
+        Finder wordlabel_line  = new Finder("^([0-9A-Fa-f]{4})[ \t]*([A-Z]+)");
         Finder wordandpage_line= new Finder("^([0-9A-Fa-f]{4})[ \t]*(P[0-9]{1})");
         Finder word_line       = new Finder("^([0-9A-Fa-f]{4}$)");
 
@@ -107,6 +112,16 @@ public class TOY {
 
             programAsRead.append(line + "\n");
 
+            if (wordlabel_line.matches(line)) {
+                H.Log("WORD LABEL LINE");
+                mem[loadptr] = H.fromHex(wordlabel_line.get(1));
+                programlines[loadptr] = line;
+                loadptr++;
+                H.Log("GET: " + H.toHex(label.get(wordlabel_line.get(2))));
+                mem[loadptr] =  label.get(wordlabel_line.get(2));
+                loadptr++;
+                continue;
+            }
             if (pagesize_line.matches(line)) {
                 PAGESIZE = H.fromHex(pagesize_line.get(2));
                 continue;
@@ -132,6 +147,15 @@ public class TOY {
                 loadptr++;
                 continue;
             }
+            if (dwordlabel_line.matches(line)) {
+                label.put(dwordlabel_line.get(3), loadptr);
+                mem[loadptr] = H.fromHex(dwordlabel_line.get(1));
+                programlines[loadptr] = line;
+                loadptr++;
+                mem[loadptr] = H.fromHex(dwordlabel_line.get(2));
+                loadptr++;
+                continue;
+            }
             if (dword_line.matches(line)) {
                 mem[loadptr] = H.fromHex(dword_line.get(1));
                 programlines[loadptr] = line;
@@ -141,6 +165,13 @@ public class TOY {
                 continue;
             }
 
+            if (here_line.matches(line)) {
+                label.put(here_line.get(1), loadptr);
+                H.Log(line);
+                H.Log("name:  " + here_line.get(1));
+                H.Log("value: " + H.toHex(loadptr));
+                continue;
+            }
             if (label_line.matches(line)) {
                 label.put(label_line.get(2), loadptr);
                 continue;
@@ -192,7 +223,6 @@ public class TOY {
             }
             // READ Assembly Line version 3
             if (assembly_line3.matches(line)) {
-                H.LogFlag(InstructionSet.assemblyHex(assembly_line3.get(1), assembly_line3.get(2)));
                 mem[loadptr] = InstructionSet.assembly(assembly_line3.get(1), "00");
                 programlines[loadptr] = line;
                 loadptr++;
@@ -591,7 +621,7 @@ public class TOY {
                 Pane.getMsgPane().putlight(sz);
                 if (f.matches(sz)) {
                     String name = f.get1().toString().toUpperCase();
-
+                    H.Log(name);
                     if (H.xmatch(name, "H","HELP","HEL")) {      // HELP:: H,Help
                         TOY.MainPane.clear().bufferHelp(0);
                     }
@@ -747,7 +777,7 @@ public class TOY {
         MainPane = ProgramAndMemoryPane;
         ScreenPane           = new Pane("Screen I/O", 24,  5,              MainPane.gapcolumn(),  43, ANSI.YELLOW);
         //StatePane          = new Pane("State", 39,  5,                   MainPane.gapcolumn(),  10, ANSI.GREEN);
-        StatePane            = new Pane("State", 39,  5,                   155,  10, ANSI.RED);
+        StatePane            = new Pane("State", 39,  5,                   155,  15, ANSI.RED);
         InteractivePane      = new Pane("Interactive", 12,                 MainPane.gaplap(),   1, 148, ANSI.BLUE);
         StatusAndMessages    = new Pane("Status and Messages",1,48,1,148, ANSI.PURPLE);
         Pane.setMsgPane(StatusAndMessages);

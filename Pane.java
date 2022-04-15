@@ -580,9 +580,9 @@ public class Pane {
             sb.append(H.toHex(a[i+1]));
             sb.append(" ");
             sb.append(H.LPad32(d.toString()));
-            sb.append(" ");
+            sb.append("      ");
+            sb.append(H.toHex(i) + ": ");
             sb.append(H.LPad32(TOY.HW.getProgramLines()[i]));
-            H.Log(d.toString());
             this.put(sb.toString());
             sb.delete(0, sb.length());
             i++;
@@ -598,22 +598,24 @@ public class Pane {
         this.reset();
         int[] a = TOY.HW.getReg();
         int pc = TOY.HW.getPC();
-        int count = 8;
-        this.put("PC : ", ANSI.RESET, H.toHex(pc));
+        int count = TOY.HW.getRegisterCount();
+        this.put("PC: ", ANSI.RESET, H.toHex(pc));
         this.put("");
-        for (int i = 0; i < count; i++) {
+        this.put("R0 ALWYS 0x0000");
+        this.put("");
+        for (int i = 1; i < count; i++) {
             sz = (a[i] == 0) ? ANSI.RESET + H.toHex(a[i]) : ANSI.DATA + H.toHex(a[i]) + ANSI.RESET;
-            this.putf("%s%s%s%s","R", H.toHexShort(i), ": ", sz);
+            this.putf("%s%s%s%s","R", H.toHexNibble(i), ": ", sz);
         }
         this.put("");
-        this.put("SP : ", TOY.HW.getStkPtrHex());
+        this.put("SP: ", TOY.HW.getStkPtrHex());
         for (int i = 0; i < count; i++) {
             sz = (TOY.HW.stkGet(i) == 0) ? ANSI.RESET + TOY.HW.stkGetHex(i) : ANSI.DATA + TOY.HW.stkGetHex(i) + ANSI.RESET;
-            this.put(H.toHex2D(i), " : ", sz);
+            this.put(H.toHex2D(i), ": ", sz);
         }
         this.put("");
         // this.put("MM : ", H.toHex(memory_monitor));
-        this.put("IR : ", H.toHex(TOY.HW.getIndexRegister()));
+        this.put("IR: ", H.toHex(TOY.HW.getIndexRegister()));
         for (int i =0;i<TOY.HW.getBrk().length;i++) if (TOY.HW.getBrk()[i]) this.put("BP ",H.toHex(i));
     }
 
