@@ -18,7 +18,6 @@ import java.util.Map;
 import java.util.HashMap;
 public class TOY { 
     static HashMap<String, Integer> label = new HashMap<String, Integer>();
-    static HashMap<String, Integer> pages = new HashMap<String, Integer>();
     static  StringBuffer programAsRead = new StringBuffer(1024);
     static  StringBuffer sb = new StringBuffer(120);
     static  String currentFilename = "";
@@ -81,9 +80,8 @@ public class TOY {
         this.singleton=this;
 
         label.clear();
-        pages.clear();
-        TOY.HW.forwardReferences(new In(TOY.currentFilename), loadptr, TOY.label, TOY.pages);
-        TOY.HW.loadMemoryWithProgram(new In(TOY.currentFilename), loadptr, TOY.programAsRead, TOY.label, TOY.pages);
+        TOY.HW.forwardReferences(new In(TOY.currentFilename), loadptr, TOY.label);
+        TOY.HW.loadMemoryWithProgram(new In(TOY.currentFilename), loadptr, TOY.programAsRead, TOY.label);
 
     }
 
@@ -562,7 +560,7 @@ public class TOY {
                         try {
                             TOY.MainPane.clear().selectAndClearBuffer1();
                             TOY.InteractivePane.clear().selectAndClearBuffer1();
-                            TOY.HW.loadMemoryWithProgram(new In(TOY.currentFilename), 0x0100, TOY.programAsRead, TOY.label, TOY.pages);
+                            TOY.HW.loadMemoryWithProgram(new In(TOY.currentFilename), 0x0100, TOY.programAsRead, TOY.label);
                             TOY.ipl();
                             TOY.getSingleton().run(-1, "READY");          // IPLs and returns, does not execute instructions
                             TOY.StatePane.state();
@@ -601,6 +599,15 @@ public class TOY {
 //                      for ( int i=1;i<5;i++) TOY.InteractivePane.put( i + " " + ((TOY.InteractivePane.getBuffer(i).size() == 0) ? "NULL" : "NOT NULL"));
 //                      for ( int i=1;i<5;i++) TOY.InteractivePane.put( i + " " + ((TOY.StatusAndMessages.getBuffer(i).size() == 0) ? "NULL" : "NOT NULL"));
                         TOY.InteractivePane.put( "" +TOY.HW.getPC());
+                        TOY.InteractivePane.put( label.toString());
+//                      Map<String, Integer> map = new HashMap<String, Integer>();
+                        Map<String, Integer> map = TOY.label;
+
+                        for (String key: map.keySet()) {
+                            TOY.InteractivePane.put(H.LPad32(key)  + " " + "value : " + H.toHex(map.get(key)));
+                        }
+
+
                     }
                     if (H.xmatch(name,"MONITOR","MON")) {      // HELP:: MONITOR,Track Memory
                         int[] mem = hw.getMem();
