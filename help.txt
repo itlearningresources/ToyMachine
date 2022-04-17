@@ -4,13 +4,13 @@ S       Single Step             	V       View Memory
 G       Run Program             	R       Show Program Trace      
 BREAK   Set/Clear Breakpoint    	P       Show Program as read in 
 COLOR   Initial Program Load    	DECODE  Decode Memory           
-CLEAR   Clear Trace Window      	ROWS    Set Display Rows        
-Q       Quit                    	MRO     Show R0 Indirect Memory 
-T       Move to Top             	M       Show Memory             
-B       Move to Bottom          	STATUS  Show Status             
-U       Move Up                 	MONITOR Track Memory            
-D       Move Down               	E       Edit Memory <Address>   
-F       Find                    	
+CLEAR   Clear Trace Window      	RELOAD  Reload Current File     
+Q       Quit                    	ROWS    Set Display Rows        
+T       Move to Top             	MRO     Show R0 Indirect Memory 
+B       Move to Bottom          	M       Show Memory             
+U       Move Up                 	STATUS  Show Status             
+D       Move Down               	MONITOR Track Memory            
+F       Find                    	E       Edit Memory <Address>   
 /       Find                    	
 //
 //   Halt
@@ -69,6 +69,5 @@ F       Find
 //   0x65 int to ascii                      int to ascii                            
 //   0x66 mem int to ascii                  mem int to ascii                        
 //
-//   SystemsCalls
+//   Systems Calls
 //   0x70 system call                       system call                             
-//    0x1 system call                       system call                             
