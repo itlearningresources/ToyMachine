@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 
 public final class H {
     final static String BAR = " | ";
-
+    private static String loggingPrefix = "";
 
     public static void Log(int n) {
         Log(String.valueOf(n));
@@ -34,12 +34,22 @@ public final class H {
     public static void LogFlag(String sz) { Log("*** " + sz); }
     public static void FlagLog(String sz) { Log("*** " + sz); }
 
+    public static void setLoggingPrefix(String sz) {
+        loggingPrefix = sz;
+    }
+    public static void Log(String sz1, String sz2) {
+        Log(sz1 + ": " + sz2);
+    }
+    public static void Log(String sz1, int n) {
+        Log(sz1 + ": " + n);
+    }
+
     public static void Log(String sz) {
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");  
         LocalDateTime now = LocalDateTime.now();  
         try {
           FileWriter myWriter = new FileWriter("/tmp/applog",true);
-          myWriter.write(dtf.format(now) + " " + sz + "\n");
+          myWriter.write(dtf.format(now) + " " + loggingPrefix + "  " + sz + "\n");
           myWriter.close();
         } catch (IOException e) {
           System.out.println("An error occurred.");

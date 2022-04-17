@@ -55,6 +55,8 @@ public static int assembly(String mnemonic, String operand) {
         case "LIR":  n=0x17; break;  // Load index register
 
         case "JMP":  n=0x20; break;  // Jump to address in word
+        case "NOP":  n=0x50; break;  // No Operation
+        case "SYS":  n=0x70; break;  // System Call
         default:     System.out.println("\n\nABEND: Bad Assembly Mnemonic\n\n"); System.exit(1); break;
     }
     n = n << 8;

@@ -1,5 +1,7 @@
- 
- public class HW {
+import java.util.Map;
+import java.util.HashMap;
+
+public class HW {
  
     private int pc;                             // program counter
     private int indexregister;                  // index register
@@ -25,6 +27,238 @@
         for (int i=0;i<STACKSIZE;i++) stk[i] = 0;
         stkptr = 0;
         return this;
+    }
+
+    public void forwardReferences(In in, int loadptr, HashMap<String, Integer> label, HashMap<String, Integer> pages) {
+        Finder empty_line      = new Finder("^[ \t]*$");
+        Finder comment_line    = new Finder("^([#]|[/][/])");
+        H.setLoggingPrefix("FORWARD REFERENCE");
+        // Potential Forward References
+        Finder memory_line     = new Finder("^(MEM)[ \t]*([0-9A-Fa-f]{4})[ \t]*([0-9A-Za-z]*)");
+        Finder here_line       = new Finder("^([A-Z]+$)");
+        Finder dwordlabel_line = new Finder("^([0-9A-Fa-f]{4})[ \t]*([0-9A-Fa-f]{4})[ \t]([A-Z]+$)");
+        Finder pragma_line     = new Finder("^(PRAGMA)[ \t](STRING|MEMORY)[ \t]*([0-9A-Za-z]+)");
+        while (in.hasNextLine()) {
+            String line = in.readLine();
+            if (empty_line.matches(line)) continue;
+            if (comment_line.matches(line)) continue;
+            if (dwordlabel_line.matches(line)) {
+                HW.putHM(label,dwordlabel_line.get(3), loadptr);
+                loadptr++;
+                loadptr++;
+                continue;
+            }
+            if (here_line.matches(line)) {
+                label.put(here_line.get(1), loadptr);
+                continue;
+            }
+            if (memory_line.matches(line)) {
+                loadptr = H.fromHex(memory_line.get(2));
+                HW.putHM(label,memory_line.get(3), loadptr);
+                continue;
+            }
+            if (pragma_line.matches(line)) {
+                if (pragma_line.get(2).equals("STRING")) {
+                    for (int i=0;i<pragma_line.get(3).length();i++) loadptr++;
+                }
+                if (pragma_line.get(2).equals("MEMORY")) {
+                    loadptr=H.fromHex(pragma_line.get(3));
+                }
+                continue;
+            }
+                loadptr++;
+                loadptr++;
+        }
+        H.setLoggingPrefix("");
+    }
+
+
+    private static void putHM(HashMap<String, Integer> hm, String name, int value) {
+                hm.put(name,value);
+    }
+
+    public void loadMemoryWithProgram(In in, int loadptr, StringBuffer programAsRead,
+    HashMap<String, Integer> label,
+    HashMap<String, Integer> pages
+    ) {
+        int PAGESIZE = 64;
+        programAsRead.delete(0, programAsRead.length());
+
+       /****************************************************************
+        *  Read Program File
+        *  Read in memory location and instruction.         
+        ****************************************************************/
+        Finder empty_line      = new Finder("^[ \t]*$");
+        Finder comment_line    = new Finder("^([#]|[/][/])");
+        Finder here_line       = new Finder("^([A-Z]+$)");
+        Finder label_line      = new Finder("^(LAB)[ \t]*([0-9A-Za-z]{4})");
+        Finder memory_line     = new Finder("^(MEM)[ \t]*([0-9A-Fa-f]{4})[ \t]*([0-9A-Za-z]*)");
+       
+        Finder dword_line      = new Finder("^([0-9A-Fa-f]{4})[ \t]*([0-9A-Fa-f]{4}$)");
+        Finder dwordlabel_line = new Finder("^([0-9A-Fa-f]{4})[ \t]*([0-9A-Fa-f]{4})[ \t]([A-Z]+$)");
+
+        Finder wordlabel_line  = new Finder("^([0-9A-Fa-f]{4})[ \t]*([A-Z]+)");
+        Finder wordandpage_line= new Finder("^([0-9A-Fa-f]{4})[ \t]*(P[0-9]{1})");
+        Finder word_line       = new Finder("^([0-9A-Fa-f]{4}$)");
+
+        Finder pragma_line     = new Finder("^(PRAGMA)[ \t](STRING|MEMORY)[ \t]*([0-9A-Za-z]+)");
+        Finder page_line       = new Finder("^(PAGE)[ \t]*([0-9A-Fa-f]{2})[ \t]*([#$][0-9A-Za-z]*)");
+        Finder pword_line      = new Finder("^(P[0-9]{2})");
+        Finder pagesize_line   = new Finder("^(PAGESIZE)[ \t]*([0-9]*)");
+
+        Finder assembly_line   = new Finder("^([A-Z]{3})[ \t]+([0-9A-Fa-f]{2})[ \t]+([0-9A-Fa-f]{4})");
+        Finder assembly_line2  = new Finder("^([A-Z]{3})([0-9A-Fa-f]{2})[ \t]*([0-9A-Fa-f]{4})");
+        Finder assembly_line3  = new Finder("^([A-Z]{3})[ \t]+([0-9A-Fa-f]{4})");
+        Finder halt_line       = new Finder("^(HALT)[ \t]+(0000)");
+
+        while (in.hasNextLine()) {
+            // String ltrim = src.replaceAll("^\\s+", "");
+            // String rtrim = src.replaceAll("\\s+$", "")
+            String line = in.readLine().replaceAll("\\s+$", "").replaceAll("^\\s+", "");
+
+            if (empty_line.matches(line)) continue;
+            if (comment_line.matches(line)) continue;
+
+            programAsRead.append(line + "\n");
+
+            if (wordlabel_line.matches(line)) {
+                mem[loadptr] = H.fromHex(wordlabel_line.get(1));
+                programlines[loadptr] = line;
+                loadptr++;
+                mem[loadptr] =  label.get(wordlabel_line.get(2));
+                loadptr++;
+                continue;
+            }
+            if (pagesize_line.matches(line)) {
+                PAGESIZE = H.fromHex(pagesize_line.get(2));
+                continue;
+            }
+
+            if (pragma_line.matches(line)) {
+                if (pragma_line.get(2).equals("STRING")) {
+                    for (int i=0;i<pragma_line.get(3).length();i++) mem[loadptr++] = pragma_line.get(3).charAt(i);
+                }
+                if (pragma_line.get(2).equals("MEMORY")) {
+                    loadptr = H.fromHex(pragma_line.get(3));
+                    programlines[loadptr] = line;
+                    pages.put(pragma_line.get(4), loadptr);
+                    HW.putHM(label,pragma_line.get(4), loadptr);
+                }
+                continue;
+            }
+
+            if (pword_line.matches(line)) {
+                mem[loadptr] = H.fromHex(pword_line.get(1).substring(1)) * PAGESIZE;
+                programlines[loadptr] = line;
+                loadptr++;
+                continue;
+            }
+            if (wordandpage_line.matches(line)) {
+                mem[loadptr] = H.fromHex(wordandpage_line.get(1));
+                programlines[loadptr] = line;
+                loadptr++;
+                mem[loadptr] = H.fromHex(wordandpage_line.get(2).substring(1)) * PAGESIZE;
+                loadptr++;
+                continue;
+            }
+            if (dwordlabel_line.matches(line)) {
+                HW.putHM(label,dwordlabel_line.get(3), loadptr);
+                mem[loadptr] = H.fromHex(dwordlabel_line.get(1));
+                programlines[loadptr] = line;
+                loadptr++;
+                mem[loadptr] = H.fromHex(dwordlabel_line.get(2));
+                loadptr++;
+                continue;
+            }
+            if (dword_line.matches(line)) {
+                mem[loadptr] = H.fromHex(dword_line.get(1));
+                programlines[loadptr] = line;
+                loadptr++;
+                mem[loadptr] = H.fromHex(dword_line.get(2));
+                loadptr++;
+                continue;
+            }
+
+            if (here_line.matches(line)) {
+                label.put(here_line.get(1), loadptr);
+                continue;
+            }
+            if (label_line.matches(line)) {
+                label.put(label_line.get(2), loadptr);
+                continue;
+            }
+            if (page_line.matches(line)) {
+                loadptr = H.fromHex(page_line.get(2)) * PAGESIZE;
+                programlines[loadptr] = line;
+                label.put(page_line.get(3), loadptr);
+                pages.put(page_line.get(3), loadptr);
+                continue;
+            }
+            if (memory_line.matches(line)) {
+                loadptr = H.fromHex(memory_line.get(2));
+                programlines[loadptr] = line;
+                //label.put(memory_line.get(3), loadptr);
+                pages.put(memory_line.get(3), loadptr);
+                HW.putHM(label,memory_line.get(3), loadptr);
+                continue;
+            }
+            // READ Regular Two Word Machine Instruction
+            if (dword_line.matches(line)) {
+                mem[loadptr] = H.fromHex(dword_line.get(1));
+                programlines[loadptr] = line;
+                loadptr++;
+                mem[loadptr] = H.fromHex(dword_line.get(2));
+                loadptr++;
+                continue;
+            }
+            // READ Assembly Line version 1
+            if (assembly_line.matches(line)) {
+                // This re-expresses  (as an int) the lowword of the 2 word instruction pair
+                mem[loadptr] = InstructionSet.assembly(assembly_line.get(1), assembly_line.get(2));
+                programlines[loadptr] = line;
+                loadptr++;
+                mem[loadptr] = H.fromHex(assembly_line.get(3));
+                programlines[loadptr] = line;
+                loadptr++;
+                continue;
+            }
+            // READ Assembly Line version 2
+            if (assembly_line2.matches(line)) {
+                mem[loadptr] = InstructionSet.assembly(assembly_line2.get(1), assembly_line2.get(2));
+                programlines[loadptr] = line;
+                loadptr++;
+                mem[loadptr] = H.fromHex(assembly_line2.get(3));
+                programlines[loadptr] = line;
+                loadptr++;
+                continue;
+            }
+            // READ Assembly Line version 3
+            if (assembly_line3.matches(line)) {
+                mem[loadptr] = InstructionSet.assembly(assembly_line3.get(1), "00");
+                programlines[loadptr] = line;
+                loadptr++;
+                mem[loadptr] = H.fromHex(assembly_line3.get(2));
+                programlines[loadptr] = line;
+                loadptr++;
+                continue;
+            }
+            // READ HALT
+            if (halt_line.matches(line)) {
+                mem[loadptr] = 0;
+                programlines[loadptr] = line;
+                loadptr++;
+                mem[loadptr] = 0;
+                programlines[loadptr] = line;
+                loadptr++;
+                continue;
+            }
+            if (word_line.matches(line)) {
+                mem[loadptr] = H.fromHex(word_line.get(1));
+                loadptr++;
+                continue;
+            }
+
+        }
     }
 
     public int getRegisterCount() {

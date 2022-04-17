@@ -17,11 +17,11 @@ import java.util.regex.Matcher;
 import java.util.Map;
 import java.util.HashMap;
 public class TOY { 
-    static int PAGESIZE=62;
     static HashMap<String, Integer> label = new HashMap<String, Integer>();
     static HashMap<String, Integer> pages = new HashMap<String, Integer>();
     static  StringBuffer programAsRead = new StringBuffer(1024);
     static  StringBuffer sb = new StringBuffer(120);
+    static  String currentFilename = "";
     static  Instruction lastInstruction = null;
     static Pane ProgramAndMemoryPane;
     static Pane MainPane;
@@ -30,6 +30,7 @@ public class TOY {
     static Pane InteractivePane;
     static Pane StatusAndMessages;
     static HW   HW;
+    static TOY singleton;
     InstructionSet II = new InstructionSet();
     private int pc;                            // program counter
     private int memory_monitor;                // Memory monitor address
@@ -49,205 +50,40 @@ public class TOY {
     private static int dataRows = 16;
     public static void setDataRows(int n) { dataRows = (n>0) ? n : 16; }
     public static int getDataRows() { return dataRows; }
-
+    public final static TOY getSingleton() {
+        return singleton;
+    }
     // create a new TOY VM and load with program from specified file
     public TOY(String filename) {
-        this(filename, 0x10);
+        this(filename, 0x0100);
     }
 
     public TOY(String filename, int pc) {
-        final int PROGRAMMEMORY=16;
-        int loadptr=PROGRAMMEMORY;
-
-        this.pc = pc;
-        this.memory_monitor = 0x1000;
-        In in = new In(filename);
 
 
        /****************************************************************
         *  Create a Hardware Object
         ****************************************************************/
+        currentFilename = filename;
         hw = new HW();
         HW = hw;
         R = new Registers(hw.getReg());
-
         int[] mem = hw.getMem();
         for (int i=0;i<mem.length;i++) mem[i]=0;
-        mem[0x0000]=0x100;
         String[] programlines = hw.getProgramLines();
-        for (int i=0;i<programlines.length;i++) programlines[i]= new String("No Value Available");
+        for (int i=0;i<programlines.length;i++) programlines[i]= new String("Not part of program");
+        int loadptr=0x0100;         // default load program start point
+        mem[0x0000]=loadptr;        // typically this is changed in the 
+                                    // program.
 
-       /****************************************************************
-        *  Read Program File
-        *  Read in memory location and instruction.         
-        ****************************************************************/
-        Finder empty_line      = new Finder("^[ \t]*$");
-        Finder comment_line    = new Finder("^([#]|[/][/])");
-        Finder here_line       = new Finder("^([A-Z]+$)");
-        Finder label_line      = new Finder("^(LAB)[ \t]*([0-9A-Za-z]{4})");
-        Finder memory_line     = new Finder("^(MEM)[ \t]*([0-9A-Fa-f]{4})[ \t]*([#$][0-9A-Za-z]*)");
-       
-        Finder dword_line      = new Finder("^([0-9A-Fa-f]{4})[ \t]*([0-9A-Fa-f]{4}$)");
-        Finder dwordlabel_line = new Finder("^([0-9A-Fa-f]{4})[ \t]*([0-9A-Fa-f]{4})[ \t]([A-Z]+$)");
+        this.pc = pc;
+        this.memory_monitor = 0x1000;
+        this.singleton=this;
 
-        Finder wordlabel_line  = new Finder("^([0-9A-Fa-f]{4})[ \t]*([A-Z]+)");
-        Finder wordandpage_line= new Finder("^([0-9A-Fa-f]{4})[ \t]*(P[0-9]{1})");
-        Finder word_line       = new Finder("^([0-9A-Fa-f]{4}$)");
-
-        Finder string_line     = new Finder("^(TEXT|STRING)[ \t]*([0-9A-Za-z]*)");
-        Finder page_line       = new Finder("^(PAGE)[ \t]*([0-9A-Fa-f]{2})[ \t]*([#$][0-9A-Za-z]*)");
-        Finder pword_line      = new Finder("^(P[0-9]{2})");
-        Finder pagesize_line   = new Finder("^(PAGESIZE)[ \t]*([0-9]*)");
-
-        Finder assembly_line   = new Finder("^([A-Z]{3})[ \t]+([0-9A-Fa-f]{2})[ \t]+([0-9A-Fa-f]{4})");
-        Finder assembly_line2  = new Finder("^([A-Z]{3})([0-9A-Fa-f]{2})[ \t]*([0-9A-Fa-f]{4})");
-        Finder assembly_line3  = new Finder("^([A-Z]{3})[ \t]+([0-9A-Fa-f]{4})");
-        Finder halt_line       = new Finder("^(HALT)[ \t]+(0000)");
-
-        while (in.hasNextLine()) {
-            String line = in.readLine();
-
-            if (empty_line.matches(line)) continue;
-            if (comment_line.matches(line)) continue;
-
-            programAsRead.append(line + "\n");
-
-            if (wordlabel_line.matches(line)) {
-                H.Log("WORD LABEL LINE");
-                mem[loadptr] = H.fromHex(wordlabel_line.get(1));
-                programlines[loadptr] = line;
-                loadptr++;
-                H.Log("GET: " + H.toHex(label.get(wordlabel_line.get(2))));
-                mem[loadptr] =  label.get(wordlabel_line.get(2));
-                loadptr++;
-                continue;
-            }
-            if (pagesize_line.matches(line)) {
-                PAGESIZE = H.fromHex(pagesize_line.get(2));
-                continue;
-            }
-
-            if (string_line.matches(line)) {
-                for (int i=0;i<string_line.get2().length();i++)
-                    mem[loadptr++] = string_line.get2().charAt(i);
-                continue;
-            }
-
-            if (pword_line.matches(line)) {
-                mem[loadptr] = H.fromHex(pword_line.get(1).substring(1)) * PAGESIZE;
-                programlines[loadptr] = line;
-                loadptr++;
-                continue;
-            }
-            if (wordandpage_line.matches(line)) {
-                mem[loadptr] = H.fromHex(wordandpage_line.get(1));
-                programlines[loadptr] = line;
-                loadptr++;
-                mem[loadptr] = H.fromHex(wordandpage_line.get(2).substring(1)) * PAGESIZE;
-                loadptr++;
-                continue;
-            }
-            if (dwordlabel_line.matches(line)) {
-                label.put(dwordlabel_line.get(3), loadptr);
-                mem[loadptr] = H.fromHex(dwordlabel_line.get(1));
-                programlines[loadptr] = line;
-                loadptr++;
-                mem[loadptr] = H.fromHex(dwordlabel_line.get(2));
-                loadptr++;
-                continue;
-            }
-            if (dword_line.matches(line)) {
-                mem[loadptr] = H.fromHex(dword_line.get(1));
-                programlines[loadptr] = line;
-                loadptr++;
-                mem[loadptr] = H.fromHex(dword_line.get(2));
-                loadptr++;
-                continue;
-            }
-
-            if (here_line.matches(line)) {
-                label.put(here_line.get(1), loadptr);
-                H.Log(line);
-                H.Log("name:  " + here_line.get(1));
-                H.Log("value: " + H.toHex(loadptr));
-                continue;
-            }
-            if (label_line.matches(line)) {
-                label.put(label_line.get(2), loadptr);
-                continue;
-            }
-            if (page_line.matches(line)) {
-                loadptr = H.fromHex(page_line.get(2)) * PAGESIZE;
-                programlines[loadptr] = line;
-                label.put(page_line.get(3), loadptr);
-                pages.put(page_line.get(3), loadptr);
-                continue;
-            }
-            if (memory_line.matches(line)) {
-                loadptr = H.fromHex(memory_line.get(2));
-                programlines[loadptr] = line;
-                //label.put(memory_line.get(3), loadptr);
-                pages.put(memory_line.get(3), loadptr);
-                continue;
-            }
-            // READ Regular Two Word Machine Instruction
-            if (dword_line.matches(line)) {
-                mem[loadptr] = H.fromHex(dword_line.get(1));
-                programlines[loadptr] = line;
-                loadptr++;
-                mem[loadptr] = H.fromHex(dword_line.get(2));
-                loadptr++;
-                continue;
-            }
-            // READ Assembly Line version 1
-            if (assembly_line.matches(line)) {
-                // H.Log(InstructionSet.assemblyHex(assembly_line.get(1), assembly_line.get(2)));
-                // This re-expresses  (as an int) the lowword of the 2 word instruction pair
-                mem[loadptr] = InstructionSet.assembly(assembly_line.get(1), assembly_line.get(2));
-                programlines[loadptr] = line;
-                loadptr++;
-                mem[loadptr] = H.fromHex(assembly_line.get(3));
-                programlines[loadptr] = line;
-                loadptr++;
-                continue;
-            }
-            // READ Assembly Line version 2
-            if (assembly_line2.matches(line)) {
-                mem[loadptr] = InstructionSet.assembly(assembly_line2.get(1), assembly_line2.get(2));
-                programlines[loadptr] = line;
-                loadptr++;
-                mem[loadptr] = H.fromHex(assembly_line2.get(3));
-                programlines[loadptr] = line;
-                loadptr++;
-                continue;
-            }
-            // READ Assembly Line version 3
-            if (assembly_line3.matches(line)) {
-                mem[loadptr] = InstructionSet.assembly(assembly_line3.get(1), "00");
-                programlines[loadptr] = line;
-                loadptr++;
-                mem[loadptr] = H.fromHex(assembly_line3.get(2));
-                programlines[loadptr] = line;
-                loadptr++;
-                continue;
-            }
-            // READ HALT
-            if (halt_line.matches(line)) {
-                mem[loadptr] = 0;
-                programlines[loadptr] = line;
-                loadptr++;
-                mem[loadptr] = 0;
-                programlines[loadptr] = line;
-                loadptr++;
-                continue;
-            }
-            if (word_line.matches(line)) {
-                mem[loadptr] = H.fromHex(word_line.get(1));
-                loadptr++;
-                continue;
-            }
-
-        }
+        label.clear();
+        pages.clear();
+        TOY.HW.forwardReferences(new In(TOY.currentFilename), loadptr, TOY.label, TOY.pages);
+        TOY.HW.loadMemoryWithProgram(new In(TOY.currentFilename), loadptr, TOY.programAsRead, TOY.label, TOY.pages);
 
     }
 
@@ -541,11 +377,11 @@ public class TOY {
                 case 0x6E: II.add(op, "reserved", "reserved"); break;                            // reserved
                 case 0x6F: II.add(op, "reserved", "reserved"); break;                            // reserved
 
-                // SUBSET:: SystemsCalls
+                // SUBSET:: Systems Calls
                 //
                 case 0x70: II.add(op, "system call", "system call");
                      switch (d) {
-                         case 0x1: II.add(op, "system call", "system call");
+                         case 0x01:
                            idx=addr; 
                            StringBuilder sb = new StringBuilder();
                            while (mem[idx]!=0) {
@@ -554,6 +390,14 @@ public class TOY {
                                idx++;
                            }
                            TOY.ScreenPane.put(sb.toString());
+                           break;
+                         // print register d to screen
+                         case 0x02:
+                           TOY.ScreenPane.put(H.toHex(reg[s]));
+                           break;
+                         // print memory word screen
+                         case 0x03:
+                           TOY.ScreenPane.put(H.toHex(mem[addr]));
                            break;
                      }
                      break;
@@ -669,6 +513,7 @@ public class TOY {
                         TOY.StatePane.clear(ANSI.GREEN).paint();
                     }
                     if (H.xmatch(name,"CLEAR", "CLR", "C")) {  // HELP:: CLEAR,Clear Trace Window
+                        TOY.MainPane.clear().selectAndClearBuffer1();
                         TOY.InteractivePane.clear().selectAndClearBuffer3();
                     }
                     if (H.xmatch(name,"Q","QUI","QUIT","EXIT","EXI")) {      // HELP:: Q,Quit
@@ -712,6 +557,21 @@ public class TOY {
                     if (H.xmatch(name, "DECODE", "D")) {  // HELP:: DECODE,Decode Memory
                         TOY.MainPane.clear().selectAndClearBuffer1().showMemoryDecoded(TOY.HW.getPC(), dataRows * 2);
                         TOY.MainPane.top();
+                    }
+                    if (H.xmatch(name, "RELOAD", "D")) {  // HELP:: RELOAD,Reload Current File
+                        try {
+                            TOY.MainPane.clear().selectAndClearBuffer1();
+                            TOY.InteractivePane.clear().selectAndClearBuffer1();
+                            TOY.HW.loadMemoryWithProgram(new In(TOY.currentFilename), 0x0100, TOY.programAsRead, TOY.label, TOY.pages);
+                            TOY.ipl();
+                            TOY.getSingleton().run(-1, "READY");          // IPLs and returns, does not execute instructions
+                            TOY.StatePane.state();
+                            StatusAndMessages.putlight("RELOAD COMPLETE - READY");
+                        } catch (Exception e) {
+                            System.out.println("Caught Exception: "+ e.getMessage());
+                            e.printStackTrace();
+                            System.exit(1);
+                        }
                     }
                     if (name.equals("ROWS")) {        // HELP:: ROWS,Set Display Rows
                         int n = Pane.nPrompt(">Enter number of rows to display > ");
@@ -764,6 +624,8 @@ public class TOY {
     }
     // run the TOY simulator with specified file
     public static void main(String[] args) { 
+        H.Log("**** Start");
+        H.Log("****");
 
         H.assertion(args.length == 3, "invalid command-line options\nusage: java TOY filename.toy screen-height screen-width");
         int screenHeight = Integer.parseInt(args[1]);
