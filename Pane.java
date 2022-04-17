@@ -409,15 +409,15 @@ public class Pane {
         this.pos(this.getCOMMAND_ROW(),this.getCOMMAND_COLUMN());
         System.out.print(sz);
         System.out.print("\033[K");
-        t = input.nextLine().toUpperCase();
-        return (t.equals("")) ? szDefault : t.toUpperCase();
+        t = input.nextLine();
+        return (t.equals("")) ? szDefault : t;
     }
     public String prompt(String sz) {
         Scanner input = new Scanner(System.in);
         this.pos(this.getCOMMAND_ROW(),this.getCOMMAND_COLUMN());
         System.out.print(sz);
         System.out.print("\033[K");
-        return input.nextLine().toUpperCase();
+        return input.nextLine();
     }
     public void renderline(String sz) {
          if (count == (lines+1)) {

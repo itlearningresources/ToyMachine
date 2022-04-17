@@ -1,10 +1,10 @@
-H       Help                    	LOG     Show Log Buffer         
-IPL     Initial Program Load    	MM      Show Memory Monitor     
-S       Single Step             	V       View Memory             
-G       Run Program             	R       Show Program Trace      
-BREAK   Set/Clear Breakpoint    	P       Show Program as read in 
-COLOR   Initial Program Load    	DECODE  Decode Memory           
-CLEAR   Clear Trace Window      	RELOAD  Reload Current File     
+H       Help                    	MM      Show Memory Monitor     
+IPL     Initial Program Load    	V       View Memory             
+S       Single Step             	R       Show Program Trace      
+G       Run Program             	P       Show Program as read in 
+BREAK   Set/Clear Breakpoint    	DECODE  Decode Memory           
+COLOR   Initial Program Load    	RELOAD  Reload Current File     
+CLEAR   Clear Trace Window      	LOAD     Load Program From File 
 Q       Quit                    	ROWS    Set Display Rows        
 T       Move to Top             	MRO     Show R0 Indirect Memory 
 B       Move to Bottom          	M       Show Memory             
@@ -12,6 +12,7 @@ U       Move Up                 	STATUS  Show Status
 D       Move Down               	MONITOR Track Memory            
 F       Find                    	E       Edit Memory <Address>   
 /       Find                    	
+LOG     Show Log Buffer         	
 //
 //   Halt
 //   0x00 halt                              haltflag = true                         

@@ -459,7 +459,7 @@ public class TOY {
             Finder f   = new Finder("^([/0-9A-Za-z]*)[ \t]*([0-9A-Za-z]*)");
             Finder f2   = new Finder("^([/])([0-9A-Za-z]*)");
             while (true) {
-                String sz = TOY.MainPane.prompt(">> ");
+                String sz = TOY.MainPane.prompt(">> ").toUpperCase();
                 Pane.getMsgPane().putlight(sz);
                 if (f.matches(sz)) {
                     String name = f.get1().toString().toUpperCase();
@@ -560,6 +560,23 @@ public class TOY {
                         try {
                             TOY.MainPane.clear().selectAndClearBuffer1();
                             TOY.InteractivePane.clear().selectAndClearBuffer1();
+                            TOY.HW.loadMemoryWithProgram(new In(TOY.currentFilename), 0x0100, TOY.programAsRead, TOY.label);
+                            TOY.ipl();
+                            TOY.getSingleton().run(-1, "READY");          // IPLs and returns, does not execute instructions
+                            TOY.StatePane.state();
+                            StatusAndMessages.putlight("Initial Progam Load (IPL) " + TOY.currentFilename + " Loaded.  Ready");
+                        } catch (Exception e) {
+                            System.out.println("Caught Exception: "+ e.getMessage());
+                            e.printStackTrace();
+                            System.exit(1);
+                        }
+                    }
+                    if (H.xmatch(name, "LOAD")) {  // HELP:: LOAD, Load Program From File
+                        try {
+                            szIn = TOY.MainPane.prompt(">source code filename > ");
+                            TOY.MainPane.clear().selectAndClearBuffer1();
+                            TOY.InteractivePane.clear().selectAndClearBuffer1();
+                            TOY.currentFilename = szIn;
                             TOY.HW.loadMemoryWithProgram(new In(TOY.currentFilename), 0x0100, TOY.programAsRead, TOY.label);
                             TOY.ipl();
                             TOY.getSingleton().run(-1, "READY");          // IPLs and returns, does not execute instructions
