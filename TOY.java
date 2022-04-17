@@ -564,7 +564,7 @@ public class TOY {
                             TOY.ipl();
                             TOY.getSingleton().run(-1, "READY");          // IPLs and returns, does not execute instructions
                             TOY.StatePane.state();
-                            StatusAndMessages.putlight("RELOAD COMPLETE - READY");
+                            StatusAndMessages.putlight("Initial Progam Load (IPL) " + TOY.currentFilename + " Loaded.  Ready");
                         } catch (Exception e) {
                             System.out.println("Caught Exception: "+ e.getMessage());
                             e.printStackTrace();
@@ -663,7 +663,7 @@ public class TOY {
 
         try {
             TOY.ipl();
-            StatusAndMessages.putlight("READY TO RUN!!!");
+            StatusAndMessages.putlight("Initial Progam Load (IPL) " + TOY.currentFilename + " Loaded.  Ready");
             toy.run(-1, "READY");     // IPLs and returns, does not execute instructions
             TOY.StatePane.state();
             toy.commandline();

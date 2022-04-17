@@ -32,10 +32,11 @@ public class HW {
     public void forwardReferences(In in, int loadptr, HashMap<String, Integer> label) {
         Finder empty_line      = new Finder("^[ \t]*$");
         Finder comment_line    = new Finder("^([#]|[/][/])");
+        int nop = 0;
         H.setLoggingPrefix("FORWARD REFERENCE");
         // Potential Forward References
         Finder dwordlabel_line = new Finder("^([0-9A-Fa-f]{4})[ \t]*([0-9A-Fa-f]{4})[ \t]([A-Z]+$)");
-        Finder pragma_line     = new Finder("^(PRAGMA)[ \t](STRING|MEMORY|HERE)[ \t]*([0-9A-Za-z]+)[ \t]([A-Z]+$)*");
+        Finder pragma_line     = new Finder("^(PRAGMA)[ \t]+(STRING|MEMORY|HERE|PAGESIZE)[ \t]+([0-9A-Za-z]*)[ \t]*([A-Z]*)");
         while (in.hasNextLine()) {
             String line = in.readLine();
             if (empty_line.matches(line)) continue;
@@ -56,6 +57,9 @@ public class HW {
                 }
                 if (pragma_line.get(2).equals("HERE")) {
                     HW.putHM(label,pragma_line.get(3), loadptr);
+                }
+                if (pragma_line.get(2).equals("PAGESIZE")) {
+                    nop = 0;
                 }
                 continue;
             }
@@ -88,8 +92,7 @@ public class HW {
         Finder word_line       = new Finder("^([0-9A-Fa-f]{4}$)");
         Finder wordlabel_line  = new Finder("^([0-9A-Fa-f]{4})[ \t]*([A-Z]+)");
 
-        Finder pragma_line     = new Finder("^(PRAGMA)[ \t](STRING|MEMORY|HERE)[ \t]*([0-9A-Za-z]+)[ \t]([A-Z]+$)*");
-        Finder pagesize_line   = new Finder("^(PAGESIZE)[ \t]*([0-9]*)");
+        Finder pragma_line     = new Finder("^(PRAGMA)[ \t]+(STRING|MEMORY|HERE|PAGESIZE)[ \t]+([0-9A-Za-z]*)[ \t]*([A-Z]*)");
 
         Finder assembly_line   = new Finder("^([A-Z]{3})[ \t]+([0-9A-Fa-f]{2})[ \t]+([0-9A-Fa-f]{4})");
         Finder assembly_line2  = new Finder("^([A-Z]{3})([0-9A-Fa-f]{2})[ \t]*([0-9A-Fa-f]{4})");
@@ -103,20 +106,15 @@ public class HW {
 
             if (empty_line.matches(line)) continue;
             if (comment_line.matches(line)) continue;
-
             programAsRead.append(line + "\n");
 
-            if (pagesize_line.matches(line)) {
-                PAGESIZE = H.fromHex(pagesize_line.get(2));
-                continue;
-            }
 // IN LOAD
             if (pragma_line.matches(line)) {
                 H.Log("PRAGMA",line);
-                H.Log("PRAGMA LINE1",pragma_line.get(1));
-                H.Log("PRAGMA LINE2",pragma_line.get(2));
-                H.Log("PRAGMA LINE3",pragma_line.get(3));
-                H.Log("PRAGMA LINE4",pragma_line.get(4));
+//              H.Log("PRAGMA LINE1",pragma_line.get(1));
+//              H.Log("PRAGMA LINE2",pragma_line.get(2));
+//              H.Log("PRAGMA LINE3",pragma_line.get(3));
+//              H.Log("PRAGMA LINE4",pragma_line.get(4));
                 if (pragma_line.get(2).equals("STRING")) {
                     for (int i=0;i<pragma_line.get(3).length();i++) mem[loadptr++] = pragma_line.get(3).charAt(i);
                 }
@@ -128,9 +126,22 @@ public class HW {
                 if (pragma_line.get(2).equals("HERE")) {
                     HW.putHM(label,pragma_line.get(3), loadptr);
                 }
+                if (pragma_line.get(2).equals("PAGESIZE")) {
+                    PAGESIZE = H.fromHex(pragma_line.get(3).toUpperCase());
+                    H.Log("-------------------------SET PAGESIZE TO: ",H.toHex(PAGESIZE));
+                }
                 continue;
             }
 
+            if (wordlabel_line.matches(line)) {
+                mem[loadptr] = H.fromHex(wordlabel_line.get(1));
+                programlines[loadptr] = line;
+                loadptr++;
+                int n = TOY.label.get(wordlabel_line.get(2));
+                mem[loadptr] = n;
+                loadptr++;
+                continue;
+            }
             if (dwordlabel_line.matches(line)) {
                 HW.putHM(label,dwordlabel_line.get(3), loadptr);
                 mem[loadptr] = H.fromHex(dwordlabel_line.get(1));
