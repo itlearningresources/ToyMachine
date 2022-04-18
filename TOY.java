@@ -126,6 +126,7 @@ public class TOY {
 
             lastInstruction = I;
             pc = pc + 2;
+            HW.setPC(pc);
 
             int inst = I.getInst();
             int op   = I.getOp();
@@ -391,11 +392,12 @@ public class TOY {
                            break;
                          // print register d to screen
                          case 0x02:
-                           TOY.ScreenPane.put(H.toHex(reg[s]));
+                           //TOY.ScreenPane.put(H.toHex(reg[s]));
+                           TOY.ScreenPane.appendf("%s", H.toHex(reg[s]) + ",");
                            break;
                          // print memory word screen
                          case 0x03:
-                           TOY.ScreenPane.put(H.toHex(mem[addr]));
+                           TOY.ScreenPane.putf("%s", H.toHex(mem[addr]));
                            break;
                      }
                      break;
@@ -474,7 +476,8 @@ public class TOY {
                     if (H.xmatch(name,"S","SS","STEP","STE")) {  // HELP:: S,Single Step
                         try {
                             // TOY.MainPane.buffer1().clear();
-                            this.run(pc, "STEP");
+                            this.run(HW.getPC(), "STEP");
+                            H.Log("pc", HW.getPC());
                             TOY.StatePane.state();
                             // TOY.InteractivePane.clear().selectAndClearBuffer1().showHex2(this.hw.getMem(), this.memory_monitor);
                         } catch (Exception e) {
@@ -488,7 +491,7 @@ public class TOY {
                     if (H.xmatch(name,"GO","G")) {          // HELP:: G,Run Program
                         try {
                             TOY.MainPane.selectBuffer1();
-                            this.run(pc, "");
+                            this.run(HW.getPC(), "");
                             TOY.StatePane.state();
                             TOY.InteractivePane.selectAndClearBuffer1().showHex(this.hw.getMem(), this.memory_monitor);
                         } catch (Exception e) {
@@ -640,11 +643,19 @@ public class TOY {
             }
     }
     private static void ipl() {
-         TOY.HW.setPC(TOY.HW.getMem()[0x0000]);
-         TOY.HW.initRegs().initStk();
-         TOY.StatePane.state();
-         TOY.MainPane.clear().selectAndClearBuffer1().showMemoryDecoded(TOY.HW.getPC()).top();
-         TOY.InteractivePane.clearPaneAndBuffer1().put("IPL:  PC set to the contents of mem[0x0000]").memory(0x0000, 0x01).paint();
+        try {
+            TOY.HW.setPC(TOY.HW.getMem()[0x0000]);
+            TOY.HW.initRegs().initStk();
+            TOY.StatePane.state();
+            TOY.MainPane.clear().selectAndClearBuffer1().showMemoryDecoded(TOY.HW.getPC()).top();
+            TOY.InteractivePane.clear().selectAndClearBuffer1();
+            TOY.ScreenPane.clear().selectAndClearBuffer1();
+            TOY.InteractivePane.put("IPL:  PC set to the contents of mem[0x0000]").memory(0x0000, 0x01).paint();
+        } catch (Exception e) {
+            System.out.println("Caught Exception: "+ e.getMessage());
+            e.printStackTrace();
+            System.exit(1);
+        }
     }
     // run the TOY simulator with specified file
     public static void main(String[] args) { 
@@ -679,11 +690,11 @@ public class TOY {
         MainPane.loadPaneBuffer("help.txt",           MainPane.getBufferHelp() );
 
         try {
-            TOY.ipl();
-            StatusAndMessages.putlight("Initial Progam Load (IPL) " + TOY.currentFilename + " Loaded.  Ready");
-            toy.run(-1, "READY");     // IPLs and returns, does not execute instructions
-            TOY.StatePane.state();
-            toy.commandline();
+          TOY.ipl();
+          StatusAndMessages.putlight("Initial Progam Load (IPL) " + TOY.currentFilename + " Loaded.  Ready");
+          toy.run(-1, "READY");     // IPLs and returns, does not execute instructions
+          TOY.StatePane.state();
+          toy.commandline();
         } catch (Exception e) {
              System.out.println("Caught Exception: "+ e.getMessage());
              e.printStackTrace();

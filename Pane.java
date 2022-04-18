@@ -165,6 +165,10 @@ public class Pane {
 
 
     }
+    public int getWritableWidth() {
+        int f = 4;
+        return ((this.w-f)>0) ? this.w-f : 0;
+    }
     public Pane decodeMemoryIntoBuffer(int pc) {
             ArrayList<String> temp = this.buffer;
             this.buffer = b0;
@@ -358,7 +362,23 @@ public class Pane {
         buffer.clear();
         return this;
     }
-
+    public Pane appendf(String format, Object... args) {
+        int lastindex=buffer.size()-1;
+        if ( lastindex < 0 ) {
+            buffer.add(String.format(format, args));
+            refresh(buffer.size()-1);
+        } else {
+            if (buffer.get(lastindex).length() > this.getWritableWidth()) {
+                buffer.add(String.format(format, args));
+                refresh(buffer.size()-1);
+            } else {
+                String lastvalue=buffer.get(lastindex);
+                buffer.set(lastindex, lastvalue + String.format(format, args));
+                refresh(buffer.size()-1);
+            }
+        }
+        return this;
+    }
     public Pane putf(String format, Object... args) {
         buffer.add(String.format(format, args));
         refresh(buffer.size()-1);
