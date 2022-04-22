@@ -43,6 +43,9 @@ public final class H {
     public static void Log(String sz1, int n) {
         Log(sz1 + ": " + n);
     }
+    public static void LogHex(String sz1, int n) {
+        Log(sz1 + ": 0x" + H.toHex(n));
+    }
 
     public static void Log(String sz) {
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");  

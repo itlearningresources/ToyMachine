@@ -214,31 +214,30 @@ public class TOY {
                 //  SUBSET:: Branch and Jump
                 //
                 case 0x20: II.add(op, "jump", "pc = addr");
-                           pc = addr;
+                           pc = HW.setPC(addr);
                            break;                                                                // jump
                 case 0x21: II.add(op, "branch if zero", "if (reg[d] == 0) pc = addr");  
-                           if (reg[d] == 0) pc = addr;
+                           if (reg[d] == 0) pc = HW.setPC(addr);
                            break;                                                                // branch if zero
                 case 0x22: II.add(op, "branch if not zero", "if (reg[d] != 0) pc = addr");  
-                           if (reg[d] != 0) pc = addr;
+                           if (reg[d] != 0) pc = HW.setPC(addr);
                            break;                                                                // branch if not zero
 
                 case 0x23: II.add(op, "pop and link if zero", "if (reg[d] == 0) pc = popstk");  
-                           if (reg[d] == 0) pc = hw.stkPop();
+                           if (reg[d] == 0) pc = HW.setPC(hw.stkPop());
                            break;                                                                // pop and link if zero
                 case 0x24: II.add(op, "pop and link if not zero", "if (reg[d] != 0) pc = popstk");  
-                           if (reg[d] != 0) pc = hw.stkPop();
+                           if (reg[d] != 0) pc = HW.setPC(hw.stkPop());
                            break;                                                                // pop and link if not zero
 
-
                 case 0x25: II.add(op, "branch if pos", "if (reg[d] >  0) pc = addr");
-                           if (reg[d] >  0) pc = addr;
+                           if (reg[d] >  0) pc = HW.setPC(addr);
                            break;                                                                // branch if positive
                 case 0x26: II.add(op, "jump indirect", "pc = reg[d]");
-                           pc = reg[d];
+                           pc = HW.setPC(reg[d]);
                            break;                                                                // jump indirect
                 case 0x27: II.add(op, "jump and link", "reg[d] = pc; pc = addr");
-                           reg[d] = pc; pc = addr;
+                           reg[d] = HW.getPC(); pc = HW.setPC(addr);
                            break;                                                                // jump and link
                 case 0x28: II.add(op, "reserved", "reserved"); break;                            // reserved
                 case 0x29: II.add(op, "reserved", "reserved"); break;                            // reserved
@@ -261,16 +260,18 @@ public class TOY {
                 case 0x32: II.add(op, "pop to register", "pop to reg[d]");
                            reg[d] = hw.stkPop();
                            break;                                                                // pop to register
-                case 0x33: II.add(op, "pop and link", "return");
-                           pc = hw.stkPop();
-                           break;                                                                // pop and link
+                case 0x33: II.add(op, "reserved", "reserved"); break;                            // reserveda
+
                 case 0x34: II.add(op, "Push This", "push this addr");
                            hw.stkPush(pc-2); 
                            break;                                                                // push PC
                 case 0x35: II.add(op, "push pc and link", "push pc and pc = addr");
-                           hw.stkPush(pc); pc = addr;
+                           hw.stkPush(pc);
+                           pc = HW.setPC(addr);
                            break;                                                                // push pc and link
-                case 0x36: II.add(op, "reserved", "reserved"); break;                            // reserved
+                case 0x36: II.add(op, "pop and link", "return");
+                           pc = HW.setPC(hw.stkPop());
+                           break;                                                                // pop and link
                 case 0x37: II.add(op, "reserved", "reserved"); break;                            // reserved
                 case 0x38: II.add(op, "reserved", "reserved"); break;                            // reserved
                 case 0x39: II.add(op, "reserved", "reserved"); break;                            // reserved
@@ -407,7 +408,7 @@ public class TOY {
             // stdout
             //  if ((addr == 255 && op == 9) || (reg[t] == 255 && op == 11))
             //         StdOut.println(H.toHex(mem[255]));
-
+            if (1 == 0)
             TOY.InteractivePane.putf("%s: %s %s %-2s %-1s %-1s %-1s  %-25s %-32s -- %s %s %s %s %s %s %s %s %s %s",
                                                      H.toHex(I.getPc()),
                                                      H.toHex(I.getHighword()),
@@ -476,7 +477,10 @@ public class TOY {
                     if (H.xmatch(name,"S","SS","STEP","STE")) {  // HELP:: S,Single Step
                         try {
                             // TOY.MainPane.buffer1().clear();
+                            H.LogHex("PC TO DECOD",HW.getPC());
+                            H.Log("DECODED",MainPane.showMemoryDecodedString(HW.getPC()));
                             this.run(HW.getPC(), "STEP");
+                            InteractivePane.putf("%s","[NEXT] " + MainPane.showMemoryDecodedString(HW.getPC()));
                             H.Log("pc", HW.getPC());
                             TOY.StatePane.state();
                             // TOY.InteractivePane.clear().selectAndClearBuffer1().showHex2(this.hw.getMem(), this.memory_monitor);
@@ -492,8 +496,9 @@ public class TOY {
                         try {
                             TOY.MainPane.selectBuffer1();
                             this.run(HW.getPC(), "");
+                            InteractivePane.putf("%s","[NEXT] " + MainPane.showMemoryDecodedString(HW.getPC()));
                             TOY.StatePane.state();
-                            TOY.InteractivePane.selectAndClearBuffer1().showHex(this.hw.getMem(), this.memory_monitor);
+                            // TOY.InteractivePane.selectAndClearBuffer1().showHex(this.hw.getMem(), this.memory_monitor);
                         } catch (Exception e) {
                              StdOut.printf("%s\n", sb.toString());
                              StdOut.println(lastInstruction.toString() + "\n");
@@ -509,6 +514,9 @@ public class TOY {
                         hw.getBrk()[bp] = !(hw.getBrk()[bp]);
                         TOY.StatePane.clear();
                         TOY.StatePane.state();
+                    }
+                    if (name.equals("TEST")) {               // HELP:: TEST, Test Command
+                        ScreenPane.readline();
                     }
                     if (name.equals("COLOR")) {               // HELP:: COLOR,Initial Program Load
                         TOY.StatePane.clear(ANSI.GREEN).paint();
@@ -559,6 +567,9 @@ public class TOY {
                         TOY.MainPane.clear().selectAndClearBuffer1().showMemoryDecoded(TOY.HW.getPC(), dataRows * 2);
                         TOY.MainPane.top();
                     }
+                    if (H.xmatch(name, "NEXT", "N")) {  // HELP:: NEXT, Show Next (Decoded) instruction to be executed
+                            InteractivePane.putf("%s","[NEXT] " + MainPane.showMemoryDecodedString(HW.getPC()));
+                    }
                     if (H.xmatch(name, "RELOAD", "D")) {  // HELP:: RELOAD,Reload Current File
                         try {
                             TOY.MainPane.clear().selectAndClearBuffer1();
@@ -566,6 +577,7 @@ public class TOY {
                             TOY.HW.loadMemoryWithProgram(new In(TOY.currentFilename), 0x0100, TOY.programAsRead, TOY.label);
                             TOY.ipl();
                             TOY.getSingleton().run(-1, "READY");          // IPLs and returns, does not execute instructions
+                            InteractivePane.putf("%s","[NEXT] " + MainPane.showMemoryDecodedString(HW.getPC()));
                             TOY.StatePane.state();
                             StatusAndMessages.putlight("Initial Progam Load (IPL) " + TOY.currentFilename + " Loaded.  Ready");
                         } catch (Exception e) {
@@ -583,6 +595,7 @@ public class TOY {
                             TOY.HW.loadMemoryWithProgram(new In(TOY.currentFilename), 0x0100, TOY.programAsRead, TOY.label);
                             TOY.ipl();
                             TOY.getSingleton().run(-1, "READY");          // IPLs and returns, does not execute instructions
+                            InteractivePane.putf("%s","[NEXT] " + MainPane.showMemoryDecodedString(HW.getPC()));
                             TOY.StatePane.state();
                             StatusAndMessages.putlight("Initial Progam Load (IPL) " + TOY.currentFilename + " Loaded.  Ready");
                         } catch (Exception e) {
@@ -607,10 +620,13 @@ public class TOY {
                     if (name.equals("M")) {  // HELP:: M,Show Memory
                         szIn = TOY.MainPane.prompt(">memory address > ");
                         TOY.InteractivePane.put(szIn);
-                        TOY.InteractivePane.clear().selectAndClearBuffer1();
                         switch (szIn) {
-                            case "": TOY.InteractivePane.memory(0x0000, 0x0004).paint(); break;
-                            default: TOY.InteractivePane.memory(H.fromHex(szIn), 0x0004).paint(); break;
+                            case "": 
+                                TOY.InteractivePane.putf("%s", InteractivePane.memoryString(0x0000));
+                                break;
+                            default:
+                                TOY.InteractivePane.putf("%s",InteractivePane.memoryString(H.fromHex(szIn)));
+                                break;
                          }
                     }
                     if (name.equals("STATUS")) {      // HELP:: STATUS,Show Status
@@ -650,7 +666,8 @@ public class TOY {
             TOY.MainPane.clear().selectAndClearBuffer1().showMemoryDecoded(TOY.HW.getPC()).top();
             TOY.InteractivePane.clear().selectAndClearBuffer1();
             TOY.ScreenPane.clear().selectAndClearBuffer1();
-            TOY.InteractivePane.put("IPL:  PC set to the contents of mem[0x0000]").memory(0x0000, 0x01).paint();
+            // TOY.InteractivePane.put("IPL:  PC set to the contents of mem[0x0000]").memory(0x0000, 0x01).paint();
+            InteractivePane.putf("%s","[NEXT] " + MainPane.showMemoryDecodedString(HW.getPC()));
         } catch (Exception e) {
             System.out.println("Caught Exception: "+ e.getMessage());
             e.printStackTrace();
@@ -672,9 +689,10 @@ public class TOY {
         String filename = args[0];
         ProgramAndMemoryPane = Pane.paneFactory("Program and Memory", 24,  5, 1, 100, ANSI.CYAN);
         MainPane = ProgramAndMemoryPane;
+        // Pane Constructor: public Pane(String title, int lines, int r, int c, int w, String ansicolor) {
         ScreenPane           = new Pane("Screen I/O", 24,  5,              MainPane.gapcolumn(),  43, ANSI.YELLOW);
         //StatePane          = new Pane("State", 39,  5,                   MainPane.gapcolumn(),  10, ANSI.GREEN);
-        StatePane            = new Pane("State", 39,  5,                   155,  15, ANSI.RED);
+        StatePane            = new Pane("State", 39,  5,                   155,  32, ANSI.RED);
         InteractivePane      = new Pane("Interactive", 12,                 MainPane.gaplap(),   1, 148, ANSI.BLUE);
         StatusAndMessages    = new Pane("Status and Messages",1,48,1,148, ANSI.PURPLE);
         Pane.setMsgPane(StatusAndMessages);

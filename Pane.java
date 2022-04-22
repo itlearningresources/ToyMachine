@@ -31,6 +31,8 @@ public class Pane {
     private String title;
     private int r;
     private int c;
+    private int paneRow;
+    private int paneCol;
     private int w = 80;
     private int lines;
     private int count;
@@ -155,6 +157,8 @@ public class Pane {
         this.w = w;
         this.r = r;
         this.c = c;
+        this.paneRow = this.r;
+        this.paneCol = this.c+1;
         //String dashes = (new String(new char[w]).replace("\0", "-"));
         this.lines = lines;
         this.count = 1;
@@ -263,41 +267,6 @@ public class Pane {
             }
         return nRet;
     }
-    public int gfind(String sz) {
-        Finder f   = new Finder(sz);
-        int nRet = -1;
-        String line = null;
-        for (int i =0;i<buffer.size();i++) { 
-            line = buffer.get(i);
-            if (f.matches(line)) {
-                refreshpoint = i;
-                refreshzed(i);
-                nRet = i;
-                break;
-            }
-        }
-        return nRet;
-    }
-
-    public void refreshzed(int n) {
-//      if (n <0) n = 0;
-//      if (n >= buffer.size()) n = buffer.size()-1;
-//      if (n < lines) n = Math.min(lines-1, buffer.size()-1);
-        refreshpoint = n;
-        clear();
-        count =1;
-        rpos = r;
-        cpos = c;
-        int end = Math.min(n+(lines-1),buffer.size()-1);
-        for (int i = n; i <= end; i++) {
-            this.out.print("\033[" + rpos + ";" + (cpos) + "H" + colorText("| ", this.bordercolor));
-//            this.out.print("\033[K");
-            this.out.print(buffer.get(i));
-            this.out.print("\033[" + rpos + ";" + (cpos+w+3) + "H" + colorText("|", this.bordercolor));
-            rpos++;
-            this.pos(COMMAND_ROW,COMMAND_COLUMN);
-        }
-    }
     public Pane paint() {
         this.refresh(buffer.size()-1);
         return this;
@@ -349,6 +318,8 @@ public class Pane {
 //          H.assertion(  (i<buffer.size()),   "i < buffer.size()", n + ""  );
             this.out.print("\033[K\033[" +rpos+ ";" +cpos+ "H" + colorText("| ",bordercolor) +buffer.get(i)+ "\033[" +rpos+ ";" +(cpos+w+3)+ "H" + colorText("|",bordercolor));
             rpos++;
+            this.paneRow=rpos;
+            this.paneCol=cpos;
             this.pos(COMMAND_ROW,COMMAND_COLUMN);
         }
         return this;
@@ -452,7 +423,16 @@ public class Pane {
          Pane.out.print("\033[" + r + ";" + c + "H");
      }
 
-
+     public String readline() {
+            Scanner input = new Scanner(System.in);
+            String szIn = "";
+            while (szIn.equals("")) {
+                this.pos(this.paneRow,this.paneCol);
+                System.out.print(">> ");
+                String name = input.nextLine();
+            }
+            return szIn;
+     }
      public static void main(String[] args) {
      System.out.print("\033[2J");
 
@@ -587,6 +567,14 @@ public class Pane {
         showMemoryDecoded(offset, count);
         return this;
      }
+     public String decodePC() {
+        int[] a = TOY.HW.getMem();
+        StringBuffer sb = new StringBuffer();
+            int i = TOY.HW.getPC();
+            Decode d = InstructionSet.decodeInstruction(a[i], a[i+1]);
+            sb.append(d.getDecodeString());
+        return sb.toString();
+    }
      public Pane showMemoryDecoded(int offset, int count) {
         int[] a = TOY.HW.getMem();
         StringBuffer sb = new StringBuffer();
@@ -612,34 +600,85 @@ public class Pane {
         sb.delete(0, sb.length());
         return this;
     }
+     public String showMemoryDecodedString(int offset) {
+        int[] a = TOY.HW.getMem();
+        StringBuffer sb = new StringBuffer();
+        int i = offset;
+        sb.append(ANSI.RESET);
+        Decode d = InstructionSet.decodeInstruction(a[i], a[i+1]);
+        sb.append(H.toHex(i) + ": ");
+        sb.append(H.toHex(a[i]) + " ");
+        sb.append(H.toHex(a[i+1]));
+        sb.append(" ");
+        sb.append(H.LPad32(d.toString()));
+        sb.append("      ");
+        sb.append(H.toHex(i) + ": ");
+        sb.append(H.LPad32(TOY.HW.getProgramLines()[i]));
+        return sb.toString();
+    }
 
     public  void state() {
-        String sz = "";
+        String sz1 = "";
+        String sz2 = "";
         this.reset();
         int[] a = TOY.HW.getReg();
         int pc = TOY.HW.getPC();
+        int[] m = TOY.HW.getMem();
         int count = TOY.HW.getRegisterCount();
-        this.put("PC: ", ANSI.RESET, H.toHex(pc));
-        this.put("");
-        this.put("R0 ALWYS 0x0000");
-        this.put("");
-        for (int i = 1; i < count; i++) {
-            sz = (a[i] == 0) ? ANSI.RESET + H.toHex(a[i]) : ANSI.DATA + H.toHex(a[i]) + ANSI.RESET;
-            this.putf("%s%s%s%s","R", H.toHexNibble(i), ": ", sz);
+        this.clear().selectAndClearBuffer1();
+        this.putf("%s", "PC: " + ANSI.RESET + H.toHex(pc));
+        this.putf("%s", this.decodePC());
+        this.putf("%s", "");
+        this.putf("%s", "R0: 0000 (ALWAYS)");
+        this.putf("%s", "");
+        int i = 0; 
+        while (i < ((int) count/2)) {
+            sz1 = (a[i] == 0) ? ANSI.RESET + H.toHex(a[i]) : ANSI.DATA + H.toHex(a[i]) + ANSI.RESET;
+            sz2 = (a[i] == 0) ? ANSI.RESET + H.toHex(a[i]) : ANSI.DATA + H.toHex(a[i]) + ANSI.RESET;
+            this.putf("%s%s%s%s  %s%s%s%s","R", H.toHexNibble(i), ": ", sz1,"R", H.toHexNibble(i+8), ": ", sz2);
+            i++;
         }
-        this.put("");
-        this.put("SP: ", TOY.HW.getStkPtrHex());
-        for (int i = 0; i < count; i++) {
-            sz = (TOY.HW.stkGet(i) == 0) ? ANSI.RESET + TOY.HW.stkGetHex(i) : ANSI.DATA + TOY.HW.stkGetHex(i) + ANSI.RESET;
-            this.put(H.toHex2D(i), ": ", sz);
+        this.putf("%s", "");
+        this.putf("%s", "SP: " + TOY.HW.getStkPtrHex());
+        i = 0;
+        while (i < ((int) count/2)) {
+            sz1 = (TOY.HW.stkGet(i) == 0) ? ANSI.RESET + TOY.HW.stkGetHex(i) : ANSI.DATA + TOY.HW.stkGetHex(i) + ANSI.RESET;
+            sz2 = (TOY.HW.stkGet(i+8) == 0) ? ANSI.RESET + TOY.HW.stkGetHex(i+8) : ANSI.DATA + TOY.HW.stkGetHex(i+8) + ANSI.RESET;
+            this.putf("%s%s%s   %s%s%s", H.toHex2D(i), ": ", sz1, H.toHex2D(i+8), ": ", sz2);
+            i++;
         }
-        this.put("");
-        // this.put("MM : ", H.toHex(memory_monitor));
-        this.put("IR: ", H.toHex(TOY.HW.getIndexRegister()));
-        for (int i =0;i<TOY.HW.getBrk().length;i++) if (TOY.HW.getBrk()[i]) this.put("BP ",H.toHex(i));
+        this.putf("%s", "");
+        this.putf("%s%s", "IR: ", H.toHex(TOY.HW.getIndexRegister()));
+        for (i =0;i<TOY.HW.getBrk().length;i++) if (TOY.HW.getBrk()[i]) this.putf("%s%s", "BP ",H.toHex(i));
+        this.putf("%s", "");
+        this.putf("%s", "Memory");
+        this.putf("%s", "");
+        i = a[1];
+        count = 8;
+        int j = 0;
+        while (j < 8) {
+            sz1 = (m[i] == 0) ? ANSI.RESET + H.toHex(m[i]) : ANSI.DATA + H.toHex(m[i]) + ANSI.RESET;
+            int n = 1;
+            sz2 = (m[i+n] == 0) ? ANSI.RESET + H.toHex(m[i+n]) : ANSI.DATA + H.toHex(m[i+n]) + ANSI.RESET;
+            this.putf("%s%s%s   %s%s%s", H.toHex(i), ": ", sz1, H.toHex(i+8), ": ", sz2);
+            i++;
+            j++;
+        }
     }
 
+    public String memoryString(int offset) {
+        int[] a = TOY.HW.getMem();
+        String delim = "";
+        StringBuffer sb = new StringBuffer();
 
+        sb.append(H.toHex(0+offset) + ": ");
+        for (int i= offset;i<offset+16;i++) {
+                 sb.append(delim).append(H.toHex(a[i]));
+                 delim = " ";
+        }
+
+        return sb.toString();
+    }
     public Pane memory(int offset, int rows) {
         final int PAGESIZE=62;
         final int C = 16;

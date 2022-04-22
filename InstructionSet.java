@@ -108,10 +108,10 @@ public static Decode decodeInstruction(int lowword, int highword) {
         case 0x30: decode=new Decode(DF("push %s", d.W),                               "push address", "push addr");break;
         case 0x31: decode=new Decode(DF("push reg[%s]", d.D),                          "push register","push reg[d]");break;
         case 0x32: decode=new Decode(DF("pop to reg[d]", d.D),                         "pop to register", "pop to reg[d]");break;
-        case 0x33: decode=new Decode(DF("pop and link"),                               "pop and link", "return");break;
+        case 0x33: decode=new Decode(DF("reserved"),                                   "reserved", "reserved"); break;                            // reserved
         case 0x34: decode=new Decode(DF("push this addr"),                             "Push This", "push this addr");break;
         case 0x35: decode=new Decode(DF("push pc and pc = addr"),                      "push pc and link", "push pc and pc = addr");break;
-        case 0x36: decode=new Decode(DF("reserved"),                                   "reserved", "reserved"); break;                            // reserved
+        case 0x36: decode=new Decode(DF("pop and link"),                               "pop and link", "return");break;
         case 0x37: decode=new Decode(DF("reserved"),                                   "reserved", "reserved"); break;                            // reserved
         case 0x38: decode=new Decode(DF("reserved"),                                   "reserved", "reserved"); break;                            // reserved
         case 0x39: decode=new Decode(DF("reserved"),                                   "reserved", "reserved"); break;                            // reserved

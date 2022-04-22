@@ -36,7 +36,7 @@ public class HW {
         H.setLoggingPrefix("FORWARD REFERENCE");
         // Potential Forward References
         Finder dwordlabel_line = new Finder("^([0-9A-Fa-f]{4})[ \t]*([0-9A-Fa-f]{4})[ \t]([A-Z]+$)");
-        Finder pragma_line     = new Finder("^(PRAGMA)[ \t]+(STRING|MEMORY|HERE|PAGESIZE)[ \t]+([0-9A-Za-z]*)[ \t]*([A-Z]*)");
+        Finder pragma_line     = new Finder("^(PRAGMA)[ \t]+(STRING|SUBROUTINE|MEMORY|HERE|PAGESIZE)[ \t]+([0-9A-Za-z]*)[ \t]*([A-Z]*)");
         while (in.hasNextLine()) {
             String line = in.readLine();
             if (empty_line.matches(line)) continue;
@@ -52,6 +52,10 @@ public class HW {
                     for (int i=0;i<pragma_line.get(3).length();i++) loadptr++;
                 }
                 if (pragma_line.get(2).equals("MEMORY")) {
+                    loadptr=H.fromHex(pragma_line.get(3));
+                    HW.putHM(label,pragma_line.get(4), loadptr);
+                }
+                if (pragma_line.get(2).equals("SUBROUTINE")) {
                     loadptr=H.fromHex(pragma_line.get(3));
                     HW.putHM(label,pragma_line.get(4), loadptr);
                 }
@@ -92,7 +96,7 @@ public class HW {
         Finder word_line       = new Finder("^([0-9A-Fa-f]{4}$)");
         Finder wordlabel_line  = new Finder("^([0-9A-Fa-f]{4})[ \t]*([A-Z]+)");
 
-        Finder pragma_line     = new Finder("^(PRAGMA)[ \t]+(STRING|MEMORY|HERE|PAGESIZE)[ \t]+([0-9A-Za-z]*)[ \t]*([A-Z]*)");
+        Finder pragma_line     = new Finder("^(PRAGMA)[ \t]+(STRING|SUBROUTINE|MEMORY|HERE|PAGESIZE)[ \t]+([0-9A-Za-z]*)[ \t]*([A-Z]*)");
 
         Finder assembly_line   = new Finder("^([A-Z]{3})[ \t]+([0-9A-Fa-f]{2})[ \t]+([0-9A-Fa-f]{4})");
         Finder assembly_line2  = new Finder("^([A-Z]{3})([0-9A-Fa-f]{2})[ \t]*([0-9A-Fa-f]{4})");
@@ -119,6 +123,11 @@ public class HW {
                     for (int i=0;i<pragma_line.get(3).length();i++) mem[loadptr++] = pragma_line.get(3).charAt(i);
                 }
                 if (pragma_line.get(2).equals("MEMORY")) {
+                    loadptr = H.fromHex(pragma_line.get(3));
+                    programlines[loadptr] = line;
+                    HW.putHM(label,pragma_line.get(4), loadptr);
+                }
+                if (pragma_line.get(2).equals("SUBROUTINE")) {
                     loadptr = H.fromHex(pragma_line.get(3));
                     programlines[loadptr] = line;
                     HW.putHM(label,pragma_line.get(4), loadptr);
@@ -227,6 +236,7 @@ public class HW {
     }
     public int setPC(int n) {
         this.pc = n;
+        H.LogHex("PC set to", this.pc);
         return this.pc;
     }
     public int getIndexRegister() {
