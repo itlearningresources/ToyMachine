@@ -206,7 +206,6 @@ public class Pane {
         String blanks = new String(new char[w]).replace("\0", " ");
         this.out.print(ANSI.RESET);
 
-        // H.Log(dashes.replaceFirst( (new String(new char[title.length()])).replace("\0","-"), title));
         String mdashes = dashes.replaceFirst( (new String(new char[title.length()])).replace("\0","-"), title);
         this.out.print("\033[" + (r-1) + ";" + c + "H" + colorText("+ " + mdashes + " +", ansiColor));
         int rr = r;
@@ -634,7 +633,7 @@ public class Pane {
         int i = 0; 
         while (i < ((int) count/2)) {
             sz1 = (a[i] == 0) ? ANSI.RESET + H.toHex(a[i]) : ANSI.DATA + H.toHex(a[i]) + ANSI.RESET;
-            sz2 = (a[i] == 0) ? ANSI.RESET + H.toHex(a[i]) : ANSI.DATA + H.toHex(a[i]) + ANSI.RESET;
+            sz2 = (a[i+8] == 0) ? ANSI.RESET + H.toHex(a[i+8]) : ANSI.DATA + H.toHex(a[i+8]) + ANSI.RESET;
             this.putf("%s%s%s%s  %s%s%s%s","R", H.toHexNibble(i), ": ", sz1,"R", H.toHexNibble(i+8), ": ", sz2);
             i++;
         }

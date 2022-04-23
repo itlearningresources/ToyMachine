@@ -33,7 +33,6 @@ public class HW {
         Finder empty_line      = new Finder("^[ \t]*$");
         Finder comment_line    = new Finder("^([#]|[/][/])");
         int nop = 0;
-        H.setLoggingPrefix("FORWARD REFERENCE");
         // Potential Forward References
         Finder dwordlabel_line = new Finder("^([0-9A-Fa-f]{4})[ \t]*([0-9A-Fa-f]{4})[ \t]([A-Z]+$)");
         Finder pragma_line     = new Finder("^(PRAGMA)[ \t]+(STRING|SUBROUTINE|MEMORY|HERE|PAGESIZE)[ \t]+([0-9A-Za-z]*)[ \t]*([A-Z]*)");
@@ -70,12 +69,11 @@ public class HW {
                 loadptr++;
                 loadptr++;
         }
-        H.setLoggingPrefix("");
     }
 
 
     private static void putHM(HashMap<String, Integer> hm, String name, int value) {
-                H.Log("PUTHM",name + " = " + value);
+                Application.dbg.log("PUTHM",name + " = " + value);
                 hm.put(name,value);
     }
 
@@ -114,11 +112,6 @@ public class HW {
 
 // IN LOAD
             if (pragma_line.matches(line)) {
-                H.Log("PRAGMA",line);
-//              H.Log("PRAGMA LINE1",pragma_line.get(1));
-//              H.Log("PRAGMA LINE2",pragma_line.get(2));
-//              H.Log("PRAGMA LINE3",pragma_line.get(3));
-//              H.Log("PRAGMA LINE4",pragma_line.get(4));
                 if (pragma_line.get(2).equals("STRING")) {
                     for (int i=0;i<pragma_line.get(3).length();i++) mem[loadptr++] = pragma_line.get(3).charAt(i);
                 }
@@ -137,7 +130,6 @@ public class HW {
                 }
                 if (pragma_line.get(2).equals("PAGESIZE")) {
                     PAGESIZE = H.fromHex(pragma_line.get(3).toUpperCase());
-                    H.Log("-------------------------SET PAGESIZE TO: ",H.toHex(PAGESIZE));
                 }
                 continue;
             }
@@ -236,7 +228,6 @@ public class HW {
     }
     public int setPC(int n) {
         this.pc = n;
-        H.LogHex("PC set to", this.pc);
         return this.pc;
     }
     public int getIndexRegister() {

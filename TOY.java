@@ -17,6 +17,7 @@ import java.util.regex.Matcher;
 import java.util.Map;
 import java.util.HashMap;
 public class TOY { 
+
     static HashMap<String, Integer> label = new HashMap<String, Integer>();
     static  StringBuffer programAsRead = new StringBuffer(1024);
     static  StringBuffer sb = new StringBuffer(120);
@@ -466,7 +467,7 @@ public class TOY {
                 Pane.getMsgPane().putlight(sz);
                 if (f.matches(sz)) {
                     String name = f.get1().toString().toUpperCase();
-                    H.Log(name);
+                    Application.dbg.log(name);
                     if (H.xmatch(name, "H","HELP","HEL")) {      // HELP:: H,Help
                         TOY.MainPane.clear().bufferHelp(0);
                     }
@@ -477,11 +478,8 @@ public class TOY {
                     if (H.xmatch(name,"S","SS","STEP","STE")) {  // HELP:: S,Single Step
                         try {
                             // TOY.MainPane.buffer1().clear();
-                            H.LogHex("PC TO DECOD",HW.getPC());
-                            H.Log("DECODED",MainPane.showMemoryDecodedString(HW.getPC()));
                             this.run(HW.getPC(), "STEP");
                             InteractivePane.putf("%s","[NEXT] " + MainPane.showMemoryDecodedString(HW.getPC()));
-                            H.Log("pc", HW.getPC());
                             TOY.StatePane.state();
                             // TOY.InteractivePane.clear().selectAndClearBuffer1().showHex2(this.hw.getMem(), this.memory_monitor);
                         } catch (Exception e) {
@@ -676,8 +674,8 @@ public class TOY {
     }
     // run the TOY simulator with specified file
     public static void main(String[] args) { 
-        H.Log("**** Start");
-        H.Log("****");
+        Application.out.log("Im on my way I am making it");
+        Application.dbg.log("Im on my way I am making it");
 
         H.assertion(args.length == 3, "invalid command-line options\nusage: java TOY filename.toy screen-height screen-width");
         int screenHeight = Integer.parseInt(args[1]);
