@@ -114,9 +114,6 @@ public class Pane {
     private static Pane[] panes = {null};
     public static Pane[] getPanes() { return panes; }
 
-    private static Pane msgPane = null;
-    public  static Pane setMsgPane(Pane p) { msgPane = p; return p;}
-    public  static Pane getMsgPane() { return msgPane; }
 
     // send output here
     private static java.io.PrintStream out;
@@ -173,13 +170,6 @@ public class Pane {
         int f = 4;
         return ((this.w-f)>0) ? this.w-f : 0;
     }
-    public Pane decodeMemoryIntoBuffer(int pc) {
-            ArrayList<String> temp = this.buffer;
-            this.buffer = b0;
-            this.putquiet("MOX");
-            this.buffer = temp;
-            return this;
-    };
     public void loadPaneBuffer(String filename, ArrayList<String> b) {
             ArrayList<String> temp = this.buffer;
             this.buffer = b;
@@ -212,7 +202,6 @@ public class Pane {
         int cc = c;
         for (int i=0;i<this.lines;i++) {
             this.out.print("\033[" + (rr) + ";" + (cc) + "H" + colorText("| ", ansiColor));
-            //this.out.print("\033[K");
             this.out.print(blanks);
             this.out.print("\033[" + (rr++) + ";" + (cc+w+3) + "H" + colorText("|", ansiColor));
         }
@@ -224,25 +213,12 @@ public class Pane {
         out.printf(LOCALE, format, args);
         out.flush();
     }
-    public static void print(String sz) {
-        out.print(sz);
-        out.flush();
-    }
 
-    public int nextcolumn() {
-        return w+5;
+    public int colRight() {
+        return c+w+5;
     }
-    public int gapcolumn() {
-        return w+6;
-    }
-    public int gaplap() {
-        return r+lines+3;
-    }
-    public int underlap() {
+    public int rowDown() {
         return r+lines+2;
-    }
-    public int overlap() {
-        return r+lines+1;
     }
     public void top() {
         refresh(0);
@@ -354,36 +330,6 @@ public class Pane {
         refresh(buffer.size()-1);
         return this;
     }
-    public Pane putlightf(String format, Object... args) {
-        clear();
-        buffer.add(String.format(format, args));
-        refresh(buffer.size()-1);
-        buffer.clear();
-        return this;
-    }
-    public Pane put(String ... a) {
-        StringBuffer sb = new StringBuffer();
-        for (int i=0;i<a.length;i++) {
-            sb.append(a[i]);
-        }
-        buffer.add(sb.toString());
-        refresh(buffer.size()-1);
-        return this;
-    }
-    public Pane putln(String sz) {
-        buffer.add(sz);
-        buffer.add("");
-        refresh(buffer.size()-1);
-        return this;
-    }
-    public Pane putlight(String sz) {
-        //buffer.add(sz.substring(0, Math.min(sz.length(), w)));
-        clear();
-        buffer.add(sz);
-        refresh(buffer.size()-1);
-        buffer.clear();
-        return this;
-    }
     public static int nPrompt(String sz) {
         int t = 0;
         Scanner input = new Scanner(System.in);
@@ -432,110 +378,7 @@ public class Pane {
             }
             return szIn;
      }
-     public static void main(String[] args) {
-     System.out.print("\033[2J");
 
-            Pane p =  new Pane("THISONE", 16,  3,     1,    66, ANSI.WHITE);
-            int i = 0;
-            for ( i=0;i<24;i++) {
-                         p.put("Hello World " + i + "");
-            }
-
-            p.pos(44,1);
-            Scanner input = new Scanner(System.in);
-            while (true) {
-                p.pos(44,1);
-                System.out.print(">> ");
-                String name = input.nextLine();
-                if (name.toUpperCase().equals("T")) {
-                    p.top();
-                }
-                if (name.toUpperCase().equals("B")) {
-                    p.bottom();
-                }
-                if (name.toUpperCase().equals("U")) {
-                    p.up();
-                }
-                if (name.toUpperCase().equals("D")) {
-                    p.down();
-                }
-                if (name.toUpperCase().equals("F")) {
-                    p.find("X");
-                }
-                if (name.toUpperCase().equals("Q")) {
-                    System.exit(1);
-                }
-            }
-     }
-
-     public Pane showHex2Quiet(int[] a, int offset, String ... comments) {
-        StringBuffer sbComments = new StringBuffer();
-        StringBuffer sb = new StringBuffer();
-        final int C = 16;
-        final int PAGESIZE = 16;
-
-        for (int i=0;i<comments.length;i++) {
-            sbComments.append((i>0) ? "" : "");
-            sbComments.append(comments[i]);
-        }
-
-        // Put offset on a 16 word boundary
-        offset = offset - (offset % 16);
-
-        int i = offset;
-        int count = (PAGESIZE < a.length) ? PAGESIZE : a.length;
-        sb.append(ANSI.RESET);
-        sb.append(H.toHex(0+offset) + ": ");
-        while (i < (count+offset) ) {
-             sb.append(H.toHexBlank(a[i]) + " ");
-             if ( (i+1) % 16 == 0 ) {
-                 sb.append(H.BAR);
-                 for (int j=(i-15);j<=i;j++) sb.append( (a[j] < 127 && a[j] > 31) ? Character.toString((char) a[j]) : ".");
-                 sb.append(H.BAR);
-                 this.putquiet(sb.toString() + " " + sbComments.toString());
-                 sb.delete(0, sb.length());
-                 if  ( (i+1) < (count+offset) ) sb.append(H.toHex(i+1) + ": ");
-             }
-            i++;
-        }
-        this.putquiet(sb.toString());
-        sb.delete(0, sb.length());
-        return this;
-    }
-     public Pane showHex2(int[] a, int offset, String ... comments) {
-        StringBuffer sbComments = new StringBuffer();
-        StringBuffer sb = new StringBuffer();
-        final int C = 16;
-        final int PAGESIZE = 16;
-
-        for (int i=0;i<comments.length;i++) {
-            sbComments.append((i>0) ? "" : "");
-            sbComments.append(comments[i]);
-        }
-
-        // Put offset on a 16 word boundary
-        offset = offset - (offset % 16);
-
-        int i = offset;
-        int count = (PAGESIZE < a.length) ? PAGESIZE : a.length;
-        sb.append(ANSI.RESET);
-        sb.append(H.toHex(0+offset) + ": ");
-        while (i < (count+offset) ) {
-             sb.append(H.toHexBlank(a[i]) + " ");
-             if ( (i+1) % 16 == 0 ) {
-                 sb.append(H.BAR);
-                 for (int j=(i-15);j<=i;j++) sb.append( (a[j] < 127 && a[j] > 31) ? Character.toString((char) a[j]) : ".");
-                 sb.append(H.BAR);
-                 this.put(sb.toString() + " " + sbComments.toString());
-                 sb.delete(0, sb.length());
-                 if  ( (i+1) < (count+offset) ) sb.append(H.toHex(i+1) + ": ");
-             }
-            i++;
-        }
-        this.put(sb.toString());
-        sb.delete(0, sb.length());
-        return this;
-    }
      public Pane showHexQuiet(int[] a, int offset) {
         StringBuffer sb = new StringBuffer();
         final int C = 16;
@@ -590,12 +433,12 @@ public class Pane {
             sb.append("      ");
             sb.append(H.toHex(i) + ": ");
             sb.append(H.LPad32(TOY.HW.getProgramLines()[i]));
-            this.put(sb.toString());
+            this.putf("%s", sb.toString());
             sb.delete(0, sb.length());
             i++;
             i++;
         }
-        this.put(sb.toString());
+        this.putf("%s", sb.toString());
         sb.delete(0, sb.length());
         return this;
     }
@@ -643,7 +486,7 @@ public class Pane {
         while (i < ((int) count/2)) {
             sz1 = (TOY.HW.stkGet(i) == 0) ? ANSI.RESET + TOY.HW.stkGetHex(i) : ANSI.DATA + TOY.HW.stkGetHex(i) + ANSI.RESET;
             sz2 = (TOY.HW.stkGet(i+8) == 0) ? ANSI.RESET + TOY.HW.stkGetHex(i+8) : ANSI.DATA + TOY.HW.stkGetHex(i+8) + ANSI.RESET;
-            this.putf("%s%s%s   %s%s%s", H.toHex2D(i), ": ", sz1, H.toHex2D(i+8), ": ", sz2);
+            this.putf("%s%s%s   %s%s%s", H.toHexByte(i), ": ", sz1, H.toHexByte(i+8), ": ", sz2);
             i++;
         }
         this.putf("%s", "");
@@ -721,22 +564,17 @@ public class Pane {
              if ( (i+1) % 16 == 0 ) {
                  sb.append(H.BAR);
                  for (int j=(i-15);j<=i;j++) sb.append( (a[j] < 127 && a[j] > 31) ? Character.toString((char) a[j]) : ".");
-                 this.put(sb.toString());
+                 this.putf("%s", sb.toString());
                  sb.delete(0, sb.length());
                  sb.append(H.toHex(i+1) + ": ");
              }
             i++;
         }
-        this.put(sb.toString());
+        this.putf("%s", sb.toString());
         sb.delete(0, sb.length());
         return this;
     }
 
-}
-class Test {
-     static int r = 5;
-     static int c = 2;
-     static int ct = 1;
 }
 
 // http://www.cse.psu.edu/~kxc104/class/cse472/09f/hw/hw7/vt100ansi.htm

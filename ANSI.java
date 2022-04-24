@@ -1,7 +1,6 @@
 public class ANSI {
 
     static final String RESETONLY = "\u001B[0m";
-
     static final String BLACK = "\u001B[30m";
     static final String RED = "\u001B[31m";
     static final String GREEN = "\u001B[32m";
@@ -40,6 +39,7 @@ public class ANSI {
     static final String WHITE_UNDERLINED = "\033[4;37m";
 
     static final String CLEAR = "\033[2J";
+    static final String EOL = "\033[0K";
     static final String RESET = RESETONLY + BLACK_BACKGROUND + WHITE;
 }
 

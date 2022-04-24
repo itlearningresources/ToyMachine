@@ -8,7 +8,9 @@ public class Logger {
     private String loggingPrefix = "";
     private String fn ="/tmp/applog";
 
-
+    public String getFileName() {
+        return fn;
+    }
     public Logger(String szPrefix) {
         loggingPrefix = szPrefix;
     }
@@ -17,7 +19,8 @@ public class Logger {
         this.fn = fn;
     }
 
-
+    public void log(Exception e) {
+    }
     public void log(int n) {
         log(String.valueOf(n));
     }
