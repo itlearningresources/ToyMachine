@@ -32,9 +32,9 @@
 //   0x30 push address                      push addr                               
 //   0x31 push register                     push reg[d]                             
 //   0x32 pop to register                   pop to reg[d]                           
-//   0x33 pop and link                      return                                  
 //   0x34 Push This                         push this addr                          
 //   0x35 push pc and link                  push pc and pc = addr                   
+//   0x36 pop and link                      return                                  
 //
 //   Bitwise and Shift
 //   0x40 bitwise and                       reg[d] = reg[s] & reg[t]                

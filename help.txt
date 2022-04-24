@@ -1,18 +1,19 @@
-H       Help                    	MM      Show Memory Monitor     
-IPL     Initial Program Load    	V       View Memory             
-S       Single Step             	R       Show Program Trace      
-G       Run Program             	P       Show Program as read in 
-BREAK   Set/Clear Breakpoint    	DECODE  Decode Memory           
-COLOR   Initial Program Load    	RELOAD  Reload Current File     
-CLEAR   Clear Trace Window      	LOAD     Load Program From File 
-Q       Quit                    	ROWS    Set Display Rows        
-T       Move to Top             	MRO     Show R0 Indirect Memory 
-B       Move to Bottom          	M       Show Memory             
-U       Move Up                 	STATUS  Show Status             
-D       Move Down               	MONITOR Track Memory            
-F       Find                    	E       Edit Memory <Address>   
+H       Help                    	LOG     Show Log Buffer         
+IPL     Initial Program Load    	MM      Show Memory Monitor     
+CRASH   Crash Application       	R       Show Program Trace      
+S       Single Step             	P       Show Program as read in 
+G       Run Program             	DECODE  Decode Memory           
+BREAK   Set/Clear Breakpoint    	NEXT     Show Next (Decoded) instruction to be executed
+TEST     Test Command           	RELOAD  Reload Current File     
+COLOR   Initial Program Load    	LOAD     Load Program From File 
+CLEAR   Clear Trace Window      	ROWS    Set Display Rows        
+Q       Quit                    	MRO     Show R0 Indirect Memory 
+T       Move to Top             	M       Show Memory             
+B       Move to Bottom          	STATUS  Show Status             
+U       Move Up                 	MONITOR Track Memory            
+D       Move Down               	E       Edit Memory <Address>   
+F       Find                    	
 /       Find                    	
-LOG     Show Log Buffer         	
 //
 //   Halt
 //   0x00 halt                              haltflag = true                         
@@ -47,9 +48,9 @@ LOG     Show Log Buffer
 //   0x30 push address                      push addr                               
 //   0x31 push register                     push reg[d]                             
 //   0x32 pop to register                   pop to reg[d]                           
-//   0x33 pop and link                      return                                  
 //   0x34 Push This                         push this addr                          
 //   0x35 push pc and link                  push pc and pc = addr                   
+//   0x36 pop and link                      return                                  
 //
 //   Bitwise and Shift
 //   0x40 bitwise and                       reg[d] = reg[s] & reg[t]                
