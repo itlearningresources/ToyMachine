@@ -16,7 +16,6 @@
 //   0x14 store reg to mem                  mem[addr] = reg[d]                      
 //   0x15 store reg to mem indirect         mem[reg[d] & 0x0FFFF] = reg[s]          
 //   0x16 load indirect                     reg[d] = mem[reg[s] & 0xFFFF]           
-//   0x17 load the index register           indexregister = word                    
 //
 //   Branch and Jump
 //   0x20 jump                              pc = addr                               
@@ -47,11 +46,7 @@
 //   NOP
 //   0x50 NOP                               NOP                                     
 //
-//   I/O and String
-//   0x61 reg char out                      reg[d] char out                         
-//   0x62 mem char out                      mem[addr] char out                      
-//   0x63 string 10 16b                     string out 16b                          
-//   0x64 string out 8b                     string out 8b                           
+//   NOP
 //   0x65 int to ascii                      int to ascii                            
 //   0x66 mem int to ascii                  mem int to ascii                        
 //

@@ -1,5 +1,5 @@
-H       Help                    	LOG     Show Log Buffer         
-IPL     Initial Program Load    	MM      Show Memory Monitor     
+H       Help                    	/       Find                    
+IPL     Initial Program Load    	LOG     Show Log Buffer         
 CRASH   Crash Application       	R       Show Program Trace      
 S       Single Step             	P       Show Program as read in 
 G       Run Program             	DECODE  Decode Memory           
@@ -10,10 +10,9 @@ CLEAR   Clear Trace Window      	ROWS    Set Display Rows
 Q       Quit                    	MRO     Show R0 Indirect Memory 
 T       Move to Top             	M       Show Memory             
 B       Move to Bottom          	STATUS  Show Status             
-U       Move Up                 	MONITOR Track Memory            
-D       Move Down               	E       Edit Memory <Address>   
+U       Move Up                 	E       Edit Memory <Address>   
+D       Move Down               	
 F       Find                    	
-/       Find                    	
 //
 //   Halt
 //   0x00 halt                              haltflag = true                         
@@ -32,7 +31,6 @@ F       Find
 //   0x14 store reg to mem                  mem[addr] = reg[d]                      
 //   0x15 store reg to mem indirect         mem[reg[d] & 0x0FFFF] = reg[s]          
 //   0x16 load indirect                     reg[d] = mem[reg[s] & 0xFFFF]           
-//   0x17 load the index register           indexregister = word                    
 //
 //   Branch and Jump
 //   0x20 jump                              pc = addr                               
@@ -63,11 +61,7 @@ F       Find
 //   NOP
 //   0x50 NOP                               NOP                                     
 //
-//   I/O and String
-//   0x61 reg char out                      reg[d] char out                         
-//   0x62 mem char out                      mem[addr] char out                      
-//   0x63 string 10 16b                     string out 16b                          
-//   0x64 string out 8b                     string out 8b                           
+//   NOP
 //   0x65 int to ascii                      int to ascii                            
 //   0x66 mem int to ascii                  mem int to ascii                        
 //

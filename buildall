@@ -1,0 +1,8 @@
+mkdir -p ./classes
+export CLASSPATH=./classes
+rm -rf ./classes/*.class
+
+echo "Building From Source"
+javac -d ./classes *.java
+
+# java -cp stdlib.jar:./classes TOY test.toy

@@ -386,7 +386,7 @@ public class TOY {
             Finder f   = new Finder("^([/0-9A-Za-z]*)[ \t]*([0-9A-Za-z]*)");
             Finder f2   = new Finder("^([/])([0-9A-Za-z]*)");
             while (true) {
-                String sz = TOY.MainPane.prompt(">> ").toUpperCase();
+                String sz = TOY.MainPane.prompt("(type 'H' for HELP) >> ").toUpperCase();
                 TOY.StatusAndMessagesPane.putf("%s", ANSI.EOL+sz);
                 if (f.matches(sz)) {
                     String name = f.get1().toString().toUpperCase();
