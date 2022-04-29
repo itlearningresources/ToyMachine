@@ -1,4 +1,3 @@
 export CLASSPATH=./classes
-
 clear
 java TOY test.toy   $(stty size| gawk '{print $1}')    $(stty size| gawk '{print $2}')

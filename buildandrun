@@ -1,10 +1,2 @@
-mkdir -p ./classes
-export CLASSPATH=./classes
-rm -rf ./classes/*.class
-
-echo "Building From Source"
-javac -d ./classes *.java
-
-
-clear
-java TOY test.toy   $(stty size| gawk '{print $1}')    $(stty size| gawk '{print $2}')
+build
+run

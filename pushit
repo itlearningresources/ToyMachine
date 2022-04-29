@@ -7,7 +7,6 @@ git add genhelp
 git add list
 git add help.txt
 git add H.java
-git add ObjectRing.java
 git add InstructionSet.java
 git add Decode.java
 git add instructionset.txt

@@ -20,4 +20,3 @@ split -l $L $Tmp2
 paste xaa xab | sed 's/"//g' > ../help.txt
 cd ..
 cat instructionset.txt >> help.txt
-cat help.txt

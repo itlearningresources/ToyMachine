@@ -23,6 +23,6 @@ gawk -F, '
 {
     printf("//   %4s %-33s %-40s\n", $1,$2,$3) 
 
-}' | grep -v reserved | tee instructionset.txt
+}' | grep -v reserved > instructionset.txt
 
 

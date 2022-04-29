@@ -2,5 +2,8 @@ mkdir -p ./classes
 export CLASSPATH=./classes
 rm -rf ./classes/*.class
 
+list
+genhelp
+
 echo "Building From Source"
 javac -d ./classes *.java
