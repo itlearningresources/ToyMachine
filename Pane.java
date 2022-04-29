@@ -5,19 +5,6 @@ import java.io.UnsupportedEncodingException;
 import java.util.Locale;
 import java.util.ArrayList;
 
-class MyOut {
-    private java.io.PrintStream out;
-    public MyOut (java.io.PrintStream out) {
-        super();
-        this.out = out;
-    }
-    public void print(String ... a) {
-        StringBuffer sb = new StringBuffer();
-        for (int i=0;i<a.length;i++) sb.append(a[i]);
-        this.out.print(sb.toString());
-    }
-}
-
 public class Pane {
     private ArrayList<String> buffer = null;
     private ArrayList<String> b0 = new ArrayList<String>();  // decoded memory
@@ -117,7 +104,6 @@ public class Pane {
 
     // send output here
     private static java.io.PrintStream out;
-    private static MyOut myout;
 
     // Constructors and Factories
     public static Pane paneFactory(String title, int lines, int r, int c, int w, String ansicolor) {
@@ -135,15 +121,12 @@ public class Pane {
         int rr;
         int cc;
  
-    // this is called before invoking any methods
+        // this is called before invoking any methods
         try {
             out = System.out;
-            myout = new MyOut(System.out);
-
-            //out = new PrintWriter(new OutputStreamWriter(System.out, CHARSET_NAME), true);
         }
         catch (Exception e) {
-            System.out.println(e);
+            Application.CRASH(e);
         }
 
         Pane[] ps = new Pane[panes.length+1];
@@ -159,8 +142,6 @@ public class Pane {
         //String dashes = (new String(new char[w]).replace("\0", "-"));
         this.lines = lines;
         this.count = 1;
-        // this next line seems like it is old and should be deleted
-        // this.out.print("\033[" + (r-1) + ";" + c + "H" + "+ " + dashes + " +");
         clear();
 
 
@@ -261,12 +242,6 @@ public class Pane {
         if (n <= 0) {
             j = 0;
             s = Math.min(buffer.size()-1, lines-1);
-//        new Out().print("\n1  s set to          "  +  s);
-//          if (buffer.size() < lines)
-//              s = buffer.size()-1;
-//          else{
-//              s = lines-1;
-//          }
         }
         else {
             if (buffer.size() <= lines) {
@@ -279,14 +254,6 @@ public class Pane {
             }
         }
         if (j <0) j = 0;
-
-//      Out o = new Out();
-//      o.print("\nlines         "  +  lines);
-//      o.print("\nrefreshpoint  "  +  refreshpoint);
-//      o.print("\nn             "  +  n);
-//      o.print("\nBuffer Size   "  +  buffer.size());
-//      o.print("\nj             "  +  j);
-//      o.print("\ns             "  +  s);
 
         for (int i = j; i <= s; i++) {
 //          H.assertion(  (i>=0),              "i >= 0"  );
@@ -343,16 +310,16 @@ public class Pane {
         String t = "";
         Scanner input = new Scanner(System.in);
         this.pos(this.getCOMMAND_ROW(),this.getCOMMAND_COLUMN());
-        System.out.print(sz);
-        System.out.print("\033[K");
+        this.out.print(sz);
+        this.out.print("\033[K");
         t = input.nextLine();
         return (t.equals("")) ? szDefault : t;
     }
     public String prompt(String sz) {
         Scanner input = new Scanner(System.in);
         this.pos(this.getCOMMAND_ROW(),this.getCOMMAND_COLUMN());
-        System.out.print(sz);
-        System.out.print("\033[K");
+        this.out.print(sz);
+        this.out.print("\033[K");
         return input.nextLine();
     }
     public void renderline(String sz) {
@@ -373,7 +340,7 @@ public class Pane {
             String szIn = "";
             while (szIn.equals("")) {
                 this.pos(this.paneRow,this.paneCol);
-                System.out.print(">> ");
+                this.out.print(">> ");
                 String name = input.nextLine();
             }
             return szIn;
@@ -463,7 +430,7 @@ public class Pane {
         String sz1 = "";
         String sz2 = "";
         this.reset();
-        int[] a = TOY.HW.getReg();
+        int[] r = TOY.HW.getReg();
         int pc = TOY.HW.getPC();
         int[] m = TOY.HW.getMem();
         int count = TOY.HW.getRegisterCount();
@@ -475,8 +442,8 @@ public class Pane {
         this.putf("%s", "");
         int i = 0; 
         while (i < ((int) count/2)) {
-            sz1 = (a[i] == 0) ? ANSI.RESET + H.toHex(a[i]) : ANSI.DATA + H.toHex(a[i]) + ANSI.RESET;
-            sz2 = (a[i+8] == 0) ? ANSI.RESET + H.toHex(a[i+8]) : ANSI.DATA + H.toHex(a[i+8]) + ANSI.RESET;
+            sz1 = (r[i] == 0) ? ANSI.RESET + H.toHex(r[i]) : ANSI.DATA + H.toHex(r[i]) + ANSI.RESET;
+            sz2 = (r[i+8] == 0) ? ANSI.RESET + H.toHex(r[i+8]) : ANSI.DATA + H.toHex(r[i+8]) + ANSI.RESET;
             this.putf("%s%s%s%s  %s%s%s%s","R", H.toHexNibble(i), ": ", sz1,"R", H.toHexNibble(i+8), ": ", sz2);
             i++;
         }
@@ -490,12 +457,12 @@ public class Pane {
             i++;
         }
         this.putf("%s", "");
-        this.putf("%s%s", "IR: ", H.toHex(TOY.HW.getIndexRegister()));
         for (i =0;i<TOY.HW.getBrk().length;i++) if (TOY.HW.getBrk()[i]) this.putf("%s%s", "BP ",H.toHex(i));
         this.putf("%s", "");
-        this.putf("%s", "Memory");
+        
+        this.putf("%s", "Memory Monitor");
         this.putf("%s", "");
-        i = a[1];
+        i = TOY.HW.memMonitor[0];
         count = 8;
         int j = 0;
         while (j < 8) {

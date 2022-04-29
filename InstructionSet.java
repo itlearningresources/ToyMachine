@@ -80,7 +80,7 @@ public static Decode decodeInstruction(int lowword, int highword) {
         case 0x14: decode=new Decode(DF("mem[%s] = reg[%s]", d.W, d.D),                "store reg to mem", "mem[addr] = reg[d]");break;
         case 0x15: decode=new Decode(DF("mem[reg[%s] & 0x0FFFF] = reg[%s]", d.D, d.S), "store reg to mem indirect", "mem[reg[d] & 0x0FFFF] = reg[s]"); break;
         case 0x16: decode=new Decode(DF("reg[%s] = mem[reg[%s] & 0xFFFF]", d.D, d.S),  "load indirect", "reg[d] = mem[reg[s] & 0xFFFF]");break;
-        case 0x17: decode=new Decode(DF("load the index register with %s", d.W) ,      "load the index register", "indexregister = word");break;
+        case 0x17: decode=new Decode(DF("reserved"),                                   "reserved", "reserved"); break;                            // reserved
         case 0x18: decode=new Decode(DF("reserved"),                                   "reserved", "reserved"); break;                            // reserved
         case 0x19: decode=new Decode(DF("reserved"),                                   "reserved", "reserved"); break;                            // reserved
         case 0x1A: decode=new Decode(DF("reserved"),                                   "reserved", "reserved"); break;                            // reserved
@@ -138,10 +138,26 @@ public static Decode decodeInstruction(int lowword, int highword) {
         case 0x4E: decode=new Decode(DF("reserved"),                                   "reserved", "reserved"); break;                            // reserved
         case 0x0F: decode=new Decode(DF("reserved"),                                   "reserved", "reserved"); break;                            // reserved
         case 0x50: decode=new Decode(DF("NOP"),                                        "NOP", "NOP");break;
-        case 0x61: decode=new Decode(DF("reg[%s] char out", d.D),                      "reg char out", "reg[d] char out");break;
-        case 0x62: decode=new Decode(DF("mem[%s] char out", d.W),                      "mem char out", "mem[addr] char out");break;
-        case 0x63: decode=new Decode(DF("string out 16b"),                             "string 10 16b", "string out 16b");break;
-        case 0x64: decode=new Decode(DF("string out 8b"),                              "string out 8b", "string out 8b");break;
+        case 0x51: decode=new Decode(DF("reserved"),                                   "reserved", "reserved"); break;                            // reserved
+        case 0x52: decode=new Decode(DF("reserved"),                                   "reserved", "reserved"); break;                            // reserved
+        case 0x53: decode=new Decode(DF("reserved"),                                   "reserved", "reserved"); break;                            // reserved
+        case 0x54: decode=new Decode(DF("reserved"),                                   "reserved", "reserved"); break;                            // reserved
+        case 0x55: decode=new Decode(DF("reserved"),                                   "reserved", "reserved"); break;                            // reserved
+        case 0x56: decode=new Decode(DF("reserved"),                                   "reserved", "reserved"); break;                            // reserved
+        case 0x57: decode=new Decode(DF("reserved"),                                   "reserved", "reserved"); break;                            // reserved
+        case 0x58: decode=new Decode(DF("reserved"),                                   "reserved", "reserved"); break;                            // reserved
+        case 0x59: decode=new Decode(DF("reserved"),                                   "reserved", "reserved"); break;                            // reserved
+        case 0x5A: decode=new Decode(DF("reserved"),                                   "reserved", "reserved"); break;                            // reserved
+        case 0x5B: decode=new Decode(DF("reserved"),                                   "reserved", "reserved"); break;                            // reserved
+        case 0x5C: decode=new Decode(DF("reserved"),                                   "reserved", "reserved"); break;                            // reserved
+        case 0x5D: decode=new Decode(DF("reserved"),                                   "reserved", "reserved"); break;                            // reserved
+        case 0x5E: decode=new Decode(DF("reserved"),                                   "reserved", "reserved"); break;                            // reserved
+        case 0x5F: decode=new Decode(DF("reserved"),                                   "reserved", "reserved"); break;                            // reserved
+        case 0x60: decode=new Decode(DF("reserved"),                                   "reserved", "reserved"); break;                            // reserved
+        case 0x61: decode=new Decode(DF("reserved"),                                   "reserved", "reserved"); break;                            // reserved
+        case 0x62: decode=new Decode(DF("reserved"),                                   "reserved", "reserved"); break;                            // reserved
+        case 0x63: decode=new Decode(DF("reserved"),                                   "reserved", "reserved"); break;                            // reserved
+        case 0x64: decode=new Decode(DF("reserved"),                                   "reserved", "reserved"); break;                            // reserved
         case 0x65: decode=new Decode(DF("int to ascii"),                               "int to ascii", "int to ascii");break;
         case 0x66: decode=new Decode(DF("mem int to ascii"),                           "mem int to ascii", "mem int to ascii");break;
         case 0x67: decode=new Decode(DF("reserved"),                                   "reserved", "reserved"); break;                            // reserved

@@ -22,7 +22,6 @@ public class TOY {
     static  StringBuffer programAsRead = new StringBuffer(1024);
     static  StringBuffer sb = new StringBuffer(120);
     static  String currentFilename = "";
-    static  Instruction lastInstruction = null;
     static Pane MainPane;
     static Pane StatePane;
     static Pane ScreenPane;
@@ -32,7 +31,6 @@ public class TOY {
     static TOY singleton;
     InstructionSet II = new InstructionSet();
     private int pc;                            // program counter
-    private int memory_monitor;                // Memory monitor address
 
     final int ADRR = 0x01;
     private Registers R = null;
@@ -75,7 +73,6 @@ public class TOY {
                                     // program.
 
         this.pc = pc;
-        this.memory_monitor = 0x1000;
         this.singleton=this;
 
         label.clear();
@@ -90,9 +87,8 @@ public class TOY {
         boolean bRun = true;
         int n = 0;
         int a = 0;
-        Instruction I = null;
         boolean haltflag = false;
-
+        DecodedInstruction dI = null;
         int[] reg = hw.getReg();
         int[] mem = hw.getMem();
         pc = programCounter;
@@ -115,21 +111,19 @@ public class TOY {
                            TOY.StatusAndMessagesPane.putf("%s", "BREAK @ " + H.toHex(pc) );
                            break;
                        }
-                   I = new Instruction(hw.getMem(),pc); 
+                       dI = DecodedInstruction.decode(pc);
                } catch (Exception e) {
                     Application.CRASH(e);
                } 
 
-            lastInstruction = I;
             pc = pc + 2;
             HW.setPC(pc);
 
-            int inst = I.getInst();
-            int op   = I.getOp();
-            int d    = I.getD();
-            int s    = I.getS();
-            int t    = I.getT();
-            int addr = I.getAddr();
+            int op   = dI.opCode;
+            int d    = dI.nD;
+            int s    = dI.nS;
+            int t    = dI.nT;
+            int addr = dI.nW;
 
        // stdin 
        //     if ((addr == 255 && op == 8) || (reg[t] == 255 && op == 10))
@@ -190,10 +184,7 @@ public class TOY {
                            reg[d] = mem[reg[s] & 0xFFFF];
                            break;                                                                // load indirect
 
-                case 0x17: II.add(op, "load the index register", "indexregister = word");
-                           hw.setIndexRegister(addr);
-                           break;                                                                // load index register
-
+                case 0x17: II.add(op, "reserved", "reserved"); break;                            // reserved
                 case 0x18: II.add(op, "reserved", "reserved"); break;                            // reserved
                 case 0x19: II.add(op, "reserved", "reserved"); break;                            // reserved
                 case 0x1A: II.add(op, "reserved", "reserved"); break;                            // reserved
@@ -314,32 +305,8 @@ public class TOY {
                            pc = pc;
                            break;                                                                // NOP
                 //
-                // SUBSET:: I/O and String
+                // SUBSET:: NOP
                 //
-                case 0x61: II.add(op, "reg char out", "reg[d] char out");
-                           StdOut.print(reg[d]);
-                           break;                                                                // reg char out
-                case 0x62: II.add(op, "mem char out", "mem[addr] char out");
-                           StdOut.print(mem[addr]);
-                           break;                                                                // mem char out
-                case 0x63: II.add(op, "string 10 16b", "string out 16b");
-                           idx=addr; 
-                           while (mem[idx]!=0) {
-                               StdOut.print( String.valueOf((char) mem[idx]) );
-                               idx++;
-                           }
-                           break;                                                                // string out 16 bit
-                case 0x64: II.add(op, "string out 8b", "string out 8b");
-                           idx=addr; 
-                           boolean flip = true;
-                           n = (mem[idx] >> 8) & 0x00FF; 
-                           while (n != 0) {
-                               StdOut.print( String.valueOf((char) n) );
-                               flip = !flip; 
-                               n = (flip) ? (mem[idx] >> 8) & 0x00FF  : (mem[idx] >> 0) & 0x00FF; 
-                               if (!flip) idx++;
-                           }
-                           break;                                                                // string out 8 bit
                 case 0x65: II.add(op, "int to ascii", "int to ascii");
                            char[] ca = H.convertIntegerToCharArray(reg[s]);
                            for (int i = 0;i<ca.length;i++) {
@@ -377,7 +344,6 @@ public class TOY {
                            idx=addr; 
                            StringBuilder sb = new StringBuilder();
                            while (mem[idx]!=0) {
-                               //iStdOut.print( String.valueOf((char) mem[idx]) );
                                sb.append(String.valueOf((char) mem[idx]));
                                idx++;
                            }
@@ -396,31 +362,6 @@ public class TOY {
 
                 }
 
-            // stdout
-            //  if ((addr == 255 && op == 9) || (reg[t] == 255 && op == 11))
-            //         StdOut.println(H.toHex(mem[255]));
-            if (1 == 0)
-            TOY.InteractivePane.putf("%s: %s %s %-2s %-1s %-1s %-1s  %-25s %-32s -- %s %s %s %s %s %s %s %s %s %s",
-                                                     H.toHex(I.getPc()),
-                                                     H.toHex(I.getHighword()),
-                                                     H.toHex(I.getLowword()),
-                                                     H.toHexShort(I.getOp()),
-                                                     H.toHexNibble(I.getD()),
-                                                     H.toHexNibble(I.getS()),
-                                                     ((I.getLowword() >> 4) > 0) ? "-" : H.toHexNibble(I.getT()),
-                                                     H.shorten(II.get(op).getName(),25),
-                                                     H.shorten(II.get(op).getDescription(),30),
-                                                     H.toHex(pc),
-                                                     H.toHex(hw.stkTop()),
-                                                     H.toHex(reg[0]),
-                                                     H.toHex(reg[1]),
-                                                     H.toHex(reg[2]),
-                                                     H.toHex(reg[3]),
-                                                     H.toHex(reg[4]),
-                                                     H.toHex(reg[5]),
-                                                     H.toHex(reg[6]),
-                                                     H.toHex(reg[7])
-                                                     );
 
             // halt
             if (haltflag) {
@@ -526,10 +467,6 @@ public class TOY {
                     if (H.xmatch(name,"LOG")) {      // HELP:: LOG,Show Log Buffer
                         TOY.MainPane.selectBuffer5().clear().refresh(0).selectBuffer1();
                     }
-                    if (name.equals("MM")) {  // HELP:: MM,Show Memory Monitor
-                        TOY.InteractivePane.selectAndClearBuffer1().showHex(this.hw.getMem(), this.memory_monitor);
-                        TOY.StatePane.state();
-                    }
                     if (name.equals("R")) {  // HELP:: R,Show Program Trace
                         TOY.MainPane.clear().selectBuffer1().refresh(0);
                     }
@@ -592,9 +529,13 @@ public class TOY {
                         switch (szIn) {
                             case "": 
                                 TOY.InteractivePane.putf("%s", InteractivePane.memoryString(0x0000));
+                                TOY.HW.memMonitor[0] = 0x0000;
+                                TOY.StatePane.state();
                                 break;
                             default:
                                 TOY.InteractivePane.putf("%s",InteractivePane.memoryString(H.fromHex(szIn)));
+                                TOY.HW.memMonitor[0] = H.fromHex(szIn);
+                                TOY.StatePane.state();
                                 break;
                          }
                     }
@@ -606,14 +547,6 @@ public class TOY {
                         for (String key: map.keySet()) {
                             TOY.InteractivePane.putf("%s", H.LPad32(key)  + " " + "value : " + H.toHex(map.get(key)));
                         }
-
-
-                    }
-                    if (H.xmatch(name,"MONITOR","MON")) {      // HELP:: MONITOR,Track Memory
-                        int[] mem = hw.getMem();
-                        this.memory_monitor = H.fromHex( TOY.MainPane.prompt(">monitor address (" + f.get2() + ")> ", H.toHex(this.memory_monitor)));
-                        TOY.InteractivePane.selectAndClearBuffer3().showHex(mem, this.memory_monitor);
-                        TOY.StatePane.state();
                     }
                     if (H.xmatch(name,"E", "EDIT","EDI")) {      // HELP:: E,Edit Memory <Address>
                         int[] x = hw.getMem();
@@ -642,7 +575,7 @@ public class TOY {
         int screenWidth  = Integer.parseInt(args[2]);
         H.assertion(screenWidth  > 175, "screen is too narrow");
         H.assertion(screenHeight > 41,  "Screen height is too low");
-        StdOut.print(ANSI.RESET);
+        System.out.print(ANSI.RESET);
 
         String filename = args[0];
         // ***************************************************************************************************************************************
@@ -651,7 +584,7 @@ public class TOY {
         //                              title,                    lines,   r,                         c,                        w,   ansicolor
         MainPane             = new Pane("Program and Memory",     24,      rowOrigin,                 colOrigin,                100, ANSI.CYAN);
         ScreenPane           = new Pane("Screen I/O",             24,      rowOrigin,                 MainPane.colRight(),       43, ANSI.YELLOW);
-        StatePane            = new Pane("State",                  38,      rowOrigin,                 ScreenPane.colRight(),     32, ANSI.RED);
+        StatePane            = new Pane("State",                  41,      rowOrigin,                 ScreenPane.colRight(),     32, ANSI.RED);
         InteractivePane      = new Pane("Interactive",            12,      MainPane.rowDown(),        colOrigin,                148, ANSI.BLUE);
         StatusAndMessagesPane= new Pane("Status and Messages",     1,      InteractivePane.rowDown(), colOrigin,                148, ANSI.PURPLE);
         Pane.setCOMMAND_ROW(StatusAndMessagesPane.rowDown());
@@ -678,94 +611,6 @@ public class TOY {
     }
 }
 
-final class Instruction {
-    
-    private int pc;
-    private int highword;
-    private int lowword;
-    private int inst;
-    private int op;
-    private int s;
-    private int t;
-    private int d;
-    private int addr;
-    public String toString() {
-        String szRet = String.format("\n%d %d %d %d\n",op,d,s,t);
-        return  szRet;
-    }
-    public void setPc(int n) {
-        this.pc = n;
-    }
-    public int getPc() {
-        return this.pc;
-    }
-    public void setHighword(int n) {
-        this.highword = n;
-    }
-    public int getHighword() {
-        return this.highword;
-    }
-    public void setLowword(int n) {
-        this.lowword = n;
-    }
-    public int getLowword() {
-        return this.lowword;
-    }
-    public void setInst(int n) {
-        this.inst = n;
-    }
-    public int getInst() {
-        return this.inst;
-    }
-    public void setOp(int n) {
-        this.op = n;
-    }
-    public int getOp() {
-        return this.op;
-    }
-    public void setS(int n) {
-       this.s = n;
-    }
-    public int getS() {
-        return this.s;
-    }
-    public void setD(int n) {
-        this.d = n;
-    }
-    public int getD() {
-        return this.d;
-    }
-    public void setT(int n) {
-        this.t = n;
-    }
-    public int getT() {
-        return this.t;
-    }
-    public void setAddr(int n) {
-        this.addr = n;
-    }
-    public int getAddr() {
-        return this.addr;
-    }
-    public Instruction(int[] mem, int pc) throws InstructionValueException {
-            // Fetch and parse
-            setPc(pc);
-            setHighword(mem[pc++]);                   // fetch next word
-            setInst(highword); 
-            setOp( (highword >> 8)  & 0x00FF);        // get opcode
-            setD(  (highword >>  4) & 0x000F);        // get dest  
-            setLowword(mem[pc++]);                    // fetch next word
-            this.s    = (highword >>  0) & 0x000F;    // get s    
-            this.t    = lowword          & 0x00FF;    // get t   
-            this.addr = lowword          & 0xFFFF;    // get addr
-    }
-}
-
-class InstructionValueException extends Exception {
-    public InstructionValueException(Instruction I, String msg) {
-        super(msg + "  " + I.toString());
-    }
-}
 class Registers {
     private int[] reg;
     public Registers(int[] r) {

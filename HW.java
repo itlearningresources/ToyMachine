@@ -4,7 +4,6 @@ import java.util.HashMap;
 public class HW {
  
     private int pc;                             // program counter
-    private int indexregister;                  // index register
     private int stkptr;                         // stack pointer
     final int ADRR = 0x01;
     // private Registers R = new Registers(reg);
@@ -15,8 +14,9 @@ public class HW {
         for(int i=0;i<REGSIZE;i++) reg[i] = 0;
         return this;
     }
-    private final int MEMSIZE = 0xFFFF;                     // memory size
+    private final int MEMSIZE  = 0xFFFF;                     // memory size
     private int[] mem        = new int[MEMSIZE];            // main memory locations
+    public int[] memMonitor = new int[MEMSIZE];            // memory monitors
     private int[] memflags   = new int[MEMSIZE];            // main memory flags
     private String[] programlines   = new String[MEMSIZE];  // program lines (text) as read)
     private boolean[] breakpoint   = new boolean[MEMSIZE];  // breakpoint boolean
@@ -229,13 +229,6 @@ public class HW {
     public int setPC(int n) {
         this.pc = n;
         return this.pc;
-    }
-    public int getIndexRegister() {
-        return this.indexregister;
-    }
-    public int setIndexRegister(int n) {
-        this.indexregister = n;
-        return this.indexregister;
     }
 
     public int[] getReg() {
