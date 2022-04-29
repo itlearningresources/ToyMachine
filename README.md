@@ -21,7 +21,16 @@ of attribution if you adapt this content in your own course. One best practice i
 Attributions: https://introcs.cs.princeton.edu/java/home/
 
 ## Command Line Help and Instruction Set                                                                                                                   
+    Starter Commands
+        IPL  -- Initial Progam Load  ( init program address is value in mem[0x0000]
+        G    -- Run Program
+        S    -- Step One Instruction 
+        P    -- Show The Last Program Loaded
+        M    -- Display Memory
+        LOAD -- Load A Program file (LOAD <filename>)
 
+
+    Commands
     H       Help                    	/       Find                    
     IPL     Initial Program Load    	LOG     Show Log Buffer         
     CRASH   Crash Application       	R       Show Program Trace      
