@@ -30,7 +30,6 @@ Attributions: https://introcs.cs.princeton.edu/java/home/
         LOAD -- Load A Program file (LOAD <filename>)
 
 
-    Commands
     H       Help                    	/       Find                    
     IPL     Initial Program Load    	LOG     Show Log Buffer         
     CRASH   Crash Application       	R       Show Program Trace      
@@ -46,6 +45,22 @@ Attributions: https://introcs.cs.princeton.edu/java/home/
     U       Move Up                 	E       Edit Memory <Address>   
     D       Move Down               	
     F       Find                    	
+    //
+    //  Pragmas
+    //
+    //   PRAGMA STRING <string>
+    //   PRAGMA MEMORY <hexaddr> <label>
+    //   PRAGMA SUBROUTINE <hexaddr> <label>
+    //   PRAGMA HERE <label>
+    //
+    //  Mnemonics
+    //
+    //   HALT -- Opcode 0x00
+    //   HLT  -- Opcode 0x00
+    //   ADD  -- Opcode 0x01
+    //
+    //  Instructions
+    //
     //
     //   Halt
     //   0x00 halt                              haltflag = true                         
@@ -100,3 +115,4 @@ Attributions: https://introcs.cs.princeton.edu/java/home/
     //
     //   Systems Calls
     //   0x70 system call                       system call                             
+    //
