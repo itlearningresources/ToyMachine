@@ -14,6 +14,22 @@ U       Move Up                 	E       Edit Memory <Address>
 D       Move Down               	
 F       Find                    	
 //
+//  Pragmas
+//
+//   PRAGMA STRING <string>
+//   PRAGMA MEMORY <hexaddr> <label>
+//   PRAGMA SUBROUTINE <hexaddr> <label>
+//   PRAGMA HERE <label>
+//
+//  Mnemonics
+//
+//   HALT -- Opcode 0x00
+//   HLT  -- Opcode 0x00
+//   ADD  -- Opcode 0x01
+//
+//  Instructions
+//
+//
 //   Halt
 //   0x00 halt                              haltflag = true                         
 //
@@ -67,3 +83,4 @@ F       Find
 //
 //   Systems Calls
 //   0x70 system call                       system call                             
+//

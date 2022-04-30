@@ -47,18 +47,18 @@ public class HW {
                 continue;
             }
             if (pragma_line.matches(line)) {
-                if (pragma_line.get(2).equals("STRING")) {
+                if (pragma_line.get(2).equals("STRING")) {            // PRAGMA:: PRAGMA STRING <string>
                     for (int i=0;i<pragma_line.get(3).length();i++) loadptr++;
                 }
-                if (pragma_line.get(2).equals("MEMORY")) {
+                if (pragma_line.get(2).equals("MEMORY")) {            // PRAGMA:: PRAGMA MEMORY <hexaddr> <label>
                     loadptr=H.fromHex(pragma_line.get(3));
                     HW.putHM(label,pragma_line.get(4), loadptr);
                 }
-                if (pragma_line.get(2).equals("SUBROUTINE")) {
+                if (pragma_line.get(2).equals("SUBROUTINE")) {        // PRAGMA:: PRAGMA SUBROUTINE <hexaddr> <label>
                     loadptr=H.fromHex(pragma_line.get(3));
                     HW.putHM(label,pragma_line.get(4), loadptr);
                 }
-                if (pragma_line.get(2).equals("HERE")) {
+                if (pragma_line.get(2).equals("HERE")) {              // PRAGMA:: PRAGMA HERE <label>
                     HW.putHM(label,pragma_line.get(3), loadptr);
                 }
                 if (pragma_line.get(2).equals("PAGESIZE")) {

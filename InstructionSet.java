@@ -38,9 +38,9 @@ public static int assembly(String mnemonic, String operand) {
     int n = 0;
     int o = H.fromHex(operand) & 0x00FF;
     switch (mnemonic) {
-        case "HALT": n=0x00; break;
-        case "HLT":  n=0x00; break;
-        case "ADD":  n=0x01; break;
+        case "HALT": n=0x00; break; // MNEMONIC:: HALT -- Opcode 0x00
+        case "HLT":  n=0x00; break; // MNEMONIC:: HLT  -- Opcode 0x00
+        case "ADD":  n=0x01; break; // MNEMONIC:: ADD  -- Opcode 0x01
         case "SUB":  n=0x02; break;
         case "INC":  n=0x03; break;
         case "DEC":  n=0x04; break;
