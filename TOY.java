@@ -587,7 +587,7 @@ public class TOY {
         StatePane            = new Pane("State",                  41,      rowOrigin,                 ScreenPane.colRight(),     32, ANSI.RED);
         InteractivePane      = new Pane("Interactive",            12,      MainPane.rowDown(),        colOrigin,                148, ANSI.BLUE);
         StatusAndMessagesPane= new Pane("Status and Messages",     1,      InteractivePane.rowDown(), colOrigin,                148, ANSI.PURPLE);
-        Pane.setCOMMAND_ROW(StatusAndMessagesPane.rowDown());
+        Pane.setCOMMAND_ROW(StatusAndMessagesPane.rowNext());
         Pane.setCOMMAND_COLUMN(1);
         // ***************************************************************************************************************************************
 

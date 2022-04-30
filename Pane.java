@@ -201,6 +201,9 @@ public class Pane {
     public int rowDown() {
         return r+lines+2;
     }
+    public int rowNext() {
+        return r+lines+1;
+    }
     public void top() {
         refresh(0);
     }

@@ -25,7 +25,7 @@ private static String[] initDecodeArray(String sz1, String sz2) {
 }
     public final static String DF(String format, String ... args) {
     //String.format("load register %s with %s", H.toHexShort(register), H.toHex(address)) ;
-      return new java.util.Formatter().format(format, args).toString();
+      return new java.util.Formatter().format(format, (Object[]) args).toString();
     }
     public final static String DF(String sz) {
       return sz;
