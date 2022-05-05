@@ -15,9 +15,11 @@ from  "https://introcs.cs.princeton.edu/java/home/"
 This online content. Everything on these pages is freely available. We ask only that you adhere to normal academic traditions
 of attribution if you adapt this content in your own course. One best practice is to just provide links to our pages."
 
-
-
 Attributions: https://introcs.cs.princeton.edu/java/home/
+
+
+
+
 
     H       Help                    	/       Find                    
     IPL     Initial Program Load    	LOG     Show Log Buffer         
@@ -34,9 +36,6 @@ Attributions: https://introcs.cs.princeton.edu/java/home/
     U       Move Up                 	E       Edit Memory <Address>   
     D       Move Down               	
     F       Find                    	
-
-
-
 H       Help                    	/       Find                    
 IPL     Initial Program Load    	LOG     Show Log Buffer         
 CRASH   Crash Application       	R       Show Program Trace      

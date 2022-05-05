@@ -1,0 +1,16 @@
+
+    H       Help                    	/       Find                    
+    IPL     Initial Program Load    	LOG     Show Log Buffer         
+    CRASH   Crash Application       	R       Show Program Trace      
+    S       Single Step             	P       Show Program as read in 
+    G       Run Program             	DECODE  Decode Memory           
+    BREAK   Set/Clear Breakpoint    	NEXT     Show Next (Decoded) instruction to be executed
+    TEST     Test Command           	RELOAD  Reload Current File     
+    COLOR   Initial Program Load    	LOAD     Load Program From File 
+    CLEAR   Clear Trace Window      	ROWS    Set Display Rows        
+    Q       Quit                    	MRO     Show R0 Indirect Memory 
+    T       Move to Top             	M       Show Memory             
+    B       Move to Bottom          	STATUS  Show Status             
+    U       Move Up                 	E       Edit Memory <Address>   
+    D       Move Down               	
+    F       Find                    	
