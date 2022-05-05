@@ -1,0 +1,39 @@
+# ToyMachine
+## Screen Shot                                                                                                                   
+![alt text](https://github.com/itlearningresources/ToyMachine/blob/main/Toy.png) 
+My Mod of TOY.
+
+TOY is an imaginary machine (created at Princeton) that is very similar to ancient computers.
+
+Attribution: https://introcs.cs.princeton.edu/java/home/
+
+Started with the source code from the princeton site and expanded it extensively.
+
+from  "https://introcs.cs.princeton.edu/java/home/"
+
+"For teachers:
+This online content. Everything on these pages is freely available. We ask only that you adhere to normal academic traditions
+of attribution if you adapt this content in your own course. One best practice is to just provide links to our pages."
+
+
+
+Attributions: https://introcs.cs.princeton.edu/java/home/
+
+    H       Help                    	/       Find                    
+    IPL     Initial Program Load    	LOG     Show Log Buffer         
+    CRASH   Crash Application       	R       Show Program Trace      
+    S       Single Step             	P       Show Program as read in 
+    G       Run Program             	DECODE  Decode Memory           
+    BREAK   Set/Clear Breakpoint    	NEXT     Show Next (Decoded) instruction to be executed
+    TEST     Test Command           	RELOAD  Reload Current File     
+    COLOR   Initial Program Load    	LOAD     Load Program From File 
+    CLEAR   Clear Trace Window      	ROWS    Set Display Rows        
+    Q       Quit                    	MRO     Show R0 Indirect Memory 
+    T       Move to Top             	M       Show Memory             
+    B       Move to Bottom          	STATUS  Show Status             
+    U       Move Up                 	E       Edit Memory <Address>   
+    D       Move Down               	
+    F       Find                    	
+
+
+
