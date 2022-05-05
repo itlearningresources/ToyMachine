@@ -16,8 +16,8 @@ gawk -F, '
 /SUBSET/ {
     sz = $0
     gsub(/^.*[:]/, "  " ,sz)
-    print "//"
-    print "//" sz 
+    print ""
+    print "" sz 
     next
 }
 {
