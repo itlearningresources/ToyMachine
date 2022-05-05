@@ -49,7 +49,7 @@ Attributions: https://introcs.cs.princeton.edu/java/home/
     D       Move Down               	
     F       Find                    	
     
-    Pragmas
+    ####Pragmas
     
     PRAGMA STRING <string>
     PRAGMA MEMORY <hexaddr> <label>

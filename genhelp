@@ -39,7 +39,7 @@ split -l $L $Tmp2
 paste xaa xab | sed 's/"//g' > ../help.txt
 cd ..
 echo "" >> help.txt
-echo "Pragmas" >> help.txt
+echo "####Pragmas" >> help.txt
 echo "" >> help.txt
 cat pragmas.txt  >> help.txt
 echo "" >> help.txt

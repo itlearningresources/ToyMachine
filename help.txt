@@ -14,7 +14,7 @@ U       Move Up                 	E       Edit Memory <Address>
 D       Move Down               	
 F       Find                    	
 
-Pragmas
+####Pragmas
 
 PRAGMA STRING <string>
 PRAGMA MEMORY <hexaddr> <label>
