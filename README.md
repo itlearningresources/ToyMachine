@@ -33,6 +33,7 @@ Attributions: https://introcs.cs.princeton.edu/java/home/
         D       Move Down               	
         F       Find                    	
 
+    Command Line CommandsPragmas
     H       Help                    	/       Find                    
     IPL     Initial Program Load    	LOG     Show Log Buffer         
     CRASH   Crash Application       	R       Show Program Trace      
@@ -49,7 +50,7 @@ Attributions: https://introcs.cs.princeton.edu/java/home/
     D       Move Down               	
     F       Find                    	
     
-    ####Pragmas
+    Pragmas
     
     PRAGMA STRING <string>
     PRAGMA MEMORY <hexaddr> <label>
