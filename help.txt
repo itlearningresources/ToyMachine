@@ -16,10 +16,10 @@ F       Find
 //
 //  Pragmas
 //
-//   PRAGMA STRING <string>
-//   PRAGMA MEMORY <hexaddr> <label>
-//   PRAGMA SUBROUTINE <hexaddr> <label>
-//   PRAGMA HERE <label>
+    //   PRAGMA STRING <string>
+    //   PRAGMA MEMORY <hexaddr> <label>
+    //   PRAGMA SUBROUTINE <hexaddr> <label>
+    //   PRAGMA HERE <label>
 //
 //  Mnemonics
 //

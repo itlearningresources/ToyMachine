@@ -24,9 +24,8 @@ egrep MNEMONIC:: InstructionSet.java  | gawk '
 
 
 
-
-egrep PRAGMA:: HW.java |   sed 's/^.*PRAGMA:: //'   | gawk '{print "//   " $0}' > pragmas.txt
-egrep HELP:: TOY.java |   sed 's/^.*HELP:: //'   > $Tmp
+egrep PRAGMA:: HW.java |   sed 's/^.*PRAGMA:: //'   | gawk '{print "//   " $0}' | gawk '{print "    " $0}' > pragmas.txt
+egrep HELP:: TOY.java |   sed 's/^.*HELP:: //'      > $Tmp
 
 cat $Tmp | gawk -F, ' {
     printf("\"%-8s%-24s\"\n",$1,$2);
