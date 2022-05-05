@@ -36,7 +36,8 @@ cp $Tmp2 TMP
 cd TMP
 rm -rf x*
 split -l $L $Tmp2
-echo "Command Line CommandsPragmas" > ../help.txt
+echo "Command Line Commands" > ../help.txt
+echo "" >> ../help.txt
 paste xaa xab | sed 's/"//g' >> ../help.txt
 cd ..
 echo "" >> help.txt

@@ -33,7 +33,8 @@ Attributions: https://introcs.cs.princeton.edu/java/home/
         D       Move Down               	
         F       Find                    	
 
-    Command Line CommandsPragmas
+    Command Line Commands
+    
     H       Help                    	/       Find                    
     IPL     Initial Program Load    	LOG     Show Log Buffer         
     CRASH   Crash Application       	R       Show Program Trace      
