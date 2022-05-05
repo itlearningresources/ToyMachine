@@ -5,7 +5,26 @@ trap 'rm -f "$Tmp" >/dev/null 2>&1' 0
 trap "exit 2" 1 2 3 13 15
 rm -f "$Tmp" >/dev/null 2>&1
 
-egrep MNEMONIC:: InstructionSet.java |   sed 's/^.*MNEMONIC:: //'   | gawk '{print "//   " $0}' > mnemonics.txt
+# egrep MNEMONIC:: InstructionSet.java |   sed 's/^.*MNEMONIC:: //'   | gawk '{print "//   " $0}' > mnemonics.txt
+
+egrep MNEMONIC:: InstructionSet.java  | gawk '
+ {
+     out = ""
+     line = $0
+     sz = $2
+     gsub(/[":]/,"", sz)
+     m = sz
+     sz = line
+     sub(/^.*MNEMONIC::/,"",sz)  
+     printf("//   %-6s    %s\n", m, sz)
+ }
+ ' > mnemonics.txt
+
+
+
+
+
+
 egrep PRAGMA:: HW.java |   sed 's/^.*PRAGMA:: //'   | gawk '{print "//   " $0}' > pragmas.txt
 egrep HELP:: TOY.java |   sed 's/^.*HELP:: //'   > $Tmp
 

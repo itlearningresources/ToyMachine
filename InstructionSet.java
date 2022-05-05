@@ -38,25 +38,38 @@ public static int assembly(String mnemonic, String operand) {
     int n = 0;
     int o = H.fromHex(operand) & 0x00FF;
     switch (mnemonic) {
-        case "HALT": n=0x00; break; // MNEMONIC:: HALT -- Opcode 0x00
-        case "HLT":  n=0x00; break; // MNEMONIC:: HLT  -- Opcode 0x00
-        case "ADD":  n=0x01; break; // MNEMONIC:: ADD  -- Opcode 0x01
-        case "SUB":  n=0x02; break;
-        case "INC":  n=0x03; break;
-        case "DEC":  n=0x04; break;
-        case "ACM":  n=0x05; break;
-        case "DCM":  n=0x06; break;
-        case "LRA":  n=0x10; break;
-        case "LRM":  n=0x11; break;
+        case "HALT": n=0x00; break;  // MNEMONIC:: Halt
+        case "HLT":  n=0x00; break;  // MNEMONIC:: Halt
+        case "ADD":  n=0x01; break;  // MNEMONIC:: Addi
+        case "SUB":  n=0x02; break;  // MNEMONIC:: Subtract
+        case "INC":  n=0x03; break;  // MNEMONIC:: Increment
+        case "DEC":  n=0x04; break;  // MNEMONIC:: Decrement
+        case "ACM":  n=0x05; break;  // MNEMONIC:: Acumulate
+        case "DCM":  n=0x06; break;  // MNEMONIC:: Decumulate
 
-        case "SRM":  n=0x14; break;  // Store register to memory
-        case "IRM":  n=0x15; break;  // Indirect register to memory
-        case "ILD":  n=0x16; break;  // Indirect Load
-        case "LIR":  n=0x17; break;  // Load index register
+        case "LRA":  n=0x10; break;  // MNEMONIC:: Load register with word
+        case "LRM":  n=0x11; break;  // MNEMONIC:: Load register with memory
+        case "SRM":  n=0x14; break;  // MNEMONIC:: Store register to memory
+        case "IRM":  n=0x15; break;  // MNEMONIC:: Indirect register to memory
+        case "ILD":  n=0x16; break;  // MNEMONIC:: Indirect Load
+        case "LIR":  n=0x17; break;  // MNEMONIC:: Load index register
 
-        case "JMP":  n=0x20; break;  // Jump to address in word
-        case "NOP":  n=0x50; break;  // No Operation
-        case "SYS":  n=0x70; break;  // System Call
+        case "JMP":  n=0x20; break;  // MNEMONIC:: Jump to address in word
+        case "BIZ":  n=0x21; break;  // MNEMONIC:: Branch if Zero
+        case "BINZ": n=0x22; break;  // MNEMONIC:: Branch if not Zero
+        case "PLZ":  n=0x23; break;  // MNEMONIC:: Pop and Link if Zero
+        case "PLNZ": n=0x24; break;  // MNEMONIC:: Pop and Link if not Zero
+        case "BIF":  n=0x25; break;  // MNEMONIC:: Branch if Positive
+        case "BRI":  n=0x26; break;  // MNEMONIC:: Branch indirect
+        case "JLK":  n=0x27; break;  // MNEMONIC:: Branch indirect
+
+        case "PSHW": n=0x31; break;  // MNEMONIC:: Push word
+        case "PSHR": n=0x32; break;  // MNEMONIC:: Push register
+        case "POPR": n=0x33; break;  // MNEMONIC:: Pop register
+
+
+        case "NOP":  n=0x50; break;  // MNEMONIC:: No Operation
+        case "SYS":  n=0x70; break;  // MNEMONIC:: System Call
         default:     System.out.println("\n\nABEND: Bad Assembly Mnemonic\n\n"); System.exit(1); break;
     }
     n = n << 8;
