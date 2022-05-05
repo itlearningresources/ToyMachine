@@ -24,7 +24,7 @@ egrep MNEMONIC:: InstructionSet.java  | gawk '
 
 
 
-egrep PRAGMA:: HW.java |   sed 's/^.*PRAGMA:: //'   | gawk '{print "//   " $0}' | gawk '{print "    " $0}' > pragmas.txt
+egrep PRAGMA:: HW.java |   sed 's/^.*PRAGMA:: //'   | gawk '{print "//   " $0}' > pragmas.txt
 egrep HELP:: TOY.java |   sed 's/^.*HELP:: //'      > $Tmp
 
 cat $Tmp | gawk -F, ' {
@@ -38,16 +38,16 @@ rm -rf x*
 split -l $L $Tmp2
 paste xaa xab | sed 's/"//g' > ../help.txt
 cd ..
-echo "//" >> help.txt
-echo "//  Pragmas" >> help.txt
-echo "//" >> help.txt
+echo "" >> help.txt
+echo "Pragmas" >> help.txt
+echo "" >> help.txt
 cat pragmas.txt  >> help.txt
-echo "//" >> help.txt
-echo "//  Mnemonics" >> help.txt
-echo "//" >> help.txt
+echo "" >> help.txt
+echo " Mnemonics" >> help.txt
+echo "" >> help.txt
 cat mnemonics.txt  >> help.txt
-echo "//" >> help.txt
-echo "//  Instructions" >> help.txt
-echo "//" >> help.txt
+echo "" >> help.txt
+echo "Instructions" >> help.txt
+echo "" >> help.txt
 cat instructionset.txt >> help.txt
-echo "//" >> help.txt
+echo "" >> help.txt
