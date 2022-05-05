@@ -1,5 +1,8 @@
 
 cat TOY.java | gawk '
+function ltrim(s) { sub(/^ */, "", s); return s }
+function rtrim(s) { sub(/ *$/, "", s); return s }
+function trim(s) { return rtrim(ltrim(s)); }
 /case.*II/ { print $0; next;}
 /SUBSET/ { print $0; next;}' |
 sed 's/case//' |
@@ -13,11 +16,14 @@ sed 's/^ [ ]*//g'   |
 sed 's/["]//g'  |
 sed 's/, /,/g'  |
 gawk -F, '
+function ltrim(s) { sub(/^ */, "", s); return s }
+function rtrim(s) { sub(/ *$/, "", s); return s }
+function trim(s) { return rtrim(ltrim(s)); }
 /SUBSET/ {
     sz = $0
     gsub(/^.*[:]/, "" ,sz)
     print ""
-    print "" sz 
+    print "" trim(sz)
     next
 }
 {
