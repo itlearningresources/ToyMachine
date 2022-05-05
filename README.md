@@ -34,6 +34,38 @@ Attributions: https://introcs.cs.princeton.edu/java/home/
     D       Move Down               	
     F       Find                    	
     
+    Sample Program
+    
+    PRAGMA MEMORY 0000 BOOT
+    0700 0000
+    PRAGMA PAGESIZE 0010 XXX
+    PRAGMA MEMORY 0500 DATA
+    PRAGMA STRING Michael
+    PRAGMA MEMORY 0700 PROGRAM
+    1010 0055
+    0410 0000 TOL
+    3500 ADDMETHOD
+    7021 0000
+    2110 ELOOP
+    2000 TOL
+    PRAGMA HERE ELOOP
+    NOP  0000
+    NOP  0000
+    NOP  0000
+    1020 0040
+    0420 0000 TOLA
+    2120 ELOOPA
+    2000 TOLA
+    1020 0099 ELOOPA
+    NOP  0000
+    NOP  0000
+    NOP  0000
+    0000 0000 
+    0310 0000 
+    PRAGMA SUBROUTINE 0800 ADDMETHOD
+    NOP  0000
+    
+    
     Pragmas
     
     PRAGMA STRING <string>

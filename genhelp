@@ -40,6 +40,14 @@ echo "Command Line Commands" > ../help.txt
 echo "" >> ../help.txt
 paste xaa xab | sed 's/"//g' >> ../help.txt
 cd ..
+
+
+echo "" >> help.txt
+echo "Sample Program" >> help.txt
+echo "" >> help.txt
+cat sample.toy  >> help.txt
+echo "" >> help.txt
+
 echo "" >> help.txt
 echo "Pragmas" >> help.txt
 echo "" >> help.txt
