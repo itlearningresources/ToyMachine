@@ -21,7 +21,7 @@ PRAGMA MEMORY <hexaddr> <label>
 PRAGMA SUBROUTINE <hexaddr> <label>
 PRAGMA HERE <label>
 
- Mnemonics
+Mnemonics
 
 HALT       Halt
 HLT        Halt

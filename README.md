@@ -56,7 +56,7 @@ Attributions: https://introcs.cs.princeton.edu/java/home/
     PRAGMA SUBROUTINE <hexaddr> <label>
     PRAGMA HERE <label>
     
-     Mnemonics
+    Mnemonics
     
     HALT       Halt
     HLT        Halt
