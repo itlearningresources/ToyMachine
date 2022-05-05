@@ -16,7 +16,7 @@ egrep MNEMONIC:: InstructionSet.java  | gawk '
      m = sz
      sz = line
      sub(/^.*MNEMONIC::/,"",sz)  
-     printf("//   %-6s    %s\n", m, sz)
+     printf("%-6s    %s\n", m, sz)
  }
  ' > mnemonics.txt
 
@@ -24,7 +24,7 @@ egrep MNEMONIC:: InstructionSet.java  | gawk '
 
 
 
-egrep PRAGMA:: HW.java |   sed 's/^.*PRAGMA:: //'   | gawk '{print "//   " $0}' > pragmas.txt
+egrep PRAGMA:: HW.java |   sed 's/^.*PRAGMA:: //'   | gawk '{print "" $0}' > pragmas.txt
 egrep HELP:: TOY.java |   sed 's/^.*HELP:: //'      > $Tmp
 
 cat $Tmp | gawk -F, ' {
