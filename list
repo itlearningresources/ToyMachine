@@ -15,7 +15,7 @@ sed 's/, /,/g'  |
 gawk -F, '
 /SUBSET/ {
     sz = $0
-    gsub(/^.*[:]/, "  " ,sz)
+    gsub(/^.*[:]/, "" ,sz)
     print ""
     print "" sz 
     next
