@@ -16,7 +16,7 @@ egrep MNEMONIC:: InstructionSet.java  | gawk '
      m = sz
      sz = line
      sub(/^.*MNEMONIC::/,"",sz)  
-     printf("    //   %-6s    %s\n", m, sz)
+     printf("//   %-6s    %s\n", m, sz)
  }
  ' > mnemonics.txt
 

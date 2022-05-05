@@ -58,33 +58,33 @@ Attributions: https://introcs.cs.princeton.edu/java/home/
     
      Mnemonics
     
-        //   HALT       Halt
-        //   HLT        Halt
-        //   ADD        Addi
-        //   SUB        Subtract
-        //   INC        Increment
-        //   DEC        Decrement
-        //   ACM        Acumulate
-        //   DCM        Decumulate
-        //   LRA        Load register with word
-        //   LRM        Load register with memory
-        //   SRM        Store register to memory
-        //   IRM        Indirect register to memory
-        //   ILD        Indirect Load
-        //   LIR        Load index register
-        //   JMP        Jump to address in word
-        //   BIZ        Branch if Zero
-        //   BINZ       Branch if not Zero
-        //   PLZ        Pop and Link if Zero
-        //   PLNZ       Pop and Link if not Zero
-        //   BIF        Branch if Positive
-        //   BRI        Branch indirect
-        //   JLK        Branch indirect
-        //   PSHW       Push word
-        //   PSHR       Push register
-        //   POPR       Pop register
-        //   NOP        No Operation
-        //   SYS        System Call
+    //   HALT       Halt
+    //   HLT        Halt
+    //   ADD        Addi
+    //   SUB        Subtract
+    //   INC        Increment
+    //   DEC        Decrement
+    //   ACM        Acumulate
+    //   DCM        Decumulate
+    //   LRA        Load register with word
+    //   LRM        Load register with memory
+    //   SRM        Store register to memory
+    //   IRM        Indirect register to memory
+    //   ILD        Indirect Load
+    //   LIR        Load index register
+    //   JMP        Jump to address in word
+    //   BIZ        Branch if Zero
+    //   BINZ       Branch if not Zero
+    //   PLZ        Pop and Link if Zero
+    //   PLNZ       Pop and Link if not Zero
+    //   BIF        Branch if Positive
+    //   BRI        Branch indirect
+    //   JLK        Branch indirect
+    //   PSHW       Push word
+    //   PSHR       Push register
+    //   POPR       Pop register
+    //   NOP        No Operation
+    //   SYS        System Call
     
     Instructions
     
